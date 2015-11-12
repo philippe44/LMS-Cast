@@ -73,3 +73,31 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# C++ builder related
+*.*proj
+*.zip
+*.z
+*.local
+__history
+tests
+Win32
+*.res
+*.i??
+*.map
+*.tds
+config.xml
+*.bat
+*-idx*
+*.save*
+tests/
+sonos/
+misc/
+bin/
+bin.old/
+#plugin/Bin
+/repo*.xml
+/package*.*
+alpha/
+_backup/
+

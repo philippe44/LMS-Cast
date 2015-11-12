@@ -1,0 +1,51 @@
+https://github.com/jloutsenhizer/CR-Cast/wiki/Chromecast-Implementation-Documentation-WIP
+https://developers.google.com/cast/docs/reference/messages
+http://fm4dd.com/openssl/sslconnect.htm
+http://simplestcodings.blogspot.com.br/2010/08/secure-server-client-using-openssl-in-c.html
+https://www.openssl.org/community/binaries.html
+http://rudeserver.com/ssl/openssltutorial.html
+http://fm4dd.com/openssl/sslconnect.htm
+http://openssl.6102.n7.nabble.com/Using-OpenSSL-with-non-blocking-I-O-td29132.html
+http://stackoverflow.com/questions/18127031/how-to-set-ssl-connect-on-non-blocking-socket-with-select-on-linux-platform
+http://manpages.ubuntu.com/manpages/hardy/fr/man2/select_tut.2.html
+http://developerweb.net/viewtopic.php?id=3196
+https://github.com/udp/json-parser
+https://github.com/kbranigan/cJSON
+https://github.com/jeffhill/json
+https://github.com/akheron/jansson
+https://github.com/spsoft/spdatapickle
+https://github.com/Cheedoong/xml2json
+http://forum.xda-developers.com/hardware-hacking/chromecast/chromecast-unofficial-api-information-t2788502
+https://plus.google.com/+LeonNicholls/posts/b3wCmToPehK
+https://www.npmjs.com/package/castv2
+http://www.scriptol.fr/programmation/tutoriel-protocol-buffers.php
+https://github.com/diequeiroz/start-chromecast-CLI
+http://koti.kapsi.fi/~jpa/nanopb/
+https://developers.google.com/protocol-buffers/docs/encoding
+https://developers.google.com/cast/docs/reference/messages#MediaInformation
+https://github.com/thibauts/node-castv2
+https://developers.google.com/cast/docs/audio#capabilities
+
+
+Base URL	http://192.168.2.30:8008/
+Device icon	Present, 98x55
+Device URN	urn:dial-multiscreen-org:device:dial:1
+Embedded devices	0
+Expiration timeout	1800
+Friendly name	ChromecastAudio0185
+Has presentation	False
+Interface to host	192.168.2.10
+Manufacturer	Google Inc.
+Manufacturer URL	
+Model description	
+Model name	Chromecast Audio
+Model number	
+Presentation URL	
+Product code	
+Proprietary type	
+Remote endpoint	192.168.2.30:8008
+Serial number	
+Services	1
+Standard type	
+Unique device name	67521934-39f0-6af5-9d82-12b71e053158
+Version	1.0

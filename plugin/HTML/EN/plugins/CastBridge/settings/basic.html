@@ -1,0 +1,177 @@
+[% PROCESS settings/header.html %]
+
+	[% YESNOBOX = [['',''], ['yes','1'], ['no','0']] %]
+
+		
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_AUTORUN" desc="PLUGIN_CASTBRIDGE_AUTORUN_DESC" %]
+		<input name="autorun" type="checkbox" [% IF autorun %] checked [% END %]> [% "PLUGIN_CASTBRIDGE_RUNNING_$running" | string %] [% IF binary %] ([% binary %]) [% END %]
+		&nbsp&nbsp<b><a href="[% webroot %]plugins/UPnPBridge/userguide.htm" target="user guide">[% "PLUGIN_CASTBRIDGE_USERGUIDELINK" | string %]</a></b>
+		[%IF running %] <b><font color="red">&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_WARNING" | string %]</font></b> [% END %]
+	[% END %]
+	
+	[% IF binaries.size > 1 %]
+		[% WRAPPER setting title="PLUGIN_CASTBRIDGE_BINARIES" desc="PLUGIN_CASTBRIDGE_BINARIES_DESC" %]
+			<select class="stdedit" name="bin" id="bin">
+			[% FOREACH entry IN binaries %]
+				<option [% IF entry == bin %]selected[% found = 1 %][% END %] value="[% entry %]">[% entry %]</option>
+			[% END %]
+			[% IF not found %]
+				<option selected value="">[% "PLUGIN_CASTBRIDGE_BINARIES" | string %]</option>
+			[% END %]
+			</select>
+		[% END %]
+	[% END %]
+		
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_OPTIONS" desc="PLUGIN_CASTBRIDGE_OPTIONS_DESC" %]
+		<input type="text" class="stdedit" name="opts" id="opts" value="[% opts %]" size="100">
+	[% END %]
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_DEBUG" desc="PLUGIN_CASTBRIDGE_DEBUG_DESC" %]
+		<select class="stdedit" name="debugs" id="debugs">
+		[% FOREACH entry IN [ '', 'all', 'output', 'stream', 'slimproto', 'decode' ] %]
+			<option [% IF entry == debugs %]selected[% END %] value="[% entry %]">[% "PLUGIN_CASTBRIDGE_$entry" | string %]</option>
+		[% END %]
+		</select>
+	[% END %]
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_LOGGING" desc="PLUGIN_CASTBRIDGE_LOGGING_DESC" %]
+		<input name="logging" type="checkbox" [% IF logging %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_LOGENABLE" | string %]
+		&nbsp<a href="/castbridge-log.log" target="log">[% "PLUGIN_CASTBRIDGE_LOGLINK" | string %]</a>
+		&nbsp[% "PLUGIN_CASTBRIDGE_LOGSIZE" | string %]&nbsp<input type="text" class="stdedit" name="log_limit" id="log_limit" value="[% log_limit %]" size="2"> 
+		&nbsp<input name="eraselog" type="checkbox" [% IF eraselog %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_ERASELOG" | string %]
+		&nbsp<input name="cleanlog" type="submit" value=[% "PLUGIN_CASTBRIDGE_CLEANLOG" | string %]> 
+	[% END %]
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CONFIG" desc="PLUGIN_CASTBRIDGE_CONFIG_DESC" %]
+		[% configpath %]
+		<input type="text" class="stdedit" name="configfile" id="configfile" value="[% configfile %]" size="20">
+		<a href="/castbridge-config.xml" target="config">[% "PLUGIN_CASTBRIDGE_CONFLINK" | string %]</a>
+		&nbsp&nbsp<input name="autosave" type="checkbox" [% IF autosave %] checked [% END %]>[% "PLUGIN_CASTBRIDGE_AUTOSAVECONFIG" | string %]
+		[% IF binary %]
+			&nbsp<input name="genconfig" type="submit" onclick="alert('generating configuration will take ~30 seconds')" value=[% "PLUGIN_CASTBRIDGE_GENCONFIG" | string %]>
+		[% END %]	
+		&nbsp<input name="delconfig" type="submit" value=[% "PLUGIN_CASTBRIDGE_DELCONFIG" | string %]>
+	[% END %]
+	
+	[% IF !xmlparams %]
+		[% WRAPPER settingSection %]
+			<b><font color=red>[% "PLUGIN_CASTBRIDGE_NOCONFIG" | string %]</font></b>
+		[% END %]	
+	[% ELSE %]
+	
+	<input hidden type="text" class="stdedit" name="xmlparams" id="xmlparams" value="1" size="5">
+	<input hidden type="text" class="stdedit" name="prevseldevice" id="prevseldevice" value="[% prevseldevice %]" size="5">
+	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPSCAN" desc="PLUGIN_CASTBRIDGE_UPNPSCAN_DESC" %]
+		[% "PLUGIN_CASTBRIDGE_SCANINTERVAL" | string %]</th>&nbsp<td><input type="text" class="stdedit" name="upnp_scan_interval" id="upnp_scan_interval" value="[% upnp_scan_interval %]" size="2"> (s)
+		[% "PLUGIN_CASTBRIDGE_SCANTIMEOUT" | string %]&nbsp<input type="text" class="stdedit" name="upnp_scan_timeout" id="upnp_scan_timeout" value="[% upnp_scan_timeout %]" size="2"> (s)
+	[% END %]
+	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPSOCKET" desc="PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC" %]
+		<input type="text" class="stdedit" name="upnp_socket" id="upnp_socket" value="[% upnp_socket %]" size="20">
+	[% END %]
+	
+	<hr>
+
+	[% WRAPPER settingSection %]
+		<select class="stdedit" name="seldevice" id="seldevice" onchange="form.submit()">
+		[% FOREACH entry IN devices %]
+			<option [% IF entry.udn == seldevice %]selected[% END %] value="[% entry.udn %]">[% entry.name %]</option>
+		[% END %]
+		</select>
+		[% IF seldevice == '.common.' %]<b><font color=red>&nbsp&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_COMMONPARAMINFO" | string %]</font></b>
+		[% ELSE %]<b><font color=red>&nbsp&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_PARAMINFO" | string %]</font></b>[% END %]
+	[% END %]
+	
+	[% IF seldevice != '.common.' %]
+		[% WRAPPER setting title="PLUGIN_CASTBRIDGE_PLAYERINFO" desc="PLUGIN_CASTBRIDGE_PLAYERINFO_DESC" %]
+			<th>[% "PLUGIN_CASTBRIDGE_PLAYERNAME" | string %]</th>
+			<td><input type="text" class="stdedit" name="name" id="name" value="[% name %]" size="25"></td>
+			<th>[% "PLUGIN_CASTBRIDGE_PLAYERMAC" | string %]</th>
+			<td><input type="text" class="stdedit" name="mac" id="mac" value="[% mac %]" size="20"></td>
+			<td><input name="deldevice" type="checkbox"></td>
+			<th>[% "PLUGIN_CASTBRIDGE_DELETEPLAYER" | string %]</th>
+		[% END %]
+	[% END %]		
+
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_BUFFERS" desc="PLUGIN_CASTBRIDGE_BUFFERS_DESC" %]
+		[% "PLUGIN_CASTBRIDGE_BUFFERDIR" | string %]&nbsp<input type="text" class="stdedit" name="buffer_dir" id="buffer_dir" value="[% buffer_dir %]" size="30">
+		[% "PLUGIN_CASTBRIDGE_BUFFERLIMIT" | string %]&nbsp<input type="text" class="stdedit" name="buffer_limit" id="buffer_limit" value="[% buffer_limit %]" size="10">
+	[% END %]
+	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CODECSPARAM" desc="PLUGIN_CASTBRIDGE_CODECSPARAM_DESC" %]
+		<table><tr>
+		<th>[% "PLUGIN_CASTBRIDGE_CODECS" | string %]</th><td>&nbsp<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="10">&nbsp</td>
+		<td>[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]</td><td><select class="stdedit" name="sample_rate" id="sample_rate">
+		[% FOREACH entry IN [ '', '44100', '48000', '96000', '192000' ] %]
+			<option [% IF entry == sample_rate %]selected[% END %] value="[% entry %]">[% entry %]</option>
+		[% END %]
+		</select></td>
+		<tr><th>[% "PLUGIN_CASTBRIDGE_FLACHEADER" | string %]</th><td><select class="stdedit" name="flac_header" id="flac_header">
+		[% FOREACH entry IN [ ['',''], ['none','0'], ['normal','1'], ['fixed size','2'] ] %]
+			<option [% IF entry.1 == flac_header %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select></td>
+		<th>[% "PLUGIN_CASTBRIDGE_L24FORMAT" | string %]</th><td><select class="stdedit" name="L24_format" id="L24_format">
+		[% FOREACH entry IN [ ['',''], ['plain 24 bits','0'], ['packed type 1','1'] ['16 bits always','2'] ['16 bits raw only', '3'] ] %]
+			<option [% IF entry.1 == L24_format %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select></td></tr>
+		
+		</table>
+	[% END %]
+	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPMGMT" desc="PLUGIN_CASTBRIDGE_UPNPMGMT_DESC" %]
+		[% "PLUGIN_CASTBRIDGE_ENABLEDEFS" | string %]
+		<select class="stdedit" name="enabled" id="enabled">
+		[% FOREACH entry IN YESNOBOX %] 
+			<option [% IF entry.1 == enabled %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select>
+		[% "PLUGIN_CASTBRIDGE_UPNPREMOVECOUNT_1" | string %]<input type="text" class="stdedit" name="upnp_remove_count" id="upnp_remove_count" value="[% upnp_remove_count %]" size="2">&nbsp[% "PLUGIN_CASTBRIDGE_UPNPREMOVECOUNT_2" | string %]
+	[% END %]
+	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_VOLUMEMGMT" desc="PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC" %]
+		&nbsp<font color=blue>[% "PLUGIN_CASTBRIDGE_VOLUMEONPLAY" | string %]</font>&nbsp<select class="stdedit" name="volume_on_play" id="volume_on_play">
+		[% FOREACH entry IN [ ['',''], ['only when playing','1'], ['ignore all changes','-1'], ['transparent forward','0'] ] %]
+			<option [% IF entry.1 == volume_on_play %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select>
+		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_PAUSEVOLUME" | string %]&nbsp<select class="stdedit" name="pause_volume" id="pause_volume">
+		[% FOREACH entry IN YESNOBOX %] 
+			<option [% IF entry.1 == pause_volume %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select>
+	[% END %]
+	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_SENDMETADATA" desc="PLUGIN_CASTBRIDGE_SENDMETADATA_DESC" %]
+		<select class="stdedit" name="send_metadata" id="send_metadata">
+		[% FOREACH entry IN YESNOBOX %] 
+			<option [% IF entry.1 == send_metadata %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select>
+		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SEND_COVERART" | string %]&nbsp
+		<select class="stdedit" name="send_coverart" id="send_coverart">
+		[% FOREACH entry IN YESNOBOX %] 
+			<option [% IF entry.1 == send_coverart %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select>
+		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SENDICY" | string %]&nbsp
+		<select class="stdedit" name="send_icy" id="send_icy">
+		[% FOREACH entry IN YESNOBOX %] 
+			<option [% IF entry.1 == send_icy %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select>
+	[% END %]
+	
+	<hr>
+	<b>[% "PLUGIN_CASTBRIDGE_PLAYERLIST" | string %]</b><br>
+	<br><table>
+	[% FOREACH entry IN devices %]
+		[% IF entry.udn != '.common.' %]
+			<tr><td><input name="enabled.[% entry.udn %]" type="checkbox" value="1" [% IF entry.enabled %] checked [% END %]></td>
+			<th>[% entry.name %]<th>[% entry.mac %]</th><th>&nbsp[% entry.udn %]</th></tr>
+		[% END %]
+	[% END %]
+	</table>
+	
+	[% END %]
+
+[% PROCESS settings/footer.html %]

@@ -1,0 +1,291 @@
+PLUGIN_CASTBRIDGE
+	EN	Chromecast bridge
+
+PLUGIN_CASTBRIDGE_DESC
+	EN	Use Chromecast devices in LMS 
+	
+PLUGIN_CASTBRIDGE_YES
+	EN	Yes
+		
+PLUGIN_CASTBRIDGE_NO
+	EN	No
+	
+PLUGIN_CASTBRIDGE_AUTORUN
+	EN	Start the Bridge
+
+PLUGIN_CASTBRIDGE_AUTORUN_DESC
+	EN	Automatically start the UPnP/DLNA bridge instance when the server starts.
+
+PLUGIN_CASTBRIDGE_RUNNING_0
+	EN	Not Running
+
+PLUGIN_CASTBRIDGE_RUNNING_1
+	EN	Running
+	
+PLUGIN_CASTBRIDGE_USERGUIDELINK
+	EN	View User Guide
+	
+PLUGIN_CASTBRIDGE_BINARIES
+	EN	Select Binary
+
+PLUGIN_CASTBRIDGE_BINARIES_DESC
+	EN	Select the Squeeze2upnp binary which best matches your machine's architecture. 
+	EN	This option is only needed for arm based devices where multiple options are available and autodetection is not reliable.
+
+PLUGIN_CASTBRIDGE_WARNING
+	EN	It is HIGHLY recommended to stop the bridge before changing parameters
+	
+PLUGIN_CASTBRIDGE_PARAMINFO
+	EN	An EMPTY parameter value means that [default parameter] is used
+	
+PLUGIN_CASTBRIDGE_COMMONPARAMINFO
+	EN	These parameters set the defaults for all players (EMPTY value means use built-in default)
+
+PLUGIN_CASTBRIDGE_OUTPUT
+	EN	N/A
+
+PLUGIN_CASTBRIDGE_OUTPUT_DESC
+	EN	N/A
+
+PLUGIN_CASTBRIDGE_OPTIONS
+	EN	Extra command line options
+
+PLUGIN_CASTBRIDGE_OPTIONS_DESC
+	EN	Add additional Squeeze2upnp startup command line options here.  See the user guide in https://github.com/philippe44/LMS-to-UPnP 
+	EN	for details.
+
+PLUGIN_CASTBRIDGE_DEBUG
+	EN	Debug Settings
+
+PLUGIN_CASTBRIDGE_DEBUG_DESC
+	EN	Specify debugging level for writing to the log file.
+	
+PLUGIN_CASTBRIDGE_ALL
+	EN	All
+
+PLUGIN_CASTBRIDGE_
+	EN	None
+
+PLUGIN_CASTBRIDGE_OUTPUT
+	EN	Output device debugging
+
+PLUGIN_CASTBRIDGE_STREAM
+	EN	Stream debugging
+
+PLUGIN_CASTBRIDGE_SLIMPROTO
+	EN	Control protocol debugging (slimproto)
+
+PLUGIN_CASTBRIDGE_DECODE
+	EN	Decode debugging
+
+PLUGIN_CASTBRIDGE_LOGGING
+	EN	Logging options
+	
+PLUGIN_CASTBRIDGE_LOGGING_DESC
+	EN	Enable logging of error and debug messages.
+	EN	<br>- Set a value in MB to limit log size (-1 for unlimited)
+
+PLUGIN_CASTBRIDGE_LOGENABLE
+	EN	Enable
+
+PLUGIN_CASTBRIDGE_LOGLINK
+	EN	View
+	
+PLUGIN_CASTBRIDGE_ERASELOG
+	EN	Erase at start
+	
+PLUGIN_CASTBRIDGE_LOGSIZE
+	EN	Max size (MB)
+
+PLUGIN_CASTBRIDGE_CLEANLOG
+	EN	Clean
+	
+PLUGIN_CASTBRIDGE_PLAYER
+	EN	Select UPnP player
+		
+PLUGIN_CASTBRIDGE_CONFIG
+	EN	Configuration file
+
+PLUGIN_CASTBRIDGE_CONFIG_DESC
+	EN	<i>Generate</i> re-scans the network and builds a configuration file including all discovered players while retaining
+	EN	existing parameters and players (this will stop the bridge for ~30s)
+	EN	<br>When autosave is checked, the configuration file will be automatically updated at every network scan (see UPnP scanning options)
+
+PLUGIN_CASTBRIDGE_CONFLINK
+	EN	View
+	
+PLUGIN_CASTBRIDGE_GENCONFIG
+	EN	Generate
+
+PLUGIN_CASTBRIDGE_AUTOSAVECONFIG
+	EN	Autosave
+
+PLUGIN_CASTBRIDGE_DELCONFIG
+	EN	Erase
+	
+PLUGIN_CASTBRIDGE_UPNPSCAN
+	EN	Chromecast device scanning options
+
+PLUGIN_CASTBRIDGE_UPNPSCAN_DESC
+	EN	How often and for how long the network is scanned for added/removed UPnP players on your network
+
+PLUGIN_CASTBRIDGE_UPNPSOCKET
+	EN	Network socket to use
+
+PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC
+	EN	The socket (IP:port) used by the bridge. This is especially useful if you have a computer with multiple network interfaces.
+	EN	Use "?" (without ") to let the bridge decide
+	
+PLUGIN_CASTBRIDGE_SCANINTERVAL
+	EN	Scan for Chromecast devices every
+	
+PLUGIN_CASTBRIDGE_SCANTIMEOUT
+	EN	during 	
+	
+PLUGIN_CASTBRIDGE_TEXTDEFAULT
+	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
+
+PLUGIN_CASTBRIDGE_STREAMLENGTH
+	EN	HTTP streaming option
+
+PLUGIN_CASTBRIDGE_STREAMLENGTH_DESC
+	EN	The true size of the stream is unknown by LMS. Some UPnP players are not happy with "chunked" HTTP streaming and require
+	EN	a true length (see the user guide in https://github.com/philippe44/LMS-to-UPnP for details.)
+
+PLUGIN_CASTBRIDGE_ACCEPTNEXTURI
+	EN	Player supports gapless 
+
+PLUGIN_CASTBRIDGE_ACCEPTNEXTURI_DESC
+	EN	Some players don't support gapless playback and thus don't automatically move to next track in playlist. 
+
+PLUGIN_CASTBRIDGE_PAUSEMGMT
+	EN	Pause/Resume management
+
+PLUGIN_CASTBRIDGE_SEEKAFTERPAUSE
+	EN	Force reposition on resume
+	
+PLUGIN_CASTBRIDGE_BYTESEEK
+	EN	Accept byte seek
+	
+PLUGIN_CASTBRIDGE_BUFFERS
+	EN	Audio file buffers
+
+PLUGIN_CASTBRIDGE_BUFFERS_DESC
+	EN	Audio streams are buffered locally while sending to the UPnP player. <br>- Enter ? to let the system decide which directory 
+	EN	to use<br>- "Max Size" defines the largest size a single file can take before it is shrunk. Set to -1 for unlimited
+
+PLUGIN_CASTBRIDGE_BUFFERDIR
+	EN	Directory
+
+PLUGIN_CASTBRIDGE_BUFFERLIMIT
+	EN	Max Size
+
+PLUGIN_CASTBRIDGE_CODECSPARAM
+	EN	Audio codec parameters
+
+PLUGIN_CASTBRIDGE_CODECSPARAM_DESC
+	EN	Several codecs are supported by the Chromecast player. They will be reported to LMS to decide when to do transcoding. 
+	EN	<i>- Supported Codecs</i> is an ordered, comma-separated, list made of mp3, flc, aif, pcm, aac and alc
+	EN	For example, to only support (in order of preference) PCM then FLAC and then MP3 , enter "pcm,flc,mp3" (without "")
+	EN	(<b>aac and alc are untested</b>. 
+	EN	<br><b>NB: if a codec listed here is NOT supported by the player, it will be removed from the list sent to LMS</b>
+	EN	<br>- <i> FLAC header:</i> a FLAC header is required by some players.
+	EN	<br>- <i>Uncompressed format:</i> comma-separated list (<b>ordered</b>) of supported uncompressed audio formats (amongst wav, aiff, raw)
+	EN	<br>- <i>Match byte order:</i> let the bridge choose which supported uncompressed format avoids byte re-ordering (so as to reduces CPU) 
+	EN	<br>- <i>24 bits PCM:</i> 24 bits sample tweaking, including possibility to shrink them to 16 bits
+	
+PLUGIN_CASTBRIDGE_SAMPLERATE
+	EN	Max Sample Rate
+
+PLUGIN_CASTBRIDGE_CODECS
+	EN	Supported codecs
+
+PLUGIN_CASTBRIDGE_FLACHEADER
+	EN	FLAC header
+
+PLUGIN_CASTBRIDGE_L24FORMAT
+	EN	24 bits PCM
+	
+PLUGIN_CASTBRIDGE_ENABLED
+	EN	Enabled
+	
+PLUGIN_CASTBRIDGE_PLAYERINFO
+	EN	Player information
+	
+PLUGIN_CASTBRIDGE_PLAYERINFO_DESC
+	EN	The Name and MAC address of the player can be changed here. The <i>Name</i> is superseded by value in LMS player's configuration page
+		
+PLUGIN_CASTBRIDGE_PLAYERNAME
+	EN	Name
+	
+PLUGIN_CASTBRIDGE_PLAYERMAC
+	EN	MAC address
+
+PLUGIN_CASTBRIDGE_DELETEPLAYER
+	EN	Delete
+
+PLUGIN_CASTBRIDGE_UPNPMGMT
+	EN	Player discovery options
+	
+PLUGIN_CASTBRIDGE_UPNPMGMT_DESC
+	EN	Misc options<br>- For the default list newly discovered players can be automatically added to LMS – For individual players a 
+	EN	player can be enabled or disabled<br>- Number of UPnP scan cycles a player can be found missing before being removed
+
+PLUGIN_CASTBRIDGE_ENABLEDEFS
+	EN	Player is enabled
+
+PLUGIN_CASTBRIDGE_UPNPREMOVECOUNT_1
+	EN	but removed after  
+	
+PLUGIN_CASTBRIDGE_UPNPREMOVECOUNT_2
+	EN	failed scans
+	
+PLUGIN_CASTBRIDGE_SENDMETADATA
+	EN	Send LMS metadata to player
+	
+PLUGIN_CASTBRIDGE_SEND_COVERART
+	EN	Include cover art
+
+PLUGIN_CASTBRIDGE_SENDICY
+	EN	Send ICY metadata
+
+PLUGIN_CASTBRIDGE_SENDMETADATA_DESC
+	EN	When a UPnP player has a display, LMS can send metadata (title, artist, album) to it. ICY metadata is an option to send live
+	EN	title when playing webradio. This <b>DOES NOT</b> work if you have set a password for LMS command access
+	
+PLUGIN_CASTBRIDGE_VOLUMEMGMT
+	EN	Player volume management
+	
+PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC
+	EN	Defines how LMS volume commands are sent to player
+	EN	This section also controls how LMS volume commands are sent to player. LMS mute request when pausing can be blocked as well
+
+PLUGIN_CASTBRIDGE_VOLUMEONPLAY
+	EN	LMS volume changes
+	
+PLUGIN_CASTBRIDGE_PAUSEVOLUME
+	EN	Mute on pause
+
+PLUGIN_CASTBRIDGE_PLAYERLIST
+	EN	List of players currently in configuration file - Note that more devices might have been discovered
+		
+PLUGIN_CASTBRIDGE_NOCONFIG
+	EN	Configuration file missing - create one by clicking "generate" or, if autosave is on, refresh this page
+
+PLUGIN_CASTBRIDGE_INFO_UNIX
+	EN	CastBridge uses the Squeeze2cast software player which is installed as part of the plugin.  You can control it from the server
+	EN	web interface or any other Squeezebox control application.
+
+PLUGIN_CASTBRIDGE_INFO_WIN
+	EN	CastBridge uses the Squeeze2cast software player which is installed as part of the plugin.  You can control it from the server
+	EN	web interface or any other Squeezebox control application.
+
+PLUGIN_CASTBRIDGE_INFO_MAC
+	EN	CastBridge uses the Squeeze2cast software player which is installed as part of the plugin.  You can control it from the server
+	EN	web interface or any other Squeezebox control application.
+	
+	
+	
+
+	
+
