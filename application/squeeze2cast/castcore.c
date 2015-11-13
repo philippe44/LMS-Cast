@@ -28,7 +28,6 @@
 #include "castcore.h"
 #include "castitf.h"
 
-
 #if LINUX || OSX || FREEBSD
 #define last_error() errno
 #elif WIN
@@ -332,6 +331,9 @@ json_t *GetTimedEvent(void *p, u32_t msWait)
 	json_t	*data;
 	struct timespec ts;
 	u32_t	nsec;
+#if OSX
+	struct timeval tv;
+#endif
 
 #if WIN
 	struct _timeb SysTime;
@@ -341,6 +343,10 @@ json_t *GetTimedEvent(void *p, u32_t msWait)
 	ts.tv_nsec = 1000000 * SysTime.millitm;
 #elif LINUX || FREEBSD
 	clock_gettime(CLOCK_REALTIME, &ts);
+#elif OSX
+	gettimeofday(&tv, NULL);
+	ts.tv_sec = (long) tv.tv_sec;
+	ts.tv_nsec = 1000L * tv.tv_usec;
 #endif
 
 	nsec = ts.tv_nsec + (msWait % 1000) * 1000000;
@@ -376,7 +382,7 @@ static void *CastSocketThread(void *args)
 		}
 
 		pthread_mutex_lock(&Ctx->Mutex);
-		LOG_DEBUG("(s:%s) (r:%s) %s", Message.destination_id, Message.source_id, Message.payload_utf8);
+		LOG_INFO("(s:%s) (r:%s) %s", Message.destination_id, Message.source_id, Message.payload_utf8);
 
 		root = json_loads(Message.payload_utf8, 0, &error);
 

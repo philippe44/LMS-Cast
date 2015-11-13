@@ -421,7 +421,6 @@ void SaveConfig(char *name, void *ref, bool full)
 		XMLAddNode(doc, common, "enabled", "%d", (int) glMRConfig.Enabled);
 		XMLAddNode(doc, common, "codecs", glDeviceParam.codecs);
 		XMLAddNode(doc, common, "sample_rate", "%d", (int) glDeviceParam.sample_rate);
-		XMLAddNode(doc, common, "L24_format", "%d", (int) glDeviceParam.L24_format);
 		XMLAddNode(doc, common, "flac_header", "%d", (int) glDeviceParam.flac_header);
 		XMLAddNode(doc, common, "send_icy", "%d", (int) glDeviceParam.send_icy);
 		XMLAddNode(doc, common, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
@@ -492,7 +491,6 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "enabled")) Conf->Enabled = atol(val);
 	if (!strcmp(name, "codecs")) strcpy(sq_conf->codecs, val);
 	if (!strcmp(name, "sample_rate"))sq_conf->sample_rate = atol(val);
-	if (!strcmp(name, "L24_format"))sq_conf->L24_format = atol(val);
 	if (!strcmp(name, "flac_header"))sq_conf->flac_header = atol(val);
 	if (!strcmp(name, "keep_buffer_file"))sq_conf->keep_buffer_file = atol(val);
 	if (!strcmp(name, "upnp_remove_count"))Conf->UPnPRemoveCount = atol(val);

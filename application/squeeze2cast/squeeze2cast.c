@@ -321,8 +321,10 @@ static int	uPNPTerminate(void);
 			break;
 		case SQ_PLAY:
 			if (device->CurrentURI) {
+#if !defined(REPOS_TIME)
 				device->StartTime = sq_get_time(device->SqueezeHandle);
 				device->LocalStartTime = gettime_ms();
+#endif
 				CastPlay(device->CastCtx);
 				if (device->Config.VolumeOnPlay == 1) SetVolume(device->CastCtx, device->Volume);
 				device->sqState = SQ_PLAY;
@@ -522,7 +524,9 @@ static void *MRThread(void *args)
 				*/
 				if (p->State == PLAYING) {
 					u32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
+#if !defined(REPOS_TIME)
 					if (elapsed > gettime_ms() - p->LocalStartTime + 5000) elapsed -= p->StartTime;
+#endif
 					sq_notify(p->SqueezeHandle, p, SQ_TIME, NULL, &elapsed);
 				}
 

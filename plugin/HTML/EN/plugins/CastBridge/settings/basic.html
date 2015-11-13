@@ -97,25 +97,17 @@
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CODECSPARAM" desc="PLUGIN_CASTBRIDGE_CODECSPARAM_DESC" %]
-		<table><tr>
-		<th>[% "PLUGIN_CASTBRIDGE_CODECS" | string %]</th><td>&nbsp<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="10">&nbsp</td>
-		<td>[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]</td><td><select class="stdedit" name="sample_rate" id="sample_rate">
+		[% "PLUGIN_CASTBRIDGE_CODECS" | string %]&nbsp<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="10">
+		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]&nbsp<select class="stdedit" name="sample_rate" id="sample_rate">
 		[% FOREACH entry IN [ '', '44100', '48000', '96000', '192000' ] %]
 			<option [% IF entry == sample_rate %]selected[% END %] value="[% entry %]">[% entry %]</option>
 		[% END %]
-		</select></td>
-		<tr><th>[% "PLUGIN_CASTBRIDGE_FLACHEADER" | string %]</th><td><select class="stdedit" name="flac_header" id="flac_header">
+		</select>
+		&nbsp[% "PLUGIN_CASTBRIDGE_FLACHEADER" | string %]&nbsp<select class="stdedit" name="flac_header" id="flac_header">
 		[% FOREACH entry IN [ ['',''], ['none','0'], ['normal','1'], ['fixed size','2'] ] %]
 			<option [% IF entry.1 == flac_header %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]
-		</select></td>
-		<th>[% "PLUGIN_CASTBRIDGE_L24FORMAT" | string %]</th><td><select class="stdedit" name="L24_format" id="L24_format">
-		[% FOREACH entry IN [ ['',''], ['plain 24 bits','0'], ['packed type 1','1'] ['16 bits always','2'] ['16 bits raw only', '3'] ] %]
-			<option [% IF entry.1 == L24_format %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
-		[% END %]
-		</select></td></tr>
-		
-		</table>
+		</select>
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPMGMT" desc="PLUGIN_CASTBRIDGE_UPNPMGMT_DESC" %]

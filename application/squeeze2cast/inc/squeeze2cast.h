@@ -83,7 +83,9 @@ struct sMR {
 	sq_metadata_t	MetaData;
 	sq_action_t		sqState;
 	u32_t			Elapsed;
+#if !defined(REPOS_TIME)
 	u32_t			StartTime, LocalStartTime;
+#endif
 	unsigned		TrackPoll, KeepAlive;
 	bool			UPnPTimeOut;
 	int	 			SqueezeHandle;
