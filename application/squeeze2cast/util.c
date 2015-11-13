@@ -63,7 +63,7 @@ void ExtractIP(const char *URL, in_addr_t *IP)
 
 
 /*----------------------------------------------------------------------------*/
-char *GetAppIdItem(json_t *root, char* appId, char *item)
+const char *GetAppIdItem(json_t *root, char* appId, char *item)
 {
 	json_t *elm;
 	int i;
@@ -107,17 +107,16 @@ double GetMediaItem_F(json_t *root, int n, char *item)
 
 
 /*----------------------------------------------------------------------------*/
-char *GetMediaItem_S(json_t *root, int n, char *item)
+const char *GetMediaItem_S(json_t *root, int n, char *item)
 {
 	json_t *elm;
-	char *str;
+	const char *str;
 
 	if ((elm = json_object_get(root, "status")) == NULL) return NULL;
 	elm = json_array_get(elm, n);
 	elm = json_object_get(elm, item);
 	str = json_string_value(elm);
-	if (str) return strdup(str);
-	else return NULL;
+	return str;
 }
 
 

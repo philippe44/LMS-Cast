@@ -66,7 +66,7 @@ tMRConfig			glMRConfig = {
 							SQ_STREAM,
 							true,
 							"",
-							-1,
+							1,
 							false,
 							true,
 							true,
@@ -324,7 +324,7 @@ static int	uPNPTerminate(void);
 				device->StartTime = sq_get_time(device->SqueezeHandle);
 				device->LocalStartTime = gettime_ms();
 				CastPlay(device->CastCtx);
-				if (device->Config.VolumeOnPlay != -1) SetVolume(device->CastCtx, device->Volume);
+				if (device->Config.VolumeOnPlay == 1) SetVolume(device->CastCtx, device->Volume);
 				device->sqState = SQ_PLAY;
 			}
 			else rc = false;
@@ -352,10 +352,11 @@ static int	uPNPTerminate(void);
 			device->Volume = i;
 			device->PreviousVolume = device->Volume;
 
-            // calculate but do not transmit so that we can compare
 			if (device->Config.VolumeOnPlay == -1) break;
 
-			SetVolume(device->CastCtx, device->Volume);
+			if (!device->Config.VolumeOnPlay || device->sqState == SQ_PLAY) {
+				SetVolume(device->CastCtx, device->Volume);
+            }
 
 			break;
 		}
@@ -369,7 +370,7 @@ static int	uPNPTerminate(void);
 
 
 /*----------------------------------------------------------------------------*/
-void SyncNotifState(char *State, struct sMR* Device)
+void SyncNotifState(const char *State, struct sMR* Device)
 {
 	struct sAction *Action = NULL;
 	sq_event_t Event = SQ_NONE;
@@ -500,22 +501,19 @@ static void *MRThread(void *args)
 		// a message has been received
 		if (data) {
 			json_t *val = json_object_get(data, "type");
-			char *type = json_string_value(val);
+			const char *type = json_string_value(val);
 
 			if (type && !strcasecmp(type, "MEDIA_STATUS")) {
-				char *state = GetMediaItem_S(data, 0, "playerState");
+				const char *state = GetMediaItem_S(data, 0, "playerState");
 
 				if (state && (!strcasecmp(state, "PLAYING") || !strcasecmp(state, "PAUSED"))) {
 					SyncNotifState(state, p);
 				}
 
 				if (state && !strcasecmp(state, "IDLE")) {
-					char *cause = GetMediaItem_S(data, 0, "idleReason");
+					const char *cause = GetMediaItem_S(data, 0, "idleReason");
 					if (cause) SyncNotifState("STOPPED", p);
-					NFREE(cause);
 				}
-
-				NFREE(state);
 
 				/*
 				Discard any time info unless we are confirmed playing. Cast

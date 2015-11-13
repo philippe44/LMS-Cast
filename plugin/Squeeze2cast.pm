@@ -29,11 +29,11 @@ sub binaries {
 			return qw(squeeze2cast-x86 squeeze2cast-x86-static);
 		}
 		if ($os->{'binArch'} =~ /arm/) {
-			return qw(squeeze2cast-armv6hf squeeze2cast-armv6hf-static squeeze2cast-armv5 squeeze2cast-armv5-static);
+			return qw(squeeze2cast-armv6hf squeeze2cast-armv5);
 		}
 
 		# fallback to offering all linux options for case when architecture detection does not work
-		return qw(squeeze2cast-x86-64 squeeze2cast-x86 squeeze2cast-x86-static squeeze2cast-armv6hf squeeze2cast-armv6hf-static);
+		return qw(squeeze2cast-x86-64 squeeze2cast-x86 squeeze2cast-x86-static squeeze2cast-armv6hf squeeze2cast-armv5);
 	}
 	
 	if ($os->{'os'} eq 'Darwin') {

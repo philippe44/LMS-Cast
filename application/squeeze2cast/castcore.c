@@ -274,7 +274,10 @@ void DisconnectCastDevice(void *p)
 
 	pthread_mutex_lock(&Ctx->Mutex);
 	SSL_shutdown(Ctx->ssl);
-	//SSL_free(Ctx->ssl);
+#if 0
+	// FIXME: causes a segfault !
+	SSL_free(Ctx->ssl);
+#endif
 	Ctx->ssl = NULL;
 	closesocket(Ctx->sock);
 	Ctx->running = false;
@@ -365,7 +368,7 @@ static void *CastSocketThread(void *args)
 	while (Ctx->running) {
 		int requestId = 0;
 		bool done = false;
-		char *str = NULL;
+		const char *str = NULL;
 
 		if (!GetNextMessage(Ctx->ssl, &Message)) {
 			LOG_WARN("[%p]: SSL connection lost", Ctx);
@@ -373,7 +376,7 @@ static void *CastSocketThread(void *args)
 		}
 
 		pthread_mutex_lock(&Ctx->Mutex);
-		LOG_INFO("(s:%s) (r:%s) %s", Message.destination_id, Message.source_id, Message.payload_utf8);
+		LOG_DEBUG("(s:%s) (r:%s) %s", Message.destination_id, Message.source_id, Message.payload_utf8);
 
 		root = json_loads(Message.payload_utf8, 0, &error);
 
@@ -387,6 +390,7 @@ static void *CastSocketThread(void *args)
 			// respond to device ping
 			if (!strcasecmp(str,"PING")) {
 				SendCastMessage(Ctx->ssl, CAST_BEAT, Message.source_id, "{\"type\":\"PONG\"}");
+				json_decref(root);
 				done = true;
 			}
 
@@ -399,9 +403,8 @@ static void *CastSocketThread(void *args)
 
 			// receiver status before connection is fully established
 			if (!strcasecmp(str,"RECEIVER_STATUS") && (!Ctx->sessionId || !Ctx->transportId)) {
-				char *str;
+				const char *str;
 
-				done = true;
 				NFREE(Ctx->sessionId);
 				str = GetAppIdItem(root, DEFAULT_RECEIVER, "sessionId");
 				if (str) Ctx->sessionId = strdup(str);
@@ -418,10 +421,13 @@ static void *CastSocketThread(void *args)
 									"{\"type\":\"GET_STATUS\",\"requestId\":%d}",
 									Ctx->reqId++);
 				}
+
+				json_decref(root);
+				done = true;
 			}
 
 			// manage queue of requests
-			pthread_mutex_unlock(&Ctx->reqMutex);
+			pthread_mutex_lock(&Ctx->reqMutex);
 			if (Ctx->waitId && Ctx->waitId <= requestId) {
 				pthread_cond_signal(&Ctx->reqCond);
 				Ctx->waitId = 0;
