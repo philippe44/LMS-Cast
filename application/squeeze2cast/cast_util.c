@@ -90,15 +90,15 @@ void CastGetMediaStatus(void *p)
 
 
 /*----------------------------------------------------------------------------*/
-void CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaData)
+bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaData)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;
 	json_t *msg;
 	char* str;
 
-	if (!ConnectReceiver(Ctx, 5000)) {
+	if (!ConnectReceiver(Ctx, 10000)) {
 		LOG_ERROR("[%p]: Cannot connect Cast receiver", Ctx->owner);
-		return;
+		return false;
 	}
 
 	pthread_mutex_lock(&Ctx->reqMutex);
@@ -148,6 +148,8 @@ void CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 	*/
 
 	pthread_mutex_unlock(&Ctx->Mutex);
+
+	return true;
 }
 
 

@@ -220,6 +220,7 @@ bool GetNextMessage(SSL *ssl, CastMessage *message)
 bool ConnectReceiver(tCastCtx *Ctx, u32_t msWait)
 {
 	u32_t now = gettime_ms();
+
 	pthread_mutex_lock(&Ctx->Mutex);
 
 	if (Ctx->Connect == CAST_CONNECTED) {

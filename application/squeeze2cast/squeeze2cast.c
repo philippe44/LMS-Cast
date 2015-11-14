@@ -299,7 +299,7 @@ static int	uPNPTerminate(void);
 				NFREE(device->CurrentURI);
 				NFREE(device->NextURI);
 
-				CastLoad(device->CastCtx, uri, p->content_type,
+				rc = CastLoad(device->CastCtx, uri, p->content_type,
 						(device->Config.SendMetaData) ? &device->MetaData : NULL);
 
 				sq_free_metadata(&device->MetaData);
