@@ -216,6 +216,33 @@ bool GetNextMessage(SSL *ssl, CastMessage *message)
 	return status;
 }
 
+/*----------------------------------------------------------------------------*/
+bool ConnectReceiver(tCastCtx *Ctx, u32_t msWait)
+{
+	u32_t now = gettime_ms();
+	pthread_mutex_lock(&Ctx->Mutex);
+
+	if (Ctx->Connect == CAST_CONNECTED) {
+		pthread_mutex_unlock(&Ctx->Mutex);
+		return true;
+	}
+
+	if (Ctx->Connect == CAST_IDLE) {
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->reqId++, DEFAULT_RECEIVER);
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->reqId++);
+		Ctx->Connect = CAST_CONNECTING;
+	}
+
+	while (Ctx->Connect != CAST_CONNECTED && gettime_ms() - now < msWait) {
+		pthread_mutex_unlock(&Ctx->Mutex);
+		usleep(50000);
+		pthread_mutex_lock(&Ctx->Mutex);
+	}
+
+	pthread_mutex_unlock(&Ctx->Mutex);
+	return (Ctx->Connect == CAST_CONNECTED);
+}
+
 
 /*----------------------------------------------------------------------------*/
 bool ConnectCastDevice(void *p, in_addr_t ip)
@@ -249,6 +276,7 @@ bool ConnectCastDevice(void *p, in_addr_t ip)
 	pthread_mutex_lock(&Ctx->Mutex);
 	Ctx->ssl = ssl;
 	Ctx->reqId = Ctx->waitId = Ctx->mediaSessionId = 0;
+	Ctx->Connect = CAST_IDLE;
 	NFREE(Ctx->sessionId);
 	NFREE(Ctx->transportId);
 	pthread_mutex_unlock(&Ctx->Mutex);
@@ -256,8 +284,6 @@ bool ConnectCastDevice(void *p, in_addr_t ip)
 	pthread_create(&Ctx->Thread, NULL, &CastSocketThread, Ctx);
 
 	SendCastMessage(Ctx->ssl, CAST_CONNECTION, NULL, "{\"type\":\"CONNECT\"}");
-	SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->reqId++, DEFAULT_RECEIVER);
-	SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->reqId++);
 
 	return true;
 }
@@ -324,37 +350,14 @@ void CloseCastCtx(void *p)
 }
 
 
-/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 json_t *GetTimedEvent(void *p, u32_t msWait)
 {
+	json_t *data;
 	tCastCtx *Ctx = (tCastCtx*) p;
-	json_t	*data;
-	struct timespec ts;
-	u32_t	nsec;
-#if OSX
-	struct timeval tv;
-#endif
-
-#if WIN
-	struct _timeb SysTime;
-
-	_ftime(&SysTime);
-	ts.tv_sec = (long) SysTime.time;
-	ts.tv_nsec = 1000000 * SysTime.millitm;
-#elif LINUX || FREEBSD
-	clock_gettime(CLOCK_REALTIME, &ts);
-#elif OSX
-	gettimeofday(&tv, NULL);
-	ts.tv_sec = (long) tv.tv_sec;
-	ts.tv_nsec = 1000L * tv.tv_usec;
-#endif
-
-	nsec = ts.tv_nsec + (msWait % 1000) * 1000000;
-	ts.tv_sec += msWait / 1000 + (nsec / 1000000000);
-	ts.tv_nsec = nsec % 1000000000;
 
 	pthread_mutex_lock(&Ctx->eventMutex);
-	pthread_cond_timedwait(&Ctx->eventCond, &Ctx->eventMutex, &ts);
+	pthread_cond_reltimedwait(&Ctx->eventCond, &Ctx->eventMutex, msWait);
 	data = QueueExtract(&Ctx->eventQueue);
 	pthread_mutex_unlock(&Ctx->eventMutex);
 
@@ -382,16 +385,18 @@ static void *CastSocketThread(void *args)
 		}
 
 		pthread_mutex_lock(&Ctx->Mutex);
-		LOG_INFO("(s:%s) (r:%s) %s", Message.destination_id, Message.source_id, Message.payload_utf8);
 
 		root = json_loads(Message.payload_utf8, 0, &error);
-
 		val = json_object_get(root, "requestId");
+
 		if (json_is_integer(val)) requestId = json_integer_value(val);
 		val = json_object_get(root, "type");
 
 		if (json_is_string(val)) {
 			str = json_string_value(val);
+
+			LOG_DEBUG("type:%s (id%d) (s:%s) (d:%s)\n%s", str, requestId,
+					 Message.source_id,Message.destination_id, Message.payload_utf8);
 
 			// respond to device ping
 			if (!strcasecmp(str,"PING")) {
@@ -400,15 +405,15 @@ static void *CastSocketThread(void *args)
 				done = true;
 			}
 
-			// connection closed, re-open it
-			/*
+			// connection closing
 			if (!strcasecmp(str,"CLOSE")) {
-				SendCastMessage(CastCtx->ssl, "urn:x-cast:com.google.cast.tp.connection", NULL, "{\"type\":\"CONNECT\"}");
+				NFREE(Ctx->sessionId);
+				NFREE(Ctx->transportId);
+				Ctx->Connect = CAST_IDLE;
 			}
-			*/
 
 			// receiver status before connection is fully established
-			if (!strcasecmp(str,"RECEIVER_STATUS") && (!Ctx->sessionId || !Ctx->transportId)) {
+			if (!strcasecmp(str,"RECEIVER_STATUS") && Ctx->Connect == CAST_CONNECTING) {
 				const char *str;
 
 				NFREE(Ctx->sessionId);
@@ -418,11 +423,14 @@ static void *CastSocketThread(void *args)
 				str = GetAppIdItem(root, DEFAULT_RECEIVER, "transportId");
 				if (str) Ctx->transportId = strdup(str);
 
-				if (Ctx->sessionId && Ctx->transportId)
+				if (Ctx->sessionId && Ctx->transportId) {
+					Ctx->Connect = CAST_CONNECTED;
 					SendCastMessage(Ctx->ssl, CAST_CONNECTION, Ctx->transportId,
 									"{\"type\":\"CONNECT\",\"origin\":{}}");
+                }
 				else {
 					usleep(200000);
+					Ctx->waitId = Ctx->reqId;
 					SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
 									"{\"type\":\"GET_STATUS\",\"requestId\":%d}",
 									Ctx->reqId++);

@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include "squeeze2cast.h"
+#include "pthread.h"
 #include "ixml.h" /* for IXML_Document, IXML_Element */
 #include "upnp.h" /* for Upnp_EventType */
 #include "util_common.h"
@@ -45,6 +46,7 @@ void 		QueueFlush(tQueue *queue);
 char 		*uPNPEvent2String(Upnp_EventType S);
 void 		ExtractIP(const char *URL, in_addr_t *IP);
 unsigned 	Time2Int(char *Time);
+int			pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_t msWait);
 
 char 	   	*XMLGetChangeItem(IXML_Document *doc, char *Tag, char *SearchAttr, char *SearchVal, char *RetAttr);
 IXML_Node  	*XMLAddNode(IXML_Document *doc, IXML_Node *parent, char *name, char *fmt, ...);

@@ -53,6 +53,7 @@ typedef int sockfd;
 
 typedef struct {
 	bool			running;
+	enum { CAST_IDLE, CAST_CONNECTING, CAST_CONNECTED } Connect;
 	void			*owner;
 	SSL 			*ssl;
 	sockfd 			sock;
@@ -66,5 +67,6 @@ typedef struct {
 } tCastCtx;
 
 bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...);
+bool ConnectReceiver(tCastCtx *Ctx, u32_t msWait);
 
 #endif

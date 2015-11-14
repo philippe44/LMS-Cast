@@ -63,6 +63,38 @@ void ExtractIP(const char *URL, in_addr_t *IP)
 
 
 /*----------------------------------------------------------------------------*/
+int pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_t msWait)
+{
+	struct timespec ts;
+	u32_t	nsec;
+#if OSX
+	struct timeval tv;
+#endif
+
+#if WIN
+	struct _timeb SysTime;
+
+	_ftime(&SysTime);
+	ts.tv_sec = (long) SysTime.time;
+	ts.tv_nsec = 1000000 * SysTime.millitm;
+#elif LINUX || FREEBSD
+	clock_gettime(CLOCK_REALTIME, &ts);
+#elif OSX
+	gettimeofday(&tv, NULL);
+	ts.tv_sec = (long) tv.tv_sec;
+	ts.tv_nsec = 1000L * tv.tv_usec;
+#endif
+
+	nsec = ts.tv_nsec + (msWait % 1000) * 1000000;
+	ts.tv_sec += msWait / 1000 + (nsec / 1000000000);
+	ts.tv_nsec = nsec % 1000000000;
+
+	return pthread_cond_timedwait(cond, mutex, &ts);
+}
+
+
+
+/*----------------------------------------------------------------------------*/
 const char *GetAppIdItem(json_t *root, char* appId, char *item)
 {
 	json_t *elm;

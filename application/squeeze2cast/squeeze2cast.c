@@ -131,8 +131,6 @@ ithread_mutex_t		glMRFoundMutex;
 /*----------------------------------------------------------------------------*/
 static const char 	MEDIA_RENDERER[] 	= "urn:dial-multiscreen-org:device:dial:1";
 
-static const char 	cLogitech[] 		= "Logitech";
-
 /*----------------------------------------------------------------------------*/
 /* locals */
 /*----------------------------------------------------------------------------*/
@@ -244,7 +242,7 @@ static int	uPNPTerminate(void);
 		return false;
 	}
 
-	LOG_SDEBUG("callback for %s", device->FriendlyName);
+	LOG_SDEBUG("callback for %s (%d)", device->FriendlyName, action);
 	ithread_mutex_lock(&device->Mutex);
 
 	switch (action) {
@@ -266,7 +264,7 @@ static int	uPNPTerminate(void);
 			sprintf(uri, "http://%s:%d/%s/%s.%s", glIPaddress, glPort, glBaseVDIR, p->name, p->ext);
 
 			if (device->Config.SendMetaData) {
-				sq_get_metadata(device->SqueezeHandle, &device->MetaData, true);
+				sq_get_metadata(device->SqueezeHandle, &device->MetaData, (action == SQ_SETURI) ? false : true);
 				p->file_size = device->MetaData.file_size ?
 							   device->MetaData.file_size : device->Config.StreamLength;
 			}
@@ -285,13 +283,11 @@ static int	uPNPTerminate(void);
 				NFREE(device->NextURI);
 				strcpy(device->ContentType, p->content_type);
 
-				if (device->Config.AcceptNextURI){
 				/*
-					AVTSetNextURI(device->Service[AVT_SRV_IDX].ControlURL, uri, p->proto_info,
-								  &device->MetaData, &device->Config, device->seqN++);
-				*/
+				if (device->Config.AcceptNextURI){
 					sq_free_metadata(&device->MetaData);
 				}
+				}*/
 
 				// to know what is expected next
 				device->NextURI = (char*) malloc(strlen(uri) + 1);
@@ -303,7 +299,9 @@ static int	uPNPTerminate(void);
 				NFREE(device->CurrentURI);
 				NFREE(device->NextURI);
 
-				CastLoad(device->CastCtx, uri, p->content_type, &device->MetaData, &device->Config);
+				CastLoad(device->CastCtx, uri, p->content_type,
+						(device->Config.SendMetaData) ? &device->MetaData : NULL);
+
 				sq_free_metadata(&device->MetaData);
 
 				device->CurrentURI = (char*) malloc(strlen(uri) + 1);
@@ -381,6 +379,12 @@ void SyncNotifState(const char *State, struct sMR* Device)
 	// an update can have happended that has destroyed the device
 	if (!Device->InUse) return;
 
+	if (!strcasecmp(State, "CLOSED")) {
+		Device->State = STOPPED;
+		Param = true;
+		Event = SQ_STOP;
+	}
+
 	if (!strcasecmp(State, "STOPPED")) {
 		if (Device->State != STOPPED) {
 			LOG_INFO("[%p]: Cast stop", Device);
@@ -392,7 +396,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 					strcpy(Device->CurrentURI, Device->NextURI);
 					NFREE(Device->NextURI);
 
-					CastLoad(Device->CastCtx, Device->CurrentURI, Device->ContentType, &Device->MetaData, &Device->Config);
+					CastLoad(Device->CastCtx, Device->CurrentURI, Device->ContentType, &Device->MetaData);
 					sq_free_metadata(&Device->MetaData);
 					CastPlay(Device->CastCtx);
 
@@ -531,6 +535,10 @@ static void *MRThread(void *args)
 				}
 
 			}
+
+			// Cast devices has closed the connection
+			if (type && !strcasecmp(type, "CLOSE")) SyncNotifState("CLOSED", p);
+
 			json_decref(data);
 		}
 
@@ -685,7 +693,7 @@ static void *UpdateMRThread(void *args)
 
 		Manufacturer = XMLGetFirstDocumentItem(DescDoc, "manufacturer");
 		UDN = XMLGetFirstDocumentItem(DescDoc, "UDN");
-		if (!strstr(Manufacturer, cLogitech) && !RefreshTO(UDN)) {
+		if (!stristr(Manufacturer, "Logitech") && stristr(Manufacturer, "Google") && !RefreshTO(UDN)) {
 			// new device so search a free spot.
 			for (i = 0; i < MAX_RENDERERS && glMRDevices[i].InUse; i++)
 

@@ -36,7 +36,7 @@ void	CastGetMediaStatus(void *Ctx);
 void	CastPlay(void *Ctx);
 void	CastPause(void *Ctx);
 void	CastStop(void *Ctx);
-void	CastLoad(void *Ctx, char *URI, char *ContentType, struct sq_metadata_s *MetaData, struct sMRConfig *Config);
+void	CastLoad(void *Ctx, char *URI, char *ContentType, struct sq_metadata_s *MetaData);
 void 	SetVolume(void *p, u8_t Volume);
 
 #endif

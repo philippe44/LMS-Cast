@@ -17,7 +17,7 @@ $prefs->init({ autorun => 0, opts => '', debugs => '', logging => 0, bin => unde
 my $log = Slim::Utils::Log->addLogCategory({
 	'category'     => 'plugin.castbridge',
 	'defaultLevel' => 'WARN',
-	'description'  => Slim::Utils::Strings::string('PLUGIN_CASTUPNPBRIDGE'),
+	'description'  => Slim::Utils::Strings::string('PLUGIN_CASTBRIDGE'),
 }); 
 
 sub initPlugin {
