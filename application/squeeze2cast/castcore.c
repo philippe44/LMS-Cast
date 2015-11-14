@@ -172,7 +172,7 @@ bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...)
 	if (dest) strcpy(message.destination_id, dest);
 	strcpy(message.namespace, ns);
 	vsprintf(message.payload_utf8, payload, args);
-	LOG_INFO("Cast sending: %s", message.payload_utf8);
+	LOG_INFO("[%p]: Cast sending: %s", ssl, message.payload_utf8);
 	message.has_payload_utf8 = true;
 	if ((buffer = malloc(buffer_len)) == NULL) return false;
 	stream = pb_ostream_from_buffer(buffer, buffer_len);
@@ -251,7 +251,8 @@ bool ConnectCastDevice(void *p, in_addr_t ip)
 	int err;
 	struct sockaddr_in addr;
 	tCastCtx *Ctx = p;
-	SSL 			*ssl;
+	SSL *ssl;
+	int i = 2;
 
 	// do nothing if we are already connected
 	if (Ctx->ssl) return true;
@@ -268,11 +269,18 @@ bool ConnectCastDevice(void *p, in_addr_t ip)
 	connect_timeout(Ctx->sock, (struct sockaddr *) &addr, sizeof(addr), 1);
 	set_block(Ctx->sock);
 	SSL_set_fd(ssl, Ctx->sock);
-	err = SSL_connect(ssl);
+
+	do {
+		err = SSL_connect(ssl);
+	} while (err != 1 && i--);
+
 	if (err != 1) {
 		err = SSL_get_error(ssl,err);
+		LOG_ERROR("[%p]: Cannot open SSL connection (%d)", ssl, err);
 		return false;
 	}
+
+	LOG_INFO("[%p]: SSL connection opened", ssl);
 
 	pthread_mutex_lock(&Ctx->Mutex);
 	Ctx->ssl = ssl;
