@@ -561,9 +561,7 @@ static void *MRThread(void *args)
 		p->TrackPoll += elapsed;
 		if (p->TrackPoll > TRACK_POLL) {
 			p->TrackPoll = 0;
-			// if (p->State != STOPPED && p->State != PAUSED) {
 			CastGetMediaStatus(p->CastCtx);
-			//	}
 		}
 
 		ithread_mutex_unlock(&p->Mutex);
@@ -734,9 +732,12 @@ static void *UpdateMRThread(void *args)
 
 	// then walk through the list of devices to remove missing ones
 	for (i = 0; i < MAX_RENDERERS; i++) {
+		bool Keep;
 		Device = &glMRDevices[i];
-		if (!Device->InUse || !Device->UPnPTimeOut ||
-			!Device->UPnPMissingCount || --Device->UPnPMissingCount) continue;
+		if (!Device->InUse) continue;
+		if (Device->UPnPTimeOut && Device->UPnPMissingCount) Device->UPnPMissingCount--;
+        // must be evaluated locked to avoid conflict with sq_callback
+		if (!CastPeerDisc(Device->CastCtx) || (!Device->on && Device->UPnPMissingCount)) continue;
 
 		LOG_INFO("[%p]: removing renderer (%s)", Device, Device->FriendlyName);
 		if (Device->SqueezeHandle) sq_delete_device(Device->SqueezeHandle);
@@ -993,8 +994,6 @@ static bool AddCastDevice(struct sMR *Device, char *UDN, IXML_Document *DescDoc,
 		// not sure what SendARP does with the MAC if it does not find one
 		memset(Device->sq_config.mac, 0, sizeof(Device->sq_config.mac));
 	}
-
-
 
 	NFREE(deviceType);
 	NFREE(friendlyName);

@@ -56,6 +56,7 @@ typedef struct {
 	enum { CAST_IDLE, CAST_CONNECTING, CAST_CONNECTED } Connect;
 	void			*owner;
 	SSL 			*ssl;
+	bool			sslConnect;
 	sockfd 			sock;
 	int				reqId, waitId;
 	pthread_t 		Thread, TimerThread;

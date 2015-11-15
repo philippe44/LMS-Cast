@@ -219,29 +219,37 @@ bool GetNextMessage(SSL *ssl, CastMessage *message)
 /*----------------------------------------------------------------------------*/
 bool ConnectReceiver(tCastCtx *Ctx, u32_t msWait)
 {
-	u32_t now = gettime_ms();
-
 	pthread_mutex_lock(&Ctx->Mutex);
 
+	// cannot connect if SSL connection is lost
+	if (!Ctx->sslConnect) {
+		pthread_mutex_unlock(&Ctx->Mutex);
+		return false;
+	}
+
+	// already connected, all good
 	if (Ctx->Connect == CAST_CONNECTED) {
 		pthread_mutex_unlock(&Ctx->Mutex);
 		return true;
 	}
 
-	if (Ctx->Connect == CAST_IDLE) {
-		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->reqId++, DEFAULT_RECEIVER);
-		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->reqId++);
-		Ctx->Connect = CAST_CONNECTING;
-	}
+	// need to launch media receiver and wait for confirmation
+	pthread_mutex_lock(&Ctx->reqMutex);
 
-	while (Ctx->Connect != CAST_CONNECTED && gettime_ms() - now < msWait) {
+	if (Ctx->waitId && pthread_cond_reltimedwait(&Ctx->reqCond, &Ctx->reqMutex, msWait)) {
+		pthread_mutex_unlock(&Ctx->reqMutex);
 		pthread_mutex_unlock(&Ctx->Mutex);
-		usleep(50000);
-		pthread_mutex_lock(&Ctx->Mutex);
+		return false;
 	}
 
+	Ctx->waitId = Ctx->reqId;
+	Ctx->Connect = CAST_CONNECTING;
+
+	SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->reqId++, DEFAULT_RECEIVER);
+	pthread_mutex_unlock(&Ctx->reqMutex);
 	pthread_mutex_unlock(&Ctx->Mutex);
-	return (Ctx->Connect == CAST_CONNECTED);
+
+	return true;;
 }
 
 
@@ -252,10 +260,13 @@ bool ConnectCastDevice(void *p, in_addr_t ip)
 	struct sockaddr_in addr;
 	tCastCtx *Ctx = p;
 	SSL *ssl;
-	int i = 2;
+	int i = 3;
 
 	// do nothing if we are already connected
-	if (Ctx->ssl) return true;
+	pthread_mutex_lock(&Ctx->Mutex);
+	ssl = Ctx->ssl;
+	pthread_mutex_unlock(&Ctx->Mutex);
+	if (ssl) return true;
 
 	ssl  = SSL_new(glSSLctx);
 	Ctx->sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -266,25 +277,32 @@ bool ConnectCastDevice(void *p, in_addr_t ip)
 	addr.sin_addr.s_addr = ip;
 	addr.sin_port = htons(8009);
 
-	connect_timeout(Ctx->sock, (struct sockaddr *) &addr, sizeof(addr), 1);
-	set_block(Ctx->sock);
-	SSL_set_fd(ssl, Ctx->sock);
+	err = connect_timeout(Ctx->sock, (struct sockaddr *) &addr, sizeof(addr), 2);
+	if (!err) {
+		set_block(Ctx->sock);
+		SSL_set_fd(ssl, Ctx->sock);
 
-	do {
-		err = SSL_connect(ssl);
-	} while (err != 1 && i--);
+		do {
+			err = SSL_connect(ssl);
+		} while (err != 1 && i--);
 
-	if (err != 1) {
-		err = SSL_get_error(ssl,err);
-		LOG_ERROR("[%p]: Cannot open SSL connection (%d)", ssl, err);
-		return false;
+		if (err == 1) {
+			LOG_INFO("[%p]: SSL connection opened", Ctx->owner);
+		}
+		else {
+			err = SSL_get_error(ssl,err);
+			LOG_ERROR("[%p]: Cannot open SSL connection (%d)", Ctx->owner, err);
+		}
 	}
-
-	LOG_INFO("[%p]: SSL connection opened", ssl);
+	else {
+		LOG_ERROR("[%p]: Cannot open socket connection (%d)", Ctx->owner, err);
+	}
 
 	pthread_mutex_lock(&Ctx->Mutex);
 	Ctx->ssl = ssl;
-	Ctx->reqId = Ctx->waitId = Ctx->mediaSessionId = 0;
+	Ctx->sslConnect = true;
+	Ctx->reqId = 1;
+	Ctx->waitId = Ctx->mediaSessionId = 0;
 	Ctx->Connect = CAST_IDLE;
 	NFREE(Ctx->sessionId);
 	NFREE(Ctx->transportId);
@@ -304,9 +322,12 @@ void DisconnectCastDevice(void *p)
 	tCastCtx *Ctx = p;
 
 	// do nothing if we are not connected
-	if (!Ctx->ssl) return;
-
 	pthread_mutex_lock(&Ctx->Mutex);
+	if (!Ctx->ssl) {
+		pthread_mutex_unlock(&Ctx->Mutex);
+		return;
+	}
+
 	SSL_shutdown(Ctx->ssl);
 #if 0
 	// FIXME: causes a segfault !
@@ -315,12 +336,22 @@ void DisconnectCastDevice(void *p)
 	Ctx->ssl = NULL;
 	closesocket(Ctx->sock);
 	Ctx->running = false;
+
+	/*
+	Needed to ensure that SSLThread terminates event if waiting on mutex. In worst
+	case, some other thread will use it after SSLThread is finished but they
+	will be unlocked by the signal underneath
+	*/
+    pthread_mutex_unlock(&Ctx->Mutex);
 	pthread_join(Ctx->Thread, NULL);
+	pthread_mutex_lock(&Ctx->Mutex);
+
 	NFREE(Ctx->sessionId);
 	NFREE(Ctx->transportId);
-	Ctx->reqId = Ctx->waitId = Ctx->mediaSessionId = 0;
-	pthread_cond_signal(&Ctx->eventCond);
-	pthread_cond_signal(&Ctx->reqCond);
+	Ctx->reqId = 1;
+	Ctx->waitId = Ctx->mediaSessionId = 0;
+	pthread_cond_broadcast(&Ctx->eventCond);
+	pthread_cond_broadcast(&Ctx->reqCond);
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
@@ -330,10 +361,12 @@ void *InitCastCtx(void *owner)
 {
 	tCastCtx *Ctx = malloc(sizeof(tCastCtx));
 
-	Ctx->reqId = Ctx->waitId = Ctx->mediaSessionId = 0;
+	Ctx->reqId = 1;
+	Ctx->waitId = Ctx->mediaSessionId = 0;
 	Ctx->sessionId = Ctx->transportId = NULL;
 	Ctx->owner = owner;
 	Ctx->ssl = NULL;
+	Ctx->sslConnect = false;
 
 	QueueInit(&Ctx->eventQueue);
 	pthread_mutex_init(&Ctx->Mutex, 0);
@@ -351,6 +384,7 @@ void CloseCastCtx(void *p)
 {
 	tCastCtx *Ctx = p;
 
+	QueueFlush(&Ctx->eventQueue);
 	pthread_cond_destroy(&Ctx->reqCond);
 	pthread_cond_destroy(&Ctx->eventCond);
 	pthread_mutex_destroy(&Ctx->reqMutex);
@@ -389,7 +423,11 @@ static void *CastSocketThread(void *args)
 		const char *str = NULL;
 
 		if (!GetNextMessage(Ctx->ssl, &Message)) {
-			LOG_WARN("[%p]: SSL connection lost", Ctx);
+			// just signal that connect is down, teardown happen elswhere
+			pthread_mutex_trylock(&Ctx->Mutex);
+			Ctx->sslConnect = false;
+			pthread_mutex_unlock(&Ctx->Mutex);
+			LOG_WARN("[%p]: SSL connection closed", Ctx);
 			return NULL;
 		}
 
@@ -404,7 +442,8 @@ static void *CastSocketThread(void *args)
 		if (json_is_string(val)) {
 			str = json_string_value(val);
 
-			LOG_DEBUG("type:%s (id%d) (s:%s) (d:%s)\n%s", str, requestId,
+			LOG_INFO("type:%s (id:%d)", str, requestId);
+			LOG_DEBUG("type:%s (id:%d) (s:%s) (d:%s)\n%s", str, requestId,
 					 Message.source_id,Message.destination_id, Message.payload_utf8);
 
 			// respond to device ping
@@ -414,46 +453,41 @@ static void *CastSocketThread(void *args)
 				done = true;
 			}
 
+			pthread_mutex_lock(&Ctx->reqMutex);
+
 			// connection closing
 			if (!strcasecmp(str,"CLOSE")) {
 				NFREE(Ctx->sessionId);
 				NFREE(Ctx->transportId);
-				Ctx->Connect = CAST_IDLE;
-			}
-
-			// receiver status before connection is fully established
-			if (!strcasecmp(str,"RECEIVER_STATUS") && Ctx->Connect == CAST_CONNECTING) {
-				const char *str;
-
-				NFREE(Ctx->sessionId);
-				str = GetAppIdItem(root, DEFAULT_RECEIVER, "sessionId");
-				if (str) Ctx->sessionId = strdup(str);
-				NFREE(Ctx->transportId);
-				str = GetAppIdItem(root, DEFAULT_RECEIVER, "transportId");
-				if (str) Ctx->transportId = strdup(str);
-
-				if (Ctx->sessionId && Ctx->transportId) {
-					Ctx->Connect = CAST_CONNECTED;
-					SendCastMessage(Ctx->ssl, CAST_CONNECTION, Ctx->transportId,
-									"{\"type\":\"CONNECT\",\"origin\":{}}");
-                }
-				else {
-					usleep(200000);
-					Ctx->waitId = Ctx->reqId;
-					SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
-									"{\"type\":\"GET_STATUS\",\"requestId\":%d}",
-									Ctx->reqId++);
-				}
-
-				json_decref(root);
-				done = true;
-			}
-
-			// manage queue of requests
-			pthread_mutex_lock(&Ctx->reqMutex);
-			if (Ctx->waitId && Ctx->waitId <= requestId) {
-				pthread_cond_signal(&Ctx->reqCond);
+				Ctx->mediaSessionId = 0;
 				Ctx->waitId = 0;
+				Ctx->Connect = CAST_IDLE;
+				pthread_cond_broadcast(&Ctx->reqCond);
+			}
+
+			if (Ctx->waitId && Ctx->waitId == requestId) {
+
+				// receiver status before connection is fully established
+				if (!strcasecmp(str,"RECEIVER_STATUS") && Ctx->Connect == CAST_CONNECTING) {
+					const char *str;
+
+					NFREE(Ctx->sessionId);
+					str = GetAppIdItem(root, DEFAULT_RECEIVER, "sessionId");
+					if (str) Ctx->sessionId = strdup(str);
+					NFREE(Ctx->transportId);
+					str = GetAppIdItem(root, DEFAULT_RECEIVER, "transportId");
+					if (str) Ctx->transportId = strdup(str);
+
+					if (Ctx->sessionId && Ctx->transportId) {
+						Ctx->Connect = CAST_CONNECTED;
+						SendCastMessage(Ctx->ssl, CAST_CONNECTION, Ctx->transportId,
+										"{\"type\":\"CONNECT\",\"origin\":{}}");
+					}
+					else Ctx->Connect = CAST_IDLE;
+
+					json_decref(root);
+					done = true;
+				}
 
 				// media status only acquired for expected id
 				if (!strcasecmp(str,"MEDIA_STATUS")) {
@@ -463,9 +497,12 @@ static void *CastSocketThread(void *args)
 						LOG_INFO("[%p]: Media session id %d", Ctx->owner, Ctx->mediaSessionId);
 					}
 				}
-			}
-			pthread_mutex_unlock(&Ctx->reqMutex);
 
+				Ctx->waitId = 0;
+				pthread_cond_broadcast(&Ctx->reqCond);
+			}
+
+			pthread_mutex_unlock(&Ctx->reqMutex);
 		}
 
 		pthread_mutex_unlock(&Ctx->Mutex);

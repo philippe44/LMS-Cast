@@ -31,6 +31,7 @@ struct sMRConfig;
 
 void  	CastInit(log_level level);
 void	CastKeepAlive(void *Ctx);
+bool 	CastPeerDisc(void *Ctx);
 void	CastGetStatus(void *Ctx);
 void	CastGetMediaStatus(void *Ctx);
 void	CastPlay(void *Ctx);
