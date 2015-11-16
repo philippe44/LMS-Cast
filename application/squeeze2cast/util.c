@@ -85,6 +85,8 @@ int pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_
 	ts.tv_nsec = 1000L * tv.tv_usec;
 #endif
 
+	if (!msWait) return pthread_cond_wait(cond, mutex);
+
 	nsec = ts.tv_nsec + (msWait % 1000) * 1000000;
 	ts.tv_sec += msWait / 1000 + (nsec / 1000000000);
 	ts.tv_nsec = nsec % 1000000000;

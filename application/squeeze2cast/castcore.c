@@ -108,7 +108,7 @@ void InitSSL(void)
 	const SSL_METHOD *method;
 
 	// initialize SSL stuff
-	SSL_load_error_strings();
+	// SSL_load_error_strings();
 	SSL_library_init();
 
 	// build the SSL objects...
@@ -237,19 +237,26 @@ bool ConnectReceiver(tCastCtx *Ctx, u32_t msWait)
 	pthread_mutex_lock(&Ctx->reqMutex);
 
 	if (Ctx->waitId && pthread_cond_reltimedwait(&Ctx->reqCond, &Ctx->reqMutex, msWait)) {
+		Ctx->waitId = 0;
 		pthread_mutex_unlock(&Ctx->reqMutex);
 		pthread_mutex_unlock(&Ctx->Mutex);
 		return false;
 	}
 
-	Ctx->waitId = Ctx->reqId;
+	Ctx->waitId = Ctx->reqId++;
 	Ctx->Connect = CAST_CONNECTING;
 
-	SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->reqId++, DEFAULT_RECEIVER);
-	pthread_mutex_unlock(&Ctx->reqMutex);
+	SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
 	pthread_mutex_unlock(&Ctx->Mutex);
 
-	return true;;
+	if (pthread_cond_reltimedwait(&Ctx->reqCond, &Ctx->reqMutex, msWait)) {
+		Ctx->waitId = 0;
+		pthread_mutex_unlock(&Ctx->reqMutex);
+		return false;
+	}
+
+	pthread_mutex_unlock(&Ctx->reqMutex);
+	return true;
 }
 
 
@@ -329,9 +336,9 @@ void DisconnectCastDevice(void *p)
 	}
 
 	SSL_shutdown(Ctx->ssl);
-#if 0
+#if 1
 	// FIXME: causes a segfault !
-	SSL_free(Ctx->ssl);
+	// SSL_free(Ctx->ssl);
 #endif
 	Ctx->ssl = NULL;
 	closesocket(Ctx->sock);
@@ -423,9 +430,11 @@ static void *CastSocketThread(void *args)
 		const char *str = NULL;
 
 		if (!GetNextMessage(Ctx->ssl, &Message)) {
-			// just signal that connect is down, teardown happen elswhere
+			// just signal that connect is down, teardown happens elswhere
 			pthread_mutex_trylock(&Ctx->Mutex);
 			Ctx->sslConnect = false;
+			Ctx->mediaSessionId = 0;
+			pthread_cond_broadcast(&Ctx->reqCond);
 			pthread_mutex_unlock(&Ctx->Mutex);
 			LOG_WARN("[%p]: SSL connection closed", Ctx);
 			return NULL;
@@ -443,8 +452,8 @@ static void *CastSocketThread(void *args)
 			str = json_string_value(val);
 
 			LOG_INFO("type:%s (id:%d)", str, requestId);
-			LOG_DEBUG("type:%s (id:%d) (s:%s) (d:%s)\n%s", str, requestId,
-					 Message.source_id,Message.destination_id, Message.payload_utf8);
+			//LOG_INFO("type:%s (id:%d) (s:%s) (d:%s)\n%s", str, requestId,
+			//		 Message.source_id,Message.destination_id, Message.payload_utf8);
 
 			// respond to device ping
 			if (!strcasecmp(str,"PING")) {
@@ -464,6 +473,16 @@ static void *CastSocketThread(void *args)
 				Ctx->Connect = CAST_IDLE;
 				pthread_cond_broadcast(&Ctx->reqCond);
 			}
+
+			/*
+			This works in a sequential way: before subimiting any cast message
+			that requires a response, a sender must wait for a previous pending
+			response. If it does not come aftea timeout, then it is authorized
+			to send its message and the previous message is considered void, in
+			other words this queue is now waiting for the new message response
+			and if the old one arrives, it is discarded. That's not an ideal
+			system, but that's good enough ...
+			*/
 
 			if (Ctx->waitId && Ctx->waitId == requestId) {
 

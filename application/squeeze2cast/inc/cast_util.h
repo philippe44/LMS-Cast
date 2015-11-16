@@ -34,9 +34,12 @@ void	CastKeepAlive(void *Ctx);
 bool 	CastPeerDisc(void *Ctx);
 void	CastGetStatus(void *Ctx);
 void	CastGetMediaStatus(void *Ctx);
-void	CastPlay(void *Ctx);
-void	CastPause(void *Ctx);
-void	CastStop(void *Ctx);
+
+#define CastStop(Ctx) CastBasic(Ctx, CAST_STOP, 2000)
+#define CastPlay(Ctx) CastBasic(Ctx, CAST_PLAY, 1000)
+#define CastPause(Ctx) CastBasic(Ctx, CAST_PAUSE, 1000)
+
+void	CastBasic(void *Ctx, tCastAction Action, u32_t timeout);
 bool	CastLoad(void *Ctx, char *URI, char *ContentType, struct sq_metadata_s *MetaData);
 void 	SetVolume(void *p, u8_t Volume);
 

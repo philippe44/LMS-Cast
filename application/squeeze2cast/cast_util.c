@@ -90,7 +90,6 @@ void CastGetMediaStatus(void *p)
 	if (!p) return;
 
 	pthread_mutex_lock(&Ctx->Mutex);
-
 	if (Ctx->mediaSessionId) {
 		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
 						"{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}",
@@ -109,7 +108,7 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 	json_t *msg;
 	char* str;
 
-	if (!ConnectReceiver(Ctx, 10000)) {
+	if (!ConnectReceiver(Ctx, 3000)) {
 		LOG_ERROR("[%p]: Cannot connect Cast receiver", Ctx->owner);
 		return false;
 	}
@@ -118,7 +117,6 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 	pthread_mutex_lock(&Ctx->reqMutex);
 	if (Ctx->waitId) pthread_cond_wait(&Ctx->reqCond, &Ctx->reqMutex);
 	Ctx->waitId = Ctx->reqId++;
-	pthread_mutex_unlock(&Ctx->reqMutex);
 
 	pthread_mutex_lock(&Ctx->Mutex);
 
@@ -156,19 +154,30 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 	NFREE(str);
 
 	pthread_mutex_unlock(&Ctx->Mutex);
+	pthread_mutex_unlock(&Ctx->reqMutex);
 
 	return true;
 }
 
-
 /*----------------------------------------------------------------------------*/
-void CastPlay(void *p)
+void CastBasic(void *p, tCastAction Action, u32_t timeout)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;
+	char *req;
+
+	switch(Action) {
+		case CAST_STOP: req = "STOP"; break;
+		case CAST_PLAY: req = "PLAY"; break;
+		case CAST_PAUSE: req = "PAUSE"; break;
+	}
 
 	// lock on wait for a Cast response
 	pthread_mutex_lock(&Ctx->reqMutex);
-	if (Ctx->waitId) pthread_cond_wait(&Ctx->reqCond, &Ctx->reqMutex);
+	if (Ctx->waitId)
+		if (pthread_cond_reltimedwait(&Ctx->reqCond, &Ctx->reqMutex, timeout)) {
+			LOG_WARN("[%p]: timeout waiting previous request %d", Ctx->owner, Ctx->waitId);
+			Ctx->waitId = 0;
+		}
 
 	// no media session, nothing to do
 	pthread_mutex_lock(&Ctx->Mutex);
@@ -176,65 +185,16 @@ void CastPlay(void *p)
 		Ctx->waitId = Ctx->reqId++;
 
 		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"PLAY\",\"requestId\":%d,\"mediaSessionId\":%d}",
-						Ctx->waitId++, Ctx->mediaSessionId);
+						"{\"type\":\"%s\",\"requestId\":%d,\"mediaSessionId\":%d}",
+						req, Ctx->waitId, Ctx->mediaSessionId);
+
+		if (Action == CAST_STOP) Ctx->mediaSessionId = 0;
 
 	}
 	pthread_mutex_unlock(&Ctx->Mutex);
-
 	pthread_mutex_unlock(&Ctx->reqMutex);
 }
 
-
-/*----------------------------------------------------------------------------*/
-void CastStop(void *p)
-{
-	tCastCtx *Ctx = (tCastCtx*) p;
-
-	// lock on wait for a Cast response
-	pthread_mutex_lock(&Ctx->reqMutex);
-	if (Ctx->waitId) pthread_cond_reltimedwait(&Ctx->reqCond, &Ctx->reqMutex, 2000);
-
-	// no media session, nothing to do
-	pthread_mutex_lock(&Ctx->Mutex);
-	if (Ctx->mediaSessionId) {
-		Ctx->waitId = Ctx->reqId++;
-
-		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"STOP\",\"requestId\":%d,\"mediaSessionId\":%d}",
-						Ctx->waitId, Ctx->mediaSessionId);
-
-		Ctx->mediaSessionId = 0;
-	}
-	pthread_mutex_unlock(&Ctx->Mutex);
-
-	pthread_mutex_unlock(&Ctx->reqMutex);
-}
-
-
-/*----------------------------------------------------------------------------*/
-void CastPause(void *p)
-{
-	tCastCtx *Ctx = (tCastCtx*) p;
-
-	// lock on wait for a Cast response
-	pthread_mutex_lock(&Ctx->reqMutex);
-	if (Ctx->waitId) pthread_cond_wait(&Ctx->reqCond, &Ctx->reqMutex);
-
-	// no media session, nothing to do
-	pthread_mutex_lock(&Ctx->Mutex);
-	if (Ctx->mediaSessionId) {
-		Ctx->waitId = Ctx->reqId++;
-
-		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"PAUSE\",\"requestId\":%d,\"mediaSessionId\":%d}",
-						Ctx->waitId, Ctx->mediaSessionId);
-
-	}
-	pthread_mutex_unlock(&Ctx->Mutex);
-
-	pthread_mutex_unlock(&Ctx->reqMutex);
-}
 
 /*----------------------------------------------------------------------------*/
 void SetVolume(void *p, u8_t Volume)
