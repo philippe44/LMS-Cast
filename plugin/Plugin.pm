@@ -36,7 +36,7 @@ sub initPlugin {
 		Plugins::CastBridge::Settings->new;
 		Slim::Web::Pages->addPageFunction("^castbridge-log.log", \&Plugins::CastBridge::Squeeze2cast::logHandler);
 		Slim::Web::Pages->addPageFunction("^castbridge-config.xml", \&Plugins::CastBridge::Squeeze2cast::configHandler);
-		Slim::Web::Pages->addPageFunction("castbridge/userguide.htm", \&Plugins::CastBridge::Squeeze2cast::guideHandler);
+		Slim::Web::Pages->addPageFunction("castbridge-guide.htm", \&Plugins::CastBridge::Squeeze2cast::guideHandler);
 	}
 	
 	$log->warn(Dumper(Slim::Utils::OSDetect::details()));
