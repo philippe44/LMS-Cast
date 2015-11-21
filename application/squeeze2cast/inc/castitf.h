@@ -39,9 +39,8 @@ void InitSSL(void);
 void EndSSL(void);
 
 json_t 	*GetTimedEvent(void *p, u32_t msWait);
-bool 	ConnectCastDevice(void *Ctx, in_addr_t ip);
-void 	DisconnectCastDevice(void *Ctx);
-void 	*InitCastCtx(void *owner);
-void 	CloseCastCtx(void *Ctx);
+void 	*StartCastDevice(void *owner,in_addr_t ip);
+void 	StopCastDevice(void *Ctx);
+bool	CastIsConnected(void *Ctx);
 
 #endif

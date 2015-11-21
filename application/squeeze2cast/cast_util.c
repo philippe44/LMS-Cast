@@ -38,30 +38,14 @@ void CastInit(log_level level)
 	loglevel = level;
 }
 
-
 /*----------------------------------------------------------------------------*/
-void CastKeepAlive(void *p)
-{
-	tCastCtx *Ctx = (tCastCtx*) p;
-
-	// SSL context might not be set yet
-	if (!p) return;
-
-	pthread_mutex_lock(&Ctx->Mutex);
-	SendCastMessage(Ctx->ssl, CAST_BEAT, NULL, "{\"type\":\"PING\"}");
-	if (Ctx->transportId) SendCastMessage(Ctx->ssl, CAST_BEAT, Ctx->transportId, "{\"type\":\"PING\"}");
-	pthread_mutex_unlock(&Ctx->Mutex);
-}
-
-
-/*----------------------------------------------------------------------------*/
-bool CastPeerDisc(void *p)
+bool CastIsConnected(void *p)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;
 	bool status;
 
 	pthread_mutex_lock(&Ctx->Mutex);
-	status = Ctx->ssl && !Ctx->sslConnect;
+	status = Ctx->ssl && Ctx->sslConnect;
 	pthread_mutex_unlock(&Ctx->Mutex);
 	return status;
 }
@@ -108,17 +92,10 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 	json_t *msg;
 	char* str;
 
-	if (!ConnectReceiver(Ctx, 3000)) {
+	if (!ConnectReceiver(Ctx)) {
 		LOG_ERROR("[%p]: Cannot connect Cast receiver", Ctx->owner);
 		return false;
 	}
-
-	// if SSL connection is lost a signal will be sent to unlock
-	pthread_mutex_lock(&Ctx->reqMutex);
-	if (Ctx->waitId) pthread_cond_wait(&Ctx->reqCond, &Ctx->reqMutex);
-	Ctx->waitId = Ctx->reqId++;
-
-	pthread_mutex_lock(&Ctx->Mutex);
 
 	msg = json_pack("{ss,ss,ss}", "contentId", URI, "streamType", "BUFFERED",
 					"contentType", ContentType);
@@ -142,57 +119,93 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 		json_decref(metadata);
 	}
 
-	msg = json_pack("{ss,si,ss,sf,sb,so}", "type", "LOAD",
-					"requestId", Ctx->waitId, "sessionId", Ctx->sessionId,
-					"currentTime", 0.0, "autoplay", 0,
-					"media", msg);
+	pthread_mutex_lock(&Ctx->Mutex);
 
-	str = json_dumps(msg, JSON_ENCODE_ANY | JSON_INDENT(1));
+	// if connected and no STOP pending (precaution) just send message
+	if (Ctx->Connect == CAST_CONNECTED && !Ctx->waitId) {
+		Ctx->waitId = Ctx->reqId++;
+		Ctx->waitMedia = Ctx->waitId;
 
-	if (str) SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId, str);
-	json_decref(msg);
-	NFREE(str);
+		msg = json_pack("{ss,si,ss,sf,sb,so}", "type", "LOAD",
+						"requestId", Ctx->waitId, "sessionId", Ctx->sessionId,
+						"currentTime", 0.0, "autoplay", 0,
+						"media", msg);
 
-	pthread_mutex_unlock(&Ctx->Mutex);
-	pthread_mutex_unlock(&Ctx->reqMutex);
-
-	return true;
-}
-
-/*----------------------------------------------------------------------------*/
-void CastBasic(void *p, tCastAction Action, u32_t timeout)
-{
-	tCastCtx *Ctx = (tCastCtx*) p;
-	char *req;
-
-	switch(Action) {
-		case CAST_STOP: req = "STOP"; break;
-		case CAST_PLAY: req = "PLAY"; break;
-		case CAST_PAUSE: req = "PAUSE"; break;
+		str = json_dumps(msg, JSON_ENCODE_ANY | JSON_INDENT(1));
+		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId, str);
+		json_decref(msg);
+		NFREE(str);
+	}
+	// otherwise queue it for later
+	else {
+		tReqItem *req = malloc(sizeof(tReqItem));
+		req->Type = "LOAD";
+		req->data.msg = msg;
+		QueueInsert(&Ctx->reqQueue, req);
+		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
 	}
 
-	// lock on wait for a Cast response
-	pthread_mutex_lock(&Ctx->reqMutex);
-	if (Ctx->waitId)
-		if (pthread_cond_reltimedwait(&Ctx->reqCond, &Ctx->reqMutex, timeout)) {
-			LOG_WARN("[%p]: timeout waiting previous request %d", Ctx->owner, Ctx->waitId);
-			Ctx->waitId = 0;
-		}
+	pthread_mutex_unlock(&Ctx->Mutex);
 
-	// no media session, nothing to do
+	return true;
+}
+
+
+/*----------------------------------------------------------------------------*/
+void CastSimple(void *p, char *Type)
+{
+	tCastCtx *Ctx = (tCastCtx*) p;
+
+	// lock on wait for a Cast response
 	pthread_mutex_lock(&Ctx->Mutex);
-	if (Ctx->mediaSessionId) {
+	if (Ctx->Connect == CAST_CONNECTED && !Ctx->waitId) {
+		// no media session, nothing to do
+		if (Ctx->mediaSessionId) {
+			Ctx->waitId = Ctx->reqId++;
+
+			SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+							"{\"type\":\"%s\",\"requestId\":%d,\"mediaSessionId\":%d}",
+							Type, Ctx->waitId, Ctx->mediaSessionId);
+
+		}
+		else {
+			LOG_WARN("[%p]: Play req w/o a session", Ctx->owner);
+	   }
+	}
+	else {
+		tReqItem *req = malloc(sizeof(tReqItem));
+		req->Type = "PLAY";
+		QueueInsert(&Ctx->reqQueue, req);
+		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+	}
+
+	pthread_mutex_unlock(&Ctx->Mutex);
+}
+
+
+/*----------------------------------------------------------------------------*/
+void CastStop(void *p)
+{
+	tCastCtx *Ctx = (tCastCtx*) p;
+
+	// lock on wait for a Cast response
+	pthread_mutex_lock(&Ctx->Mutex);
+	CastQueueFlush(&Ctx->reqQueue);
+	if (Ctx->Connect == CAST_CONNECTED && Ctx->mediaSessionId) {
 		Ctx->waitId = Ctx->reqId++;
 
 		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"%s\",\"requestId\":%d,\"mediaSessionId\":%d}",
-						req, Ctx->waitId, Ctx->mediaSessionId);
+						"{\"type\":\"STOP\",\"requestId\":%d,\"mediaSessionId\":%d}",
+						Ctx->waitId, Ctx->mediaSessionId);
 
-		if (Action == CAST_STOP) Ctx->mediaSessionId = 0;
+		Ctx->mediaSessionId = 0;
 
 	}
+	else {
+			LOG_WARN("[%p]: Stop req w/o session or connect", Ctx->owner);
+	}
+
 	pthread_mutex_unlock(&Ctx->Mutex);
-	pthread_mutex_unlock(&Ctx->reqMutex);
 }
 
 
@@ -203,13 +216,17 @@ void SetVolume(void *p, u8_t Volume)
 
 	// no media session, nothing to do
 	pthread_mutex_lock(&Ctx->Mutex);
+
 	if (Ctx->mediaSessionId) {
 
+		Ctx->Volume = -1;
 		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
 						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf}}",
 						Ctx->reqId++, Ctx->mediaSessionId, (double) Volume / 100.0);
 
 	}
+	else Ctx->Volume = Volume;
+
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 

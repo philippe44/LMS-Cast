@@ -58,16 +58,28 @@ typedef struct {
 	SSL 			*ssl;
 	bool			sslConnect;
 	sockfd 			sock;
-	int				reqId, waitId;
-	pthread_t 		Thread, TimerThread;
-	pthread_mutex_t	Mutex, reqMutex, eventMutex;
-	pthread_cond_t	reqCond, eventCond;
+	int				reqId, waitId, waitMedia;
+	pthread_t 		Thread, PingThread;
+	pthread_mutex_t	Mutex, eventMutex;
+	pthread_cond_t	eventCond;
 	char 			*sessionId, *transportId;
 	int				mediaSessionId;
-	tQueue			eventQueue;
+	enum { CAST_WAIT, CAST_WAIT_MEDIA } State;
+	in_addr_t		ip;
+	tQueue			eventQueue, reqQueue;
+	int 			Volume;
+	u32_t			lastPong;
 } tCastCtx;
 
+typedef struct {
+	char *Type ;
+	union {
+		json_t * msg;
+	} data;
+} tReqItem;
+
 bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...);
-bool ConnectReceiver(tCastCtx *Ctx, u32_t msWait);
+bool ConnectReceiver(tCastCtx *Ctx);
+void CastQueueFlush(tQueue *Queue);
 
 #endif

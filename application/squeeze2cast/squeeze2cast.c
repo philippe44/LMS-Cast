@@ -225,12 +225,6 @@ static int	uPNPTerminate(void);
 	if (action == SQ_ONOFF) {
 		device->on = *((bool*) param);
 
-		if (device->on)
-			ConnectCastDevice(device->CastCtx, device->ip);
-
-		if (!device->on)
-			DisconnectCastDevice(device->CastCtx);
-
 		if (device->on && device->Config.AutoPlay)
 			sq_notify(device->SqueezeHandle, device, SQ_PLAY, NULL, &device->on);
 
@@ -486,7 +480,6 @@ void ProcessVolume(char *Volume, struct sMR* Device)
 
 /*----------------------------------------------------------------------------*/
 #define TRACK_POLL  (1000)
-#define ALIVE_POLL  (3000)
 #define MAX_ACTION_ERRORS (5)
 static void *MRThread(void *args)
 {
@@ -540,13 +533,6 @@ static void *MRThread(void *args)
 			if (type && !strcasecmp(type, "CLOSE")) SyncNotifState("CLOSED", p);
 
 			json_decref(data);
-		}
-
-		// Cast devices need a keep-alive every < 5s
-		p->KeepAlive += elapsed;
-		if (p->on && p->KeepAlive > ALIVE_POLL) {
-			p->KeepAlive = 0;
-			CastKeepAlive(p->CastCtx);
 		}
 
 		// make sure that both domains are in sync that nothing shall be done
@@ -732,12 +718,10 @@ static void *UpdateMRThread(void *args)
 
 	// then walk through the list of devices to remove missing ones
 	for (i = 0; i < MAX_RENDERERS; i++) {
-		bool Keep;
 		Device = &glMRDevices[i];
 		if (!Device->InUse) continue;
 		if (Device->UPnPTimeOut && Device->UPnPMissingCount) Device->UPnPMissingCount--;
-        // must be evaluated locked to avoid conflict with sq_callback
-		if (!CastPeerDisc(Device->CastCtx) || (!Device->on && Device->UPnPMissingCount)) continue;
+		if (CastIsConnected(Device->CastCtx) || Device->UPnPMissingCount) continue;
 
 		LOG_INFO("[%p]: removing renderer (%s)", Device, Device->FriendlyName);
 		if (Device->SqueezeHandle) sq_delete_device(Device->SqueezeHandle);
@@ -985,7 +969,6 @@ static bool AddCastDevice(struct sMR *Device, char *UDN, IXML_Document *DescDoc,
 	strcpy(Device->DescDocURL, location);
 	strcpy(Device->FriendlyName, friendlyName);
 	strcpy(Device->Manufacturer, manufacturer);
-	Device->CastCtx = InitCastCtx(Device);
 
 	ExtractIP(location, &Device->ip);
 	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size) &&
@@ -994,6 +977,8 @@ static bool AddCastDevice(struct sMR *Device, char *UDN, IXML_Document *DescDoc,
 		// not sure what SendARP does with the MAC if it does not find one
 		memset(Device->sq_config.mac, 0, sizeof(Device->sq_config.mac));
 	}
+
+	Device->CastCtx = StartCastDevice(Device, Device->ip);
 
 	NFREE(deviceType);
 	NFREE(friendlyName);
@@ -1029,13 +1014,12 @@ void FlushCastDevices(void)
 void DelCastDevice(struct sMR *Device)
 {
 	pthread_mutex_lock(&Device->Mutex);
-	DisconnectCastDevice(Device->CastCtx);
 	Device->Running = false;
 	Device->InUse = false;
 	pthread_mutex_unlock(&Device->Mutex);
 	pthread_join(Device->Thread, NULL);
 
-	CloseCastCtx(Device->CastCtx);
+	StopCastDevice(Device->CastCtx);
 	NFREE(Device->CurrentURI);
 	NFREE(Device->NextURI);
 
