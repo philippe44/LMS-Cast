@@ -101,18 +101,18 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 					"contentType", ContentType);
 
 	if (MetaData) {
+
 		json_t *metadata = json_pack("{si,ss,ss,ss,ss,si}",
 							"metadataType", 3,
 							"albumName", MetaData->album, "title", MetaData->title,
 							"albumArtist", MetaData->artist, "artist", MetaData->artist,
-							"trackNumber", MetaData->track, "images", "url", MetaData->artwork);
+							"trackNumber", MetaData->track);
 
-		/*
 		if (MetaData->artwork) {
 			json_t *artwork = json_pack("{s[{ss}]}", "images", "url", MetaData->artwork);
 			json_object_update(metadata, artwork);
+			json_decref(artwork);
 		}
-		*/
 
 		metadata = json_pack("{s,o}", "metadata", metadata);
 		json_object_update(msg, metadata);

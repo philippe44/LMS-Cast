@@ -228,11 +228,11 @@ static int	uPNPTerminate(void);
 		if (device->on && device->Config.AutoPlay)
 			sq_notify(device->SqueezeHandle, device, SQ_PLAY, NULL, &device->on);
 
-		LOG_DEBUG("[%p]: device set on/off %d", caller, device->on);
+		LOG_INFO("[%p]: device set on/off %d", caller, device->on);
 	}
 
 	if (!device->on) {
-		LOG_DEBUG("[%p]: device off or not controlled by LMS", caller);
+		LOG_INFO("[%p]: device off or not controlled by LMS", caller);
 		return false;
 	}
 

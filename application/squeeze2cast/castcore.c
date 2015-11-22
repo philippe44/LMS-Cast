@@ -236,7 +236,7 @@ bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...)
 	CastMessage message = CastMessage_init_default;
 	pb_ostream_t stream;
 	u8_t *buffer;
-	u16_t buffer_len = 2048;
+	u16_t buffer_len = 4096;
 	bool status;
 	u32_t len;
 	va_list args;
@@ -247,15 +247,17 @@ bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...)
 
 	if (dest) strcpy(message.destination_id, dest);
 	strcpy(message.namespace, ns);
-	vsprintf(message.payload_utf8, payload, args);
-		message.has_payload_utf8 = true;
+	len = vsprintf(message.payload_utf8, payload, args);
+	message.has_payload_utf8 = true;
 	if ((buffer = malloc(buffer_len)) == NULL) return false;
 	stream = pb_ostream_from_buffer(buffer, buffer_len);
 	status = pb_encode(&stream, CastMessage_fields, &message);
 	len = stream.bytes_written;
 	swap32(&len);
+
 	status &= write_bytes(ssl, &len, 4);
 	status &= write_bytes(ssl, buffer, stream.bytes_written);
+
 	free(buffer);
 
 	if (!stristr(message.payload_utf8, "PING")) {

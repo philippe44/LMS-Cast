@@ -1,0 +1,2 @@
+0.1.1.0-dev2
+ - Buffer overflow was preventing artwork to be sent (potentially overflow on long metadata even w/o artwork)
