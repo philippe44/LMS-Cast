@@ -72,7 +72,7 @@ typedef struct {
 } tCastCtx;
 
 typedef struct {
-	char *Type ;
+	char Type[32] ;
 	union {
 		json_t * msg;
 	} data;
@@ -80,6 +80,8 @@ typedef struct {
 
 bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...);
 bool ConnectReceiver(tCastCtx *Ctx);
+void SetVolume(tCastCtx *Ctx, u8_t Volume);
 void CastQueueFlush(tQueue *Queue);
+void CastCoreInit(log_level level);
 
 #endif

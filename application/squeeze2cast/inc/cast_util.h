@@ -38,7 +38,7 @@ void 	CastStop(void *Ctx);
 #define CastPause(Ctx)	CastSimple(Ctx, "PAUSE")
 void 	CastSimple(void *Ctx, char *Type);
 bool	CastLoad(void *Ctx, char *URI, char *ContentType, struct sq_metadata_s *MetaData);
-void 	SetVolume(void *p, u8_t Volume);
+void 	CastSetVolume(void *p, u8_t Volume);
 
 #endif
 

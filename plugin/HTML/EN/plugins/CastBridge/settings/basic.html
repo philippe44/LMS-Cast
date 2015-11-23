@@ -122,13 +122,8 @@
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_VOLUMEMGMT" desc="PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC" %]
 		&nbsp<font color=blue>[% "PLUGIN_CASTBRIDGE_VOLUMEONPLAY" | string %]</font>&nbsp<select class="stdedit" name="volume_on_play" id="volume_on_play">
-		[% FOREACH entry IN [ ['',''], ['only when playing','1'], ['ignore all changes','-1'], ['transparent forward','0'] ] %]
+		[% FOREACH entry IN [ ['',''], ['ignore all changes','-1'], ['transparent forward','0'] ] %]
 			<option [% IF entry.1 == volume_on_play %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
-		[% END %]
-		</select>
-		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_PAUSEVOLUME" | string %]&nbsp<select class="stdedit" name="pause_volume" id="pause_volume">
-		[% FOREACH entry IN YESNOBOX %] 
-			<option [% IF entry.1 == pause_volume %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]
 		</select>
 	[% END %]

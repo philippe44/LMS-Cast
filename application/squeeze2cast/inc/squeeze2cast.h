@@ -58,7 +58,6 @@ typedef struct sMRConfig
 	bool		AcceptNextURI;
 	bool		SendMetaData;
 	bool		SendCoverArt;
-	bool		PauseVolume;
 	int			UPnPRemoveCount;
 	bool		AutoPlay;
 } tMRConfig;
@@ -92,7 +91,7 @@ struct sMR {
 	void			*CastCtx;
 	ithread_mutex_t Mutex;
 	ithread_t 		Thread;
-	u8_t			Volume, PreviousVolume;
+	u8_t			Volume;
 	u16_t			ErrorCount;
 	int				UPnPMissingCount;
 	bool			Running;

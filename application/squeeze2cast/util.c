@@ -136,7 +136,25 @@ double GetMediaItem_F(json_t *root, int n, char *item)
 	if ((elm = json_object_get(root, "status")) == NULL) return 0;
 	if ((elm = json_array_get(elm, n)) == NULL) return 0;
 	if ((elm = json_object_get(elm, item)) == NULL) return 0;
-	return json_real_value(elm);
+	return json_number_value(elm);
+}
+
+
+/*----------------------------------------------------------------------------*/
+bool GetMediaVolume(json_t *root, int n, double *volume, bool *muted)
+{
+	json_t *elm, *data;
+	*volume = -1;
+	*muted = false;
+
+	if ((elm = json_object_get(root, "status")) == NULL) return false;
+	if ((elm = json_array_get(elm, n)) == NULL) return false;
+	if ((elm = json_object_get(elm, "volume")) == NULL) return false;
+
+	if ((data = json_object_get(elm, "level")) != NULL) *volume = json_number_value(data);
+	if ((data = json_object_get(elm, "muted")) != NULL) *muted = json_boolean_value(data);
+
+	return true;
 }
 
 
@@ -461,7 +479,6 @@ void SaveConfig(char *name, void *ref, bool full)
 		XMLAddNode(doc, common, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
 		XMLAddNode(doc, common, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
 		XMLAddNode(doc, common, "upnp_remove_count", "%d", (u32_t) glMRConfig.UPnPRemoveCount);
-		XMLAddNode(doc, common, "pause_volume", "%d", (int) glMRConfig.PauseVolume);
 		XMLAddNode(doc, common, "auto_play", "%d", (int) glMRConfig.AutoPlay);
 	}
 
@@ -529,7 +546,6 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "keep_buffer_file"))sq_conf->keep_buffer_file = atol(val);
 	if (!strcmp(name, "upnp_remove_count"))Conf->UPnPRemoveCount = atol(val);
 	if (!strcmp(name, "volume_on_play")) Conf->VolumeOnPlay = atol(val);
-	if (!strcmp(name, "pause_volume")) Conf->PauseVolume = atol(val);
 	if (!strcmp(name, "auto_play")) Conf->AutoPlay = atol(val);
 	if (!strcmp(name, "send_metadata")) Conf->SendMetaData = atol(val);
 	if (!strcmp(name, "send_coverart")) Conf->SendCoverArt = atol(val);

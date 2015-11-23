@@ -66,9 +66,8 @@ tMRConfig			glMRConfig = {
 							SQ_STREAM,
 							true,
 							"",
-							1,
+							0,
 							false,
-							true,
 							true,
 							true,
 							3,
@@ -228,11 +227,11 @@ static int	uPNPTerminate(void);
 		if (device->on && device->Config.AutoPlay)
 			sq_notify(device->SqueezeHandle, device, SQ_PLAY, NULL, &device->on);
 
-		LOG_INFO("[%p]: device set on/off %d", caller, device->on);
+		LOG_DEBUG("[%p]: device set on/off %d", caller, device->on);
 	}
 
 	if (!device->on) {
-		LOG_INFO("[%p]: device off or not controlled by LMS", caller);
+		LOG_DEBUG("[%p]: device off or not controlled by LMS", caller);
 		return false;
 	}
 
@@ -318,7 +317,6 @@ static int	uPNPTerminate(void);
 				device->LocalStartTime = gettime_ms();
 #endif
 				CastPlay(device->CastCtx);
-				if (device->Config.VolumeOnPlay == 1) SetVolume(device->CastCtx, device->Volume);
 				device->sqState = SQ_PLAY;
 			}
 			else rc = false;
@@ -344,13 +342,9 @@ static int	uPNPTerminate(void);
 			for (i = 100; Volume < LMSVolumeMap[i] && i; i--);
 
 			device->Volume = i;
-			device->PreviousVolume = device->Volume;
 
-			if (device->Config.VolumeOnPlay == -1) break;
-
-			if (!device->Config.VolumeOnPlay || device->sqState == SQ_PLAY) {
-				SetVolume(device->CastCtx, device->Volume);
-            }
+			if (!device->Config.VolumeOnPlay != -1)
+				CastSetVolume(device->CastCtx, device->Volume);
 
 			break;
 		}
@@ -445,9 +439,6 @@ void SyncNotifState(const char *State, struct sMR* Device)
 			}
 			LOG_INFO("%s: Cast pause", Device->FriendlyName);
 
-			if ((Device->Config.VolumeOnPlay != -1) && (!Device->Config.PauseVolume))
-				SetVolume(Device->CastCtx, Device->PreviousVolume);
-
 			Device->State = PAUSED;
 		}
 	}
@@ -461,21 +452,6 @@ void SyncNotifState(const char *State, struct sMR* Device)
 		sq_notify(Device->SqueezeHandle, Device, Event, NULL, &Param);
 }
 
-
-/*----------------------------------------------------------------------------*/
-void ProcessVolume(char *Volume, struct sMR* Device)
-{
-	u16_t UPnPVolume = atoi(Volume);
-
-	LOG_SDEBUG("[%p]: Volume %s", Device, Volume);
-
-	// do not report Volume set to 0 on pause
-	if (UPnPVolume != Device->Volume &&	(UPnPVolume != 0 || (Device->sqState != SQ_PAUSE && Device->State != PAUSED))) {
-		LOG_INFO("[%p]: UPnP Volume local change %d", Device, UPnPVolume);
-		UPnPVolume =  UPnPVolume;
-		sq_notify(Device->SqueezeHandle, Device, SQ_VOLUME, NULL, &UPnPVolume);
-	}
-}
 
 
 /*----------------------------------------------------------------------------*/
@@ -501,7 +477,12 @@ static void *MRThread(void *args)
 		if (data) {
 			json_t *val = json_object_get(data, "type");
 			const char *type = json_string_value(val);
+			/*
+			double volume;
+			bool muted;
+			*/
 
+			// a mediaSessionId has been acquired
 			if (type && !strcasecmp(type, "MEDIA_STATUS")) {
 				const char *state = GetMediaItem_S(data, 0, "playerState");
 
@@ -526,6 +507,16 @@ static void *MRThread(void *args)
 #endif
 					sq_notify(p->SqueezeHandle, p, SQ_TIME, NULL, &elapsed);
 				}
+
+				/*
+				if (GetMediaVolume(data, 0, &volume, &muted)) {
+					volume *= 100;
+					if (volume != -1 && !muted && volume != p->Volume) {
+						LOG_INFO("[%p]: Volume local change %d", p, volume);
+						sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &volume);
+					}
+				}
+				*/
 
 			}
 

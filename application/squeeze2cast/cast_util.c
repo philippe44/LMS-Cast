@@ -32,11 +32,14 @@
 
 static log_level loglevel = lWARN;
 
+
 /*----------------------------------------------------------------------------*/
 void CastInit(log_level level)
 {
 	loglevel = level;
+	CastCoreInit(level);
 }
+
 
 /*----------------------------------------------------------------------------*/
 bool CastIsConnected(void *p)
@@ -139,7 +142,7 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 	// otherwise queue it for later
 	else {
 		tReqItem *req = malloc(sizeof(tReqItem));
-		req->Type = "LOAD";
+		strcpy(req->Type, "LOAD");
 		req->data.msg = msg;
 		QueueInsert(&Ctx->reqQueue, req);
 		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
@@ -174,7 +177,7 @@ void CastSimple(void *p, char *Type)
 	}
 	else {
 		tReqItem *req = malloc(sizeof(tReqItem));
-		req->Type = "PLAY";
+		strcpy(req->Type, Type);
 		QueueInsert(&Ctx->reqQueue, req);
 		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
 	}
@@ -210,7 +213,21 @@ void CastStop(void *p)
 
 
 /*----------------------------------------------------------------------------*/
-void SetVolume(void *p, u8_t Volume)
+void SetVolume(tCastCtx *Ctx, u8_t Volume)
+{
+	if (Volume)
+		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
+						Ctx->reqId++, Ctx->mediaSessionId, (double) Volume / 100.0);
+	else
+		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"muted\":true}}",
+						Ctx->reqId++, Ctx->mediaSessionId);
+}
+
+
+/*----------------------------------------------------------------------------*/
+void CastSetVolume(void *p, u8_t Volume)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;
 
@@ -220,9 +237,7 @@ void SetVolume(void *p, u8_t Volume)
 	if (Ctx->mediaSessionId) {
 
 		Ctx->Volume = -1;
-		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf}}",
-						Ctx->reqId++, Ctx->mediaSessionId, (double) Volume / 100.0);
+		SetVolume(Ctx, Volume);
 
 	}
 	else Ctx->Volume = Volume;

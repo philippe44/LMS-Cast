@@ -51,6 +51,13 @@ static log_level loglevel = lINFO;
 
 
 /*----------------------------------------------------------------------------*/
+void CastCoreInit(log_level level)
+{
+	loglevel = level;
+}
+
+
+/*----------------------------------------------------------------------------*/
 #if OSX
 static void set_nosigpipe(sockfd s) {
 	int set = 1;
@@ -177,10 +184,12 @@ bool read_bytes(SSL *ssl, void *buffer, u16_t bytes)
 		nb = SSL_read(ssl, (u8_t*) buffer + read, bytes - read);
 		if (nb > 0) read += nb;
 		if (nb < 0) {
+			int err = SSL_get_error(ssl, nb);
+			LOG_WARN("[s-%p]: SSL error code %d (err:%d)", ssl, err, ERR_get_error());
 #ifdef BLOCKING_SOCKET
 			return false;
 #else
-			switch (SSL_get_error(ssl, nb)) {
+			switch (err) {
 				case SSL_ERROR_ZERO_RETURN:
 				case SSL_ERROR_SSL:
 				case SSL_ERROR_SYSCALL: return false;
@@ -371,7 +380,7 @@ static bool CastConnect(tCastCtx *Ctx)
 	SSL_set_fd(Ctx->ssl, Ctx->sock);
 
 	if (SSL_connect(Ctx->ssl)) {
-		LOG_INFO("[%p]: SSL connection opened", Ctx->owner);
+		LOG_INFO("[%p]: SSL connection opened [%p]", Ctx->owner, Ctx->ssl);
 	}
 	else {
 		err = SSL_get_error(Ctx->ssl,err);
@@ -581,9 +590,13 @@ static void *CastSocketThread(void *args)
 		const char *str = NULL;
 
 		if (!GetNextMessage(Ctx->ssl, &Message)) {
+			int interval = 100;
 			LOG_WARN("[%p]: SSL connection closed", Ctx);
 			CastDisconnect(Ctx, true);
-			while (Ctx->running && !CastConnect(Ctx)) usleep(100000);
+			while (Ctx->running && !CastConnect(Ctx)) {
+				usleep(interval * 1000);
+				if (interval < 5000) interval *= 2;
+			}
 			continue;
 		}
 
@@ -597,9 +610,12 @@ static void *CastSocketThread(void *args)
 			pthread_mutex_lock(&Ctx->Mutex);
 			str = json_string_value(val);
 
-			LOG_INFO("[%p]: type:%s (id:%d)", Ctx->owner, str, requestId);
-			//LOG_INFO("type:%s (id:%d) (s:%s) (d:%s)\n%s", str, requestId,
-			//		 Message.source_id,Message.destination_id, Message.payload_utf8);
+			if (loglevel == lINFO) {
+				LOG_INFO("[%p]: type:%s (id:%d)", Ctx->owner, str, requestId);
+			}
+
+			LOG_DEBUG("type:%s (id:%d) (s:%s) (d:%s)\n%s", str, requestId,
+					 Message.source_id,Message.destination_id, Message.payload_utf8);
 
 			// Connection closed by peer
 			if (!strcasecmp(str,"CLOSE")) {
@@ -652,12 +668,7 @@ static void *CastSocketThread(void *args)
 						Ctx->mediaSessionId = id;
 						LOG_INFO("[%p]: Media session id %d", Ctx->owner, Ctx->mediaSessionId);
 						// Need to set volume when session is re-connected
-						if (Ctx->Volume != -1) {
-								SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-								"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf}}",
-								Ctx->reqId++, Ctx->mediaSessionId, (double) Ctx->Volume / 100.0);
-						}
-
+						if (Ctx->Volume != -1) SetVolume(Ctx, Ctx->Volume);
 					}
 				}
 
