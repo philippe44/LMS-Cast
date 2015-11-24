@@ -121,7 +121,7 @@
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_VOLUMEMGMT" desc="PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC" %]
-		&nbsp<font color=blue>[% "PLUGIN_CASTBRIDGE_VOLUMEONPLAY" | string %]</font>&nbsp<select class="stdedit" name="volume_on_play" id="volume_on_play">
+		&nbsp[% "PLUGIN_CASTBRIDGE_VOLUMEONPLAY" | string %]&nbsp<select class="stdedit" name="volume_on_play" id="volume_on_play">
 		[% FOREACH entry IN [ ['',''], ['ignore all changes','-1'], ['transparent forward','0'] ] %]
 			<option [% IF entry.1 == volume_on_play %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]

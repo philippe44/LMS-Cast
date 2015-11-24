@@ -92,7 +92,6 @@ struct sMR {
 	ithread_mutex_t Mutex;
 	ithread_t 		Thread;
 	u8_t			Volume;
-	u16_t			ErrorCount;
 	int				UPnPMissingCount;
 	bool			Running;
 };

@@ -343,7 +343,7 @@ static int	uPNPTerminate(void);
 
 			device->Volume = i;
 
-			if (!device->Config.VolumeOnPlay != -1)
+			if (device->Config.VolumeOnPlay != -1)
 				CastSetVolume(device->CastCtx, device->Volume);
 
 			break;
@@ -473,6 +473,13 @@ static void *MRThread(void *args)
 
 		LOG_SDEBUG("Cast thread timer %d", elapsed);
 
+		// make sure that both domains are in sync that nothing shall be done
+		if (!p->on) {
+			ithread_mutex_unlock(&p->Mutex);
+			last = gettime_ms();
+			continue;
+		}
+
 		// a message has been received
 		if (data) {
 			json_t *val = json_object_get(data, "type");
@@ -486,9 +493,13 @@ static void *MRThread(void *args)
 			if (type && !strcasecmp(type, "MEDIA_STATUS")) {
 				const char *state = GetMediaItem_S(data, 0, "playerState");
 
-				if (state && (!strcasecmp(state, "PLAYING") || !strcasecmp(state, "PAUSED"))) {
-					SyncNotifState(state, p);
+				if (state && (!strcasecmp(state, "PLAYING") || !strcasecmp(state, "BUFFERING"))) {
+					SyncNotifState("PLAYING", p);
 				}
+
+				if (state && !strcasecmp(state, "PAUSED")) {
+   					SyncNotifState("PAUSED", p);
+                }
 
 				if (state && !strcasecmp(state, "IDLE")) {
 					const char *cause = GetMediaItem_S(data, 0, "idleReason");
@@ -526,19 +537,12 @@ static void *MRThread(void *args)
 			json_decref(data);
 		}
 
-		// make sure that both domains are in sync that nothing shall be done
-		if (!p->on || (p->sqState == SQ_STOP && p->State == STOPPED) ||
-			 p->ErrorCount > MAX_ACTION_ERRORS) {
-			ithread_mutex_unlock(&p->Mutex);
-			last = gettime_ms();
-			continue;
-		}
 
 		// get track position & CurrentURI
 		p->TrackPoll += elapsed;
 		if (p->TrackPoll > TRACK_POLL) {
 			p->TrackPoll = 0;
-			CastGetMediaStatus(p->CastCtx);
+			if (p->State != STOPPED) CastGetMediaStatus(p->CastCtx);
 		}
 
 		ithread_mutex_unlock(&p->Mutex);
@@ -618,7 +622,6 @@ static bool RefreshTO(char *UDN)
 		if (glMRDevices[i].InUse && !strcmp(glMRDevices[i].UDN, UDN)) {
 			glMRDevices[i].UPnPTimeOut = false;
 			glMRDevices[i].UPnPMissingCount = glMRDevices[i].Config.UPnPRemoveCount;
-			glMRDevices[i].ErrorCount = 0;
 			return true;
 		}
 	}
@@ -951,7 +954,6 @@ static bool AddCastDevice(struct sMR *Device, char *UDN, IXML_Document *DescDoc,
 	Device->UPnPMissingCount = Device->Config.UPnPRemoveCount;
 	Device->on = false;
 	Device->SqueezeHandle = 0;
-	Device->ErrorCount = 0;
 	Device->Running = true;
 	Device->InUse = true;
 	Device->sqState = SQ_STOP;

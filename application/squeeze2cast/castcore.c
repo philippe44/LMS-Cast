@@ -177,7 +177,11 @@ bool read_bytes(SSL *ssl, void *buffer, u16_t bytes)
 		FD_ZERO(&rfds);
 		FD_SET(sock, &rfds);
 
-		if (select(sock + 1, &rfds, NULL, NULL, &timeout) == -1) return false;
+		if (select(sock + 1, &rfds, NULL, NULL, &timeout) == -1) {
+			LOG_WARN("[s-%p]: socket closed", ssl);
+			return false;
+		}
+
 		if (!FD_ISSET(sock, &rfds)) continue;
 
 		ERR_clear_error();
@@ -610,12 +614,14 @@ static void *CastSocketThread(void *args)
 			pthread_mutex_lock(&Ctx->Mutex);
 			str = json_string_value(val);
 
-			if (loglevel == lINFO) {
+			if (!strcasecmp(str, "MEDIA_STATUS")) {
+				LOG_INFO("[%p]: type:%s (id:%d) %s", Ctx->owner, str, requestId, GetMediaItem_S(root, 0, "playerState"));
+			}
+			else {
 				LOG_INFO("[%p]: type:%s (id:%d)", Ctx->owner, str, requestId);
 			}
 
-			LOG_DEBUG("type:%s (id:%d) (s:%s) (d:%s)\n%s", str, requestId,
-					 Message.source_id,Message.destination_id, Message.payload_utf8);
+			LOG_DEBUG("(s:%s) (d:%s)\n%s", Message.source_id, Message.destination_id, Message.payload_utf8);
 
 			// Connection closed by peer
 			if (!strcasecmp(str,"CLOSE")) {
@@ -670,6 +676,8 @@ static void *CastSocketThread(void *args)
 						// Need to set volume when session is re-connected
 						if (Ctx->Volume != -1) SetVolume(Ctx, Ctx->Volume);
 					}
+					// Don't need to forward this, no valuable info
+					forward = false;
 				}
 
 				// must be done at the end, once all parameters have been acquired
