@@ -256,15 +256,9 @@ static int	uPNPTerminate(void);
 
 			sprintf(uri, "http://%s:%d/%s/%s.%s", glIPaddress, glPort, glBaseVDIR, p->name, p->ext);
 
-			if (device->Config.SendMetaData) {
-				sq_get_metadata(device->SqueezeHandle, &device->MetaData, (action == SQ_SETURI) ? false : true);
-				p->file_size = device->MetaData.file_size ?
-							   device->MetaData.file_size : device->Config.StreamLength;
-			}
-			else {
-				sq_default_metadata(&device->MetaData, true);
-				p->file_size = device->Config.StreamLength;
-			}
+			sq_get_metadata(device->SqueezeHandle, &device->MetaData, (action == SQ_SETURI) ? false : true);
+			p->file_size = device->MetaData.file_size ?
+						   device->MetaData.file_size : device->Config.StreamLength;
 
 			p->duration 	= device->MetaData.duration;
 			p->src_format 	= ext2format(device->MetaData.path);
@@ -275,12 +269,6 @@ static int	uPNPTerminate(void);
 			if (action == SQ_SETNEXTURI) {
 				NFREE(device->NextURI);
 				strcpy(device->ContentType, p->content_type);
-
-				/*
-				if (device->Config.AcceptNextURI){
-					sq_free_metadata(&device->MetaData);
-				}
-				}*/
 
 				// to know what is expected next
 				device->NextURI = (char*) malloc(strlen(uri) + 1);
@@ -293,7 +281,7 @@ static int	uPNPTerminate(void);
 				NFREE(device->NextURI);
 
 				rc = CastLoad(device->CastCtx, uri, p->content_type,
-						(device->Config.SendMetaData) ? &device->MetaData : NULL);
+							  (device->Config.SendMetaData) ? &device->MetaData : NULL);
 
 				sq_free_metadata(&device->MetaData);
 
@@ -384,7 +372,8 @@ void SyncNotifState(const char *State, struct sMR* Device)
 					strcpy(Device->CurrentURI, Device->NextURI);
 					NFREE(Device->NextURI);
 
-					CastLoad(Device->CastCtx, Device->CurrentURI, Device->ContentType, &Device->MetaData);
+					CastLoad(Device->CastCtx, Device->CurrentURI, Device->ContentType,
+						      (Device->Config.SendMetaData) ? &Device->MetaData : NULL);
 					sq_free_metadata(&Device->MetaData);
 					CastPlay(Device->CastCtx);
 

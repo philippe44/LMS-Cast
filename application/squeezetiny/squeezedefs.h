@@ -3,7 +3,7 @@
 
 //#define __EARLY_STMd__
 
-#define VERSION "v0.1.1.2"" ("__DATE__" @ "__TIME__")"
+#define VERSION "v0.1.2.0"" ("__DATE__" @ "__TIME__")"
 
 #if defined(linux)
 #define LINUX     1
