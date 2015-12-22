@@ -33,6 +33,7 @@ int WebGetInfo(const char *FileName, struct File_Info *Info)
 	void 		*p;
 	s32_t 		FileSize;
 	u16_t		IcyInterval = 0;
+	char 		**ContentFeatures = NULL;
 	struct Extra_Headers *Headers = Info->extra_headers;
 
 	while (Headers->name) {
@@ -46,32 +47,12 @@ int WebGetInfo(const char *FileName, struct File_Info *Info)
 			Headers->resp = p;
 		}
 
-		if (stristr(Headers->name, "transferMode.dlna.org")) {
-			char *p = malloc(strlen(Headers->name) + strlen(Headers->value) + 3);
-
-			sprintf(p, "%s: %s", Headers->name, Headers->value);
-			Headers->resp = p;
-		}
-
-		/*
-		if (stristr(Headers->name, "TimeSeekRange.dlna.org")) {
-			u32_t h = 0, m = 0, s = 0, ms = 0;
-			sq_dev_handle_t Handle = sq_urn2handle(FileName);
-
-			if (strchr(Headers->value, ':'))
-				sscanf(Headers->value,"npt=%d:%d:%d.%d", &h, &m, &s, &ms);
-			else
-				sscanf(Headers->value,"npt=%d.%d", &s, &ms);
-
-			 sq_set_time(Handle, (h*3600 + m*60 + s)*1000 + ms);
-			 return -1;
-		}
-		*/
-
 		Headers++;
 	}
 
-	p = sq_get_info(FileName, &FileSize, &Info->content_type, IcyInterval);
+	if(!sq_get_info(FileName, &FileSize, &Info->content_type, NULL, IcyInterval)) {
+		return UPNP_E_FILE_NOT_FOUND;
+	}
 
 	Status.st_ctime 	= 0;
 	Info->is_directory 	= false;

@@ -145,12 +145,15 @@ PLUGIN_CASTBRIDGE_SCANTIMEOUT
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
 
-PLUGIN_CASTBRIDGE_STREAMLENGTH
-	EN	HTTP streaming option
+PLUGIN_CASTBRIDGE_HTTPOPTIONS
+	EN	Device communication options
 
-PLUGIN_CASTBRIDGE_STREAMLENGTH_DESC
-	EN	The true size of the stream is unknown by LMS. Some UPnP players are not happy with "chunked" HTTP streaming and require
-	EN	a true length (see the user guide in https://github.com/philippe44/LMS-to-UPnP for details.)
+PLUGIN_UPNPBRIDGE_HTTPOPTIONS_DESC
+	EN	Various streaming options for communication with LMS and with the Chromecast device (see user guide)
+	EN	<br>- Live streams (webradios) require a timeout to detect idle connection
+
+PLUGIN_CASTBRIDGE_MAXREADWAIT
+	EN	Live streaming timeout (x50ms)
 
 PLUGIN_CASTBRIDGE_ACCEPTNEXTURI
 	EN	Player supports gapless 
