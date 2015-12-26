@@ -78,6 +78,7 @@ struct sMR {
 	enum eMRstate 	State;
 	char			*CurrentURI;
 	char			*NextURI;
+	s16_t			ReplayGain, NextReplayGain;
 	char			ContentType[SQ_STR_LENGTH];		// a bit patchy ... to buffer next URI
 	sq_metadata_t	MetaData;
 	sq_action_t		sqState;

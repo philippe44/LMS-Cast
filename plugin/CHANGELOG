@@ -2,6 +2,8 @@
  - Backport squeezetiny changes from changes made for squeeze2upnp 0.2.7.0 
  - armv5 build static and dynamic
  - powerpc build
+ - Implement ReplayGain by using player's volume (some limitations)
+ - in CastLoad, MediaSession must be reset 
  
 0.1.2.0
  - Always gather metadata from LMS, <send_metadata> only stops sending of coverart, album, artist and title 

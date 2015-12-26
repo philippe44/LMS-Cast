@@ -272,6 +272,7 @@ static int	uPNPTerminate(void);
 
 				// to know what is expected next
 				device->NextURI = (char*) malloc(strlen(uri) + 1);
+				device->NextReplayGain = (p->replay_gain) ? log10(p->replay_gain / 65536.) * 40 : 0;
 				strcpy(device->NextURI, uri);
 				LOG_INFO("[%p]: next URI set %s", device, device->NextURI);
 			}
@@ -286,12 +287,13 @@ static int	uPNPTerminate(void);
 				sq_free_metadata(&device->MetaData);
 
 				device->CurrentURI = (char*) malloc(strlen(uri) + 1);
+				device->ReplayGain = (p->replay_gain) ? log10(p->replay_gain / 65536.) * 40 : 0;
 				strcpy(device->CurrentURI, uri);
 				LOG_INFO("[%p]: current URI set %s", device, device->CurrentURI);
 			}
 
 			break;
-      	}
+		}
 		case SQ_UNPAUSE:
 			if (device->CurrentURI) {
 				CastPlay(device->CastCtx);
@@ -304,6 +306,10 @@ static int	uPNPTerminate(void);
 				device->StartTime = sq_get_time(device->SqueezeHandle);
 				device->LocalStartTime = gettime_ms();
 #endif
+				// need to set volume for replaygain
+				if (device->Config.VolumeOnPlay != -1)
+					CastSetVolume(device->CastCtx, device->Volume + device->ReplayGain);
+
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
 			}
@@ -332,7 +338,7 @@ static int	uPNPTerminate(void);
 			device->Volume = i;
 
 			if (device->Config.VolumeOnPlay != -1)
-				CastSetVolume(device->CastCtx, device->Volume);
+				CastSetVolume(device->CastCtx, device->Volume + device->ReplayGain);
 
 			break;
 		}
@@ -370,11 +376,17 @@ void SyncNotifState(const char *State, struct sMR* Device)
 					NFREE(Device->CurrentURI);
 					Device->CurrentURI = malloc(strlen(Device->NextURI) + 1);
 					strcpy(Device->CurrentURI, Device->NextURI);
+					Device->ReplayGain = Device->NextReplayGain;
 					NFREE(Device->NextURI);
 
 					CastLoad(Device->CastCtx, Device->CurrentURI, Device->ContentType,
 						      (Device->Config.SendMetaData) ? &Device->MetaData : NULL);
 					sq_free_metadata(&Device->MetaData);
+
+					// need to set volume for replaygain
+					if (Device->Config.VolumeOnPlay != -1)
+						CastSetVolume(Device->CastCtx, Device->Volume + Device->ReplayGain);
+
 					CastPlay(Device->CastCtx);
 
 					Event = SQ_TRACK_CHANGE;

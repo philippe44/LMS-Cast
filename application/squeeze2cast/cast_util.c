@@ -231,6 +231,8 @@ void CastSetVolume(void *p, u8_t Volume)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;
 
+	if (Volume > 100) Volume = 100;
+
 	// no media session, nothing to do
 	pthread_mutex_lock(&Ctx->Mutex);
 

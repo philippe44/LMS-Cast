@@ -521,6 +521,7 @@ void ProcessQueue(tCastCtx *Ctx) {
 		if (Ctx->Connect == CAST_CONNECTED) {
 			Ctx->waitId = Ctx->reqId++;
 			Ctx->waitMedia = Ctx->waitId;
+			Ctx->mediaSessionId = 0;
 
 			msg = json_pack("{ss,si,ss,sf,sb,so}", "type", "LOAD",
 							"requestId", Ctx->waitId, "sessionId", Ctx->sessionId,
