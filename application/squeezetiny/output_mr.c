@@ -351,7 +351,7 @@ size_t apply_gain(void *p, size_t *space, u8_t inc, bool endianness, u32_t gain)
 					if (sample > MAX_VAL32) sample = MAX_VAL32;
 					else if (sample < -MAX_VAL32) sample = -MAX_VAL32;
 					sample >>= 16;
-					*buf = ((sample >> 24) & 0xff) | ((sample >> 8) & 0xff00) | ((sample << 8) & 0xff0000) & ((sample << 24) && 0xff000000);
+					*buf = ((sample >> 24) & 0xff) | ((sample >> 8) & 0xff00) | ((sample << 8) & 0xff0000) | ((sample << 24) & 0xff000000);
 				}
 			}
 			break;
