@@ -5,6 +5,7 @@
  - ReplayGain available for raw audio only (pcm, aif)
  - add aif as a default codec
  - in CastLoad, MediaSession must be reset 
+ - ON/OFF fully cleans any pending response as, in some cases, CC does not respond to a STOP
  
 0.1.2.0
  - Always gather metadata from LMS, <send_metadata> only stops sending of coverart, album, artist and title 

@@ -128,6 +128,7 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 	if (Ctx->Connect == CAST_CONNECTED && !Ctx->waitId) {
 		Ctx->waitId = Ctx->reqId++;
 		Ctx->waitMedia = Ctx->waitId;
+		Ctx->mediaSessionId = 0;
 
 		msg = json_pack("{ss,si,ss,sf,sb,so}", "type", "LOAD",
 						"requestId", Ctx->waitId, "sessionId", Ctx->sessionId,
@@ -208,6 +209,18 @@ void CastStop(void *p)
 			LOG_WARN("[%p]: Stop req w/o session or connect", Ctx->owner);
 	}
 
+	pthread_mutex_unlock(&Ctx->Mutex);
+}
+
+
+/*----------------------------------------------------------------------------*/
+void CastClean(void *p)
+{
+	tCastCtx *Ctx = (tCastCtx*) p;
+
+	pthread_mutex_lock(&Ctx->Mutex);
+	CastQueueFlush(&Ctx->reqQueue);
+	Ctx->waitId = Ctx->mediaSessionId = 0;
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 

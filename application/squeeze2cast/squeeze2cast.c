@@ -227,6 +227,8 @@ static int	uPNPTerminate(void);
 		if (device->on && device->Config.AutoPlay)
 			sq_notify(device->SqueezeHandle, device, SQ_PLAY, NULL, &device->on);
 
+		if (!device->on) CastClean(device->CastCtx);
+
 		LOG_DEBUG("[%p]: device set on/off %d", caller, device->on);
 	}
 

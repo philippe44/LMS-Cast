@@ -34,6 +34,7 @@ void	CastGetStatus(void *Ctx);
 void	CastGetMediaStatus(void *Ctx);
 
 void 	CastStop(void *Ctx);
+void 	CastClean(void *Ctx);
 #define CastPlay(Ctx)	CastSimple(Ctx, "PLAY")
 #define CastPause(Ctx)	CastSimple(Ctx, "PAUSE")
 void 	CastSimple(void *Ctx, char *Type);

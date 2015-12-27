@@ -1,7 +1,7 @@
 #ifndef __SQUEEZEDEFS_H
 #define __SQUEEZEDEFS_H
 
-#define VERSION "v0.1.3.0-dev-2"" ("__DATE__" @ "__TIME__")"
+#define VERSION "v0.1.3.0-dev-3"" ("__DATE__" @ "__TIME__")"
 
 #if defined(linux)
 #define LINUX     1
