@@ -329,7 +329,6 @@ static void process_strm(u8_t *pkt, int len, struct thread_ctx_s *ctx) {
 			 uri.channels = (strm->pcm_channels != '?') ? pcm_channels[strm->pcm_channels - '1'] : 0xff;
 			 uri.endianness = (strm->pcm_endianness != '?') ? strm->pcm_endianness - '0' : 0;
 			 uri.codec = strm->format;
-			 uri.replay_gain = unpackN(&strm->replay_gain);
 
 			 if (ctx->config.mode == SQ_STREAM)
 			 {
@@ -367,6 +366,7 @@ static void process_strm(u8_t *pkt, int len, struct thread_ctx_s *ctx) {
 				ctx->out_ctx[idx].endianness = uri.endianness;
 				ctx->out_ctx[idx].channels = uri.channels;
 				ctx->out_ctx[idx].codec = uri.codec;
+				ctx->out_ctx[idx].replay_gain = unpackN(&strm->replay_gain);
 				strcpy(uri.name, ctx->out_ctx[idx].buf_name);
 
 				if (ctx->play_running || ctx->track_status != TRACK_STOPPED) {

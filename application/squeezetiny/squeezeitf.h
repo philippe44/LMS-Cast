@@ -75,7 +75,6 @@ typedef struct
 {
 	char	name[SQ_STR_LENGTH];
 	char	ext[5];
-	u32_t	replay_gain;
 	u8_t	channels;
 	u8_t	sample_size;
 	u32_t	sample_rate;
