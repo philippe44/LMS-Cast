@@ -250,14 +250,6 @@ static int	uPNPTerminate(void);
 			LOG_INFO("[%p]: codec:%c, ch:%d, s:%d, r:%d", device, p->codec,
 										p->channels, p->sample_size, p->sample_rate);
 
-			if (!SetContentType(device, p)) {
-				LOG_ERROR("[%p]: no matching codec in player", caller);
-				rc = false;
-				break;
-			}
-
-			sprintf(uri, "http://%s:%d/%s/%s.%s", glIPaddress, glPort, glBaseVDIR, p->name, p->ext);
-
 			sq_get_metadata(device->SqueezeHandle, &device->MetaData, (action == SQ_SETURI) ? false : true);
 			p->file_size = device->MetaData.file_size ?
 						   device->MetaData.file_size : device->Config.StreamLength;
@@ -267,6 +259,16 @@ static int	uPNPTerminate(void);
 			p->remote 		= device->MetaData.remote;
 			p->track_hash	= device->MetaData.track_hash;
 			if (!device->Config.SendCoverArt) NFREE(device->MetaData.artwork);
+
+			// must be done after the above
+			if (!SetContentType(device, p)) {
+				LOG_ERROR("[%p]: no matching codec in player", caller);
+				sq_free_metadata(&device->MetaData);
+				rc = false;
+				break;
+			}
+
+			sprintf(uri, "http://%s:%d/%s/%s.%s", glIPaddress, glPort, glBaseVDIR, p->name, p->ext);
 
 			if (action == SQ_SETNEXTURI) {
 				NFREE(device->NextURI);

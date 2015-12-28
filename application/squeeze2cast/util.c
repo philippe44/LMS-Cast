@@ -403,7 +403,6 @@ bool SetContentType(struct sMR *Device, sq_seturi_t *uri)
 	case 'o': return  strcpy(uri->content_type, "audio/ogg");
 	case 'a': return  strcpy(uri->content_type, "audio/aac");
 	case 'l': return  strcpy(uri->content_type, "audio/m4a");
-	//case 'p': return  sprintf(uri->content_type, "audio/L%d;channels=%d;rate=%d", uri->sample_size, uri->channels, uri->sample_rate);
 	case 'p': return  strcpy(uri->content_type, "audio/wav");;
 	default:
 		strcpy(uri->content_type, "unknown");
