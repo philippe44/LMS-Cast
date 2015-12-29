@@ -370,12 +370,6 @@ static bool CastConnect(tCastCtx *Ctx)
 	addr.sin_addr.s_addr = Ctx->ip;
 	addr.sin_port = htons(8009);
 
-	/*
-	if (Ctx->ip == 0x3902A8C0) {
-		addr.sin_port = htons(10001);
-	}
-	*/
-
 	err = connect_timeout(Ctx->sock, (struct sockaddr *) &addr, sizeof(addr), 2);
 
 	if (err) {
