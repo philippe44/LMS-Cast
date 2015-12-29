@@ -1,3 +1,6 @@
+0.1.3.1
+ - Documentation update on ReplayGain
+ 
 0.1.3.0
  - Backport squeezetiny changes from changes made for squeeze2upnp 0.2.7.0 
  - armv5 build static and dynamic

@@ -98,7 +98,7 @@ sq_dev_param_t glDeviceParam = {
 						SQ_RATE_12000, SQ_RATE_11025, SQ_RATE_8000, 0 },
 					-1,
 					100,
-					"flc,pcm,aif,mp3",
+					"pcm,aif,flc,mp3",
 					SQ_RATE_96000,
 					L24_PACKED_LPCM,
 					FLAC_NORMAL_HEADER,
