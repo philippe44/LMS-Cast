@@ -148,7 +148,6 @@ bool GetMediaVolume(json_t *root, int n, double *volume, bool *muted)
 	*muted = false;
 
 	if ((elm = json_object_get(root, "status")) == NULL) return false;
-	if ((elm = json_array_get(elm, n)) == NULL) return false;
 	if ((elm = json_object_get(elm, "volume")) == NULL) return false;
 
 	if ((data = json_object_get(elm, "level")) != NULL) *volume = json_number_value(data);
@@ -412,6 +411,23 @@ bool SetContentType(struct sMR *Device, sq_seturi_t *uri)
 }
 
 
+/*----------------------------------------------------------------------------*/
+void MakeMacUnique(struct sMR *Device)
+{
+	int i;
+
+	for (i = 0; i < MAX_RENDERERS; i++) {
+		if (!glMRDevices[i].InUse || Device == &glMRDevices[i]) continue;
+		if (!memcmp(&glMRDevices[i].sq_config.mac, &Device->sq_config.mac, 6)) {
+			u32_t hash = hash32(Device->UDN);
+
+			LOG_INFO("[%p]: duplicated mac ... updating", Device);
+			memset(&Device->sq_config.mac[0], 0, 2);
+			memcpy(&Device->sq_config.mac[0] + 2, &hash, 4);
+		}
+	}
+}
+
 
 /*----------------------------------------------------------------------------*/
 void SaveConfig(char *name, void *ref, bool full)
@@ -446,7 +462,7 @@ void SaveConfig(char *name, void *ref, bool full)
 		root = XMLAddNode(doc, NULL, "squeeze2cast", NULL);
 
 		XMLAddNode(doc, root, "server", glSQServer);
-		XMLAddNode(doc, root, "upnp_socket", gluPNPSocket);
+		XMLAddNode(doc, root, "upnp_socket", glUPnPSocket);
 		XMLAddNode(doc, root, "base_mac", "%02x:%02x:%02x:%02x:%02x:%02x", glMac[0],
 					glMac[1], glMac[2], glMac[3], glMac[4], glMac[5]);
 		XMLAddNode(doc, root, "slimproto_log", level2debug(glLog.slimproto));
@@ -454,11 +470,10 @@ void SaveConfig(char *name, void *ref, bool full)
 		XMLAddNode(doc, root, "output_log", level2debug(glLog.output));
 		XMLAddNode(doc, root, "decode_log", level2debug(glLog.decode));
 		XMLAddNode(doc, root, "web_log", level2debug(glLog.web));
-		XMLAddNode(doc, root, "upnp_log", level2debug(glLog.upnp));
 		XMLAddNode(doc, root, "main_log",level2debug(glLog.main));
 		XMLAddNode(doc, root, "sq2mr_log", level2debug(glLog.sq2mr));
-		XMLAddNode(doc, root, "upnp_scan_interval", "%d", (u32_t) gluPNPScanInterval);
-		XMLAddNode(doc, root, "upnp_scan_timeout", "%d", (u32_t) gluPNPScanTimeout);
+		XMLAddNode(doc, root, "scan_interval", "%d", (u32_t) glScanInterval);
+		XMLAddNode(doc, root, "scan_timeout", "%d", (u32_t) glScanTimeout);
 		XMLAddNode(doc, root, "log_limit", "%d", (s32_t) glLogLimit);
 
 		common = XMLAddNode(doc, root, "common", NULL);
@@ -477,7 +492,7 @@ void SaveConfig(char *name, void *ref, bool full)
 		XMLAddNode(doc, common, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
 		XMLAddNode(doc, common, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
 		XMLAddNode(doc, common, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
-		XMLAddNode(doc, common, "upnp_remove_count", "%d", (u32_t) glMRConfig.UPnPRemoveCount);
+		XMLAddNode(doc, common, "remove_count", "%d", (u32_t) glMRConfig.RemoveCount);
 		XMLAddNode(doc, common, "auto_play", "%d", (int) glMRConfig.AutoPlay);
 	}
 
@@ -544,7 +559,7 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "sample_rate"))sq_conf->sample_rate = atol(val);
 	if (!strcmp(name, "flac_header"))sq_conf->flac_header = atol(val);
 	if (!strcmp(name, "keep_buffer_file"))sq_conf->keep_buffer_file = atol(val);
-	if (!strcmp(name, "upnp_remove_count"))Conf->UPnPRemoveCount = atol(val);
+	if (!strcmp(name, "remove_count"))Conf->RemoveCount = atol(val);
 	if (!strcmp(name, "volume_on_play")) Conf->VolumeOnPlay = atol(val);
 	if (!strcmp(name, "auto_play")) Conf->AutoPlay = atol(val);
 	if (!strcmp(name, "send_metadata")) Conf->SendMetaData = atol(val);
@@ -565,13 +580,12 @@ static void LoadGlobalItem(char *name, char *val)
 	if (!val) return;
 
 	if (!strcmp(name, "server")) strcpy(glSQServer, val);
-	if (!strcmp(name, "upnp_socket")) strcpy(gluPNPSocket, val);
+	if (!strcmp(name, "upnp_socket")) strcpy(glUPnPSocket, val);
 	if (!strcmp(name, "slimproto_log")) glLog.slimproto = debug2level(val);
 	if (!strcmp(name, "stream_log")) glLog.stream = debug2level(val);
 	if (!strcmp(name, "output_log")) glLog.output = debug2level(val);
 	if (!strcmp(name, "decode_log")) glLog.decode = debug2level(val);
 	if (!strcmp(name, "web_log")) glLog.web = debug2level(val);
-	if (!strcmp(name, "upnp_log")) glLog.upnp = debug2level(val);
 	if (!strcmp(name, "main_log")) glLog.main = debug2level(val);
 	if (!strcmp(name, "sq2mr_log")) glLog.sq2mr = debug2level(val);
 	if (!strcmp(name, "base_mac"))  {
@@ -581,8 +595,8 @@ static void LoadGlobalItem(char *name, char *val)
 		sscanf(val,"%2x:%2x:%2x:%2x:%2x:%2x", &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
 		for (i = 0; i < 6; i++) glMac[i] = mac[i];
 	}
-	if (!strcmp(name, "upnp_scan_interval")) gluPNPScanInterval = atol(val);
-	if (!strcmp(name, "upnp_scan_timeout")) gluPNPScanTimeout = atol(val);
+	if (!strcmp(name, "scan_interval")) glScanInterval = atol(val);
+	if (!strcmp(name, "scan_timeout")) glScanTimeout = atol(val);
 	if (!strcmp(name, "log_limit")) glLogLimit = atol(val);
  }
 

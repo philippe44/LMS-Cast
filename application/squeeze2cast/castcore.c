@@ -367,8 +367,12 @@ static bool CastConnect(tCastCtx *Ctx)
 	set_nosigpipe(Ctx->sock);
 
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = Ctx->ip;
-	addr.sin_port = htons(8009);
+#if WIN
+	addr.sin_addr.s_addr = Ctx->ip.S_un.S_addr;
+#else
+	addr.sin_addr.s_addr = Ctx->ip.s_addr;
+#endif
+	addr.sin_port = htons(Ctx->port);
 
 	err = connect_timeout(Ctx->sock, (struct sockaddr *) &addr, sizeof(addr), 2);
 
@@ -432,7 +436,7 @@ static void CastDisconnect(tCastCtx *Ctx, bool disc)
 
 
 /*----------------------------------------------------------------------------*/
-void *StartCastDevice(void *owner, in_addr_t ip)
+void *StartCastDevice(void *owner, struct in_addr ip, u16_t port)
 {
 	tCastCtx *Ctx = malloc(sizeof(tCastCtx));
 	pthread_mutexattr_t mutexAttr;
@@ -445,6 +449,7 @@ void *StartCastDevice(void *owner, in_addr_t ip)
 	Ctx->sslConnect = false;
 	Ctx->Connect 	= CAST_IDLE;
 	Ctx->ip 		= ip;
+	Ctx->port		= port;
 	Ctx->Volume		= -1;
 
 	QueueInit(&Ctx->eventQueue);

@@ -14,7 +14,7 @@ PLUGIN_CASTBRIDGE_AUTORUN
 	EN	Start the Bridge
 
 PLUGIN_CASTBRIDGE_AUTORUN_DESC
-	EN	Automatically start the UPnP/DLNA bridge instance when the server starts.
+	EN	Automatically start the Chromecast bridge instance when the server starts.
 
 PLUGIN_CASTBRIDGE_RUNNING_0
 	EN	Not Running
@@ -29,7 +29,7 @@ PLUGIN_CASTBRIDGE_BINARIES
 	EN	Select Binary
 
 PLUGIN_CASTBRIDGE_BINARIES_DESC
-	EN	Select the Squeeze2upnp binary which best matches your machine's architecture. 
+	EN	Select the squeeze2cast binary which best matches your machine's architecture. 
 	EN	This option is only needed for arm based devices where multiple options are available and autodetection is not reliable.
 
 PLUGIN_CASTBRIDGE_WARNING
@@ -51,7 +51,7 @@ PLUGIN_CASTBRIDGE_OPTIONS
 	EN	Extra command line options
 
 PLUGIN_CASTBRIDGE_OPTIONS_DESC
-	EN	Add additional Squeeze2upnp startup command line options here.  See the user guide in https://github.com/philippe44/LMS-to-UPnP 
+	EN	Add additional squeeze2cast startup command line options here.  See the user guide in https://github.com/philippe44/LMS-to-Cast 
 	EN	for details.
 
 PLUGIN_CASTBRIDGE_DEBUG
@@ -101,7 +101,7 @@ PLUGIN_CASTBRIDGE_CLEANLOG
 	EN	Clean
 	
 PLUGIN_CASTBRIDGE_PLAYER
-	EN	Select UPnP player
+	EN	Select Chromecast player
 		
 PLUGIN_CASTBRIDGE_CONFIG
 	EN	Configuration file
@@ -109,7 +109,7 @@ PLUGIN_CASTBRIDGE_CONFIG
 PLUGIN_CASTBRIDGE_CONFIG_DESC
 	EN	<i>Generate</i> re-scans the network and builds a configuration file including all discovered players while retaining
 	EN	existing parameters and players (this will stop the bridge for ~30s)
-	EN	<br>When autosave is checked, the configuration file will be automatically updated at every network scan (see UPnP scanning options)
+	EN	<br>When autosave is checked, the configuration file will be automatically updated at every network scan (see mDNS scanning options)
 
 PLUGIN_CASTBRIDGE_CONFLINK
 	EN	View
@@ -123,11 +123,11 @@ PLUGIN_CASTBRIDGE_AUTOSAVECONFIG
 PLUGIN_CASTBRIDGE_DELCONFIG
 	EN	Erase
 	
-PLUGIN_CASTBRIDGE_UPNPSCAN
+PLUGIN_CASTBRIDGE_SCAN
 	EN	Chromecast device scanning options
 
-PLUGIN_CASTBRIDGE_UPNPSCAN_DESC
-	EN	How often and for how long the network is scanned for added/removed UPnP players on your network
+PLUGIN_CASTBRIDGE_SCAN_DESC
+	EN	How often and for how long the network is scanned for added/removed Chromecast players on your network
 
 PLUGIN_CASTBRIDGE_UPNPSOCKET
 	EN	Network socket to use
@@ -148,7 +148,7 @@ PLUGIN_CASTBRIDGE_TEXTDEFAULT
 PLUGIN_CASTBRIDGE_HTTPOPTIONS
 	EN	Device communication options
 
-PLUGIN_UPNPBRIDGE_HTTPOPTIONS_DESC
+PLUGIN_CASTBRIDGE_HTTPOPTIONS_DESC
 	EN	Various streaming options for communication with LMS and with the Chromecast device (see user guide)
 	EN	<br>- Live streams (webradios) require a timeout to detect idle connection
 
@@ -174,7 +174,7 @@ PLUGIN_CASTBRIDGE_BUFFERS
 	EN	Audio file buffers
 
 PLUGIN_CASTBRIDGE_BUFFERS_DESC
-	EN	Audio streams are buffered locally while sending to the UPnP player. <br>- Enter ? to let the system decide which directory 
+	EN	Audio streams are buffered locally while sending to the Chromecast player. <br>- Enter ? to let the system decide which directory 
 	EN	to use<br>- "Max Size" defines the largest size a single file can take before it is shrunk. Set to -1 for unlimited
 
 PLUGIN_CASTBRIDGE_BUFFERDIR
@@ -227,20 +227,20 @@ PLUGIN_CASTBRIDGE_PLAYERMAC
 PLUGIN_CASTBRIDGE_DELETEPLAYER
 	EN	Delete
 
-PLUGIN_CASTBRIDGE_UPNPMGMT
+PLUGIN_CASTBRIDGE_MDNSMGMT
 	EN	Player discovery options
 	
-PLUGIN_CASTBRIDGE_UPNPMGMT_DESC
+PLUGIN_CASTBRIDGE_MDNSMGMT_DESC
 	EN	Misc options<br>- For the default list newly discovered players can be automatically added to LMS – For individual players a 
-	EN	player can be enabled or disabled<br>- Number of UPnP scan cycles a player can be found missing before being removed
+	EN	player can be enabled or disabled<br>- Number of mDNS scan cycles a player can be found missing before being removed
 
 PLUGIN_CASTBRIDGE_ENABLEDEFS
 	EN	Player is enabled
 
-PLUGIN_CASTBRIDGE_UPNPREMOVECOUNT_1
+PLUGIN_CASTBRIDGE_REMOVECOUNT_1
 	EN	but removed after  
 	
-PLUGIN_CASTBRIDGE_UPNPREMOVECOUNT_2
+PLUGIN_CASTBRIDGE_REMOVECOUNT_2
 	EN	failed scans
 	
 PLUGIN_CASTBRIDGE_SENDMETADATA
@@ -253,7 +253,7 @@ PLUGIN_CASTBRIDGE_SENDICY
 	EN	Send ICY metadata
 
 PLUGIN_CASTBRIDGE_SENDMETADATA_DESC
-	EN	When a UPnP player has a display, LMS can send metadata (title, artist, album) to it. ICY metadata is an option to send live
+	EN	When using a Chromecast Video, LMS can send metadata (title, artist, album) to it. ICY metadata is an option to send live
 	EN	title when playing webradio. This <b>DOES NOT</b> work if you have set a password for LMS command access
 	
 PLUGIN_CASTBRIDGE_VOLUMEMGMT

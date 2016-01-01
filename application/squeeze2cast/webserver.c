@@ -33,7 +33,6 @@ int WebGetInfo(const char *FileName, struct File_Info *Info)
 	void 		*p;
 	s32_t 		FileSize;
 	u16_t		IcyInterval = 0;
-	char 		**ContentFeatures = NULL;
 	struct Extra_Headers *Headers = Info->extra_headers;
 
 	while (Headers->name) {
@@ -50,7 +49,7 @@ int WebGetInfo(const char *FileName, struct File_Info *Info)
 		Headers++;
 	}
 
-	if(!sq_get_info(FileName, &FileSize, &Info->content_type, NULL, IcyInterval)) {
+	if ((p = sq_get_info(FileName, &FileSize, &Info->content_type, NULL, IcyInterval)) == NULL) {
 		return UPNP_E_FILE_NOT_FOUND;
 	}
 

@@ -36,6 +36,7 @@
 #include "util.h"
 #include "cast_util.h"
 #include "castitf.h"
+#include "mdnssd-itf.h"
 
 /*
 TODO :
@@ -60,13 +61,14 @@ static char			*glPidFile = NULL;
 static char			*glSaveConfigFile = NULL;
 bool				glAutoSaveConfigFile = false;
 bool				glGracefullShutdown = true;
+int					gl_mDNSId;
 
 tMRConfig			glMRConfig = {
 							-2L,
 							SQ_STREAM,
 							true,
 							"",
-							0,
+							1,
 							false,
 							true,
 							true,
@@ -113,22 +115,20 @@ sq_dev_param_t glDeviceParam = {
 /* globals */
 /*----------------------------------------------------------------------------*/
 static ithread_t 	glMainThread;
-char				gluPNPSocket[128] = "?";
+char				glUPnPSocket[128] = "?";
 unsigned int 		glPort;
 char 				glIPaddress[128] = "";
 UpnpClient_Handle 	glControlPointHandle;
 void				*glConfigID = NULL;
 char				glConfigName[SQ_STR_LENGTH] = "./config.xml";
 static bool			glDiscovery = false;
-u32_t				gluPNPScanInterval = SCAN_INTERVAL;
-u32_t				gluPNPScanTimeout = SCAN_TIMEOUT;
+u32_t				glScanInterval = SCAN_INTERVAL;
+u32_t				glScanTimeout = SCAN_TIMEOUT;
 struct sMR			glMRDevices[MAX_RENDERERS];
-ithread_mutex_t		glMRFoundMutex;
 
 /*----------------------------------------------------------------------------*/
 /* consts or pseudo-const*/
 /*----------------------------------------------------------------------------*/
-static const char 	MEDIA_RENDERER[] 	= "urn:dial-multiscreen-org:device:dial:1";
 
 /*----------------------------------------------------------------------------*/
 /* locals */
@@ -136,12 +136,8 @@ static const char 	MEDIA_RENDERER[] 	= "urn:dial-multiscreen-org:device:dial:1";
 static log_level 	loglevel = lWARN;
 ithread_t			glUpdateMRThread;
 static bool			glMainRunning = true;
-static struct sLocList {
-	char 			*Location;
-	struct sLocList *Next;
-} *glMRFoundList = NULL;
 
-static char usage[] =
+static char usage[] =
 			VERSION "\n"
 		   "See -t for license terms\n"
 		   "Usage: [options]\n"
@@ -151,7 +147,7 @@ static struct sLocList {
 		   "  -I \t\t\tauto save config at every network scan\n"
 		   "  -f <logfile>\t\tWrite debug to logfile\n"
   		   "  -p <pid file>\t\twrite PID in file\n"
-		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|stream|decode|output|web|upnp|main|sq2mr, level: info|debug|sdebug\n"
+		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|stream|decode|output|web|main|sq2mr, level: info|debug|sdebug\n"
 #if LINUX || FREEBSD
 		   "  -z \t\t\tDaemonize\n"
 #endif
@@ -205,9 +201,10 @@ static char license[] =
 /*----------------------------------------------------------------------------*/
 static void *MRThread(void *args);
 static void *UpdateMRThread(void *args);
-static bool AddCastDevice(struct sMR *Device, char * UDN, IXML_Document *DescDoc,	const char *location);
+static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, struct in_addr ip, u16_t port);
 void 		DelCastDevice(struct sMR *Device);
-static int	uPNPTerminate(void);
+static int	Terminate(void);
+static int  Initialize(char *IPaddress, unsigned int *Port);
 
 /*----------------------------------------------------------------------------*/
 bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t *cookie, void *param)
@@ -298,6 +295,9 @@ static int	uPNPTerminate(void);
 		}
 		case SQ_UNPAUSE:
 			if (device->CurrentURI) {
+				if (device->Config.VolumeOnPlay == 1)
+					CastSetDeviceVolume(device->CastCtx, device->Volume);
+
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
 			}
@@ -308,6 +308,9 @@ static int	uPNPTerminate(void);
 				device->StartTime = sq_get_time(device->SqueezeHandle);
 				device->LocalStartTime = gettime_ms();
 #endif
+				if (device->Config.VolumeOnPlay == 1)
+					CastSetDeviceVolume(device->CastCtx, device->Volume);
+
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
 			}
@@ -335,8 +338,8 @@ static int	uPNPTerminate(void);
 
 			device->Volume = i;
 
-			if (device->Config.VolumeOnPlay != -1)
-				CastSetVolume(device->CastCtx, device->Volume);
+			if (!device->Config.VolumeOnPlay || (device->Config.VolumeOnPlay == 1 && device->sqState == SQ_PLAY))
+				CastSetDeviceVolume(device->CastCtx, device->Volume);
 
 			break;
 		}
@@ -439,7 +442,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 
 	/*
 	Squeeze "domain" execution has the right to consume own mutexes AND callback
-	upnp "domain" function that will consume upnp "domain" mutex, but the reverse
+	cast "domain" function that will consume upnp "domain" mutex, but the reverse
 	cannot be true otherwise deadlocks will occur
 	*/
 	if (Event != SQ_NONE)
@@ -478,10 +481,6 @@ static void *MRThread(void *args)
 		if (data) {
 			json_t *val = json_object_get(data, "type");
 			const char *type = json_string_value(val);
-			/*
-			double volume;
-			bool muted;
-			*/
 
 			// a mediaSessionId has been acquired
 			if (type && !strcasecmp(type, "MEDIA_STATUS")) {
@@ -492,8 +491,8 @@ static void *MRThread(void *args)
 				}
 
 				if (state && !strcasecmp(state, "PAUSED")) {
-   					SyncNotifState("PAUSED", p);
-                }
+					SyncNotifState("PAUSED", p);
+				}
 
 				if (state && !strcasecmp(state, "IDLE")) {
 					const char *cause = GetMediaItem_S(data, 0, "idleReason");
@@ -513,16 +512,20 @@ static void *MRThread(void *args)
 					sq_notify(p->SqueezeHandle, p, SQ_TIME, NULL, &elapsed);
 				}
 
-				/*
-				if (GetMediaVolume(data, 0, &volume, &muted)) {
-					volume *= 100;
-					if (volume != -1 && !muted && volume != p->Volume) {
-						LOG_INFO("[%p]: Volume local change %d", p, volume);
-						sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &volume);
+			}
+
+			// check for volume at the receiver level
+			if (type && !strcasecmp(type, "RECEIVER_STATUS")) {
+				double volume;
+				bool muted;
+
+				if (!p->Group && GetMediaVolume(data, 0, &volume, &muted)) {
+					u16_t vol = volume * 100 + 0.5;
+					if (volume != -1 && !muted && vol != p->Volume) {
+						LOG_INFO("[%p]: Volume local change %d (%f)", p, vol, volume);
+						sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &vol);
 					}
 				}
-				*/
-
 			}
 
 			// Cast devices has closed the connection
@@ -547,64 +550,16 @@ static void *MRThread(void *args)
 }
 
 
+#ifdef USE_UPNP
 /*----------------------------------------------------------------------------*/
 int CallbackEventHandler(Upnp_EventType EventType, void *Event, void *Cookie)
 {
 	LOG_SDEBUG("event: %i [%s] [%p]", EventType, uPNPEvent2String(EventType), Cookie);
 
-	switch ( EventType ) {
-		case UPNP_DISCOVERY_SEARCH_RESULT: {
-			struct Upnp_Discovery *d_event = (struct Upnp_Discovery *) Event;
-			struct sLocList **p, *prev = NULL;
-
-			LOG_DEBUG("Answer to uPNP search %d", d_event->Location);
-			if (d_event->ErrCode != UPNP_E_SUCCESS) {
-				LOG_SDEBUG("Error in Discovery Callback -- %d", d_event->ErrCode);
-				break;
-			}
-
-			ithread_mutex_lock(&glMRFoundMutex);
-			p = &glMRFoundList;
-			while (*p) {
-				prev = *p;
-				p = &((*p)->Next);
-			}
-			(*p) = (struct sLocList*) malloc(sizeof (struct sLocList));
-			(*p)->Location = strdup(d_event->Location);
-			(*p)->Next = NULL;
-			if (prev) prev->Next = *p;
-			ithread_mutex_unlock(&glMRFoundMutex);
-			break;
-		}
-		case UPNP_DISCOVERY_SEARCH_TIMEOUT:	{
-			pthread_attr_t attr;
-
-			pthread_attr_init(&attr);
-			pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);
-			pthread_create(&glUpdateMRThread, &attr, &UpdateMRThread, NULL);
-			pthread_detach(glUpdateMRThread);
-			pthread_attr_destroy(&attr);
-			break;
-		}
-		case UPNP_DISCOVERY_ADVERTISEMENT_ALIVE:
-		case UPNP_EVENT_RECEIVED:
-		case UPNP_CONTROL_GET_VAR_COMPLETE:
-		case UPNP_CONTROL_ACTION_COMPLETE:
-		case UPNP_EVENT_AUTORENEWAL_FAILED:
-		case UPNP_EVENT_SUBSCRIPTION_EXPIRED:
-		case UPNP_EVENT_RENEWAL_COMPLETE:
-		case UPNP_EVENT_SUBSCRIBE_COMPLETE:
-		case UPNP_EVENT_SUBSCRIPTION_REQUEST:
-		case UPNP_DISCOVERY_ADVERTISEMENT_BYEBYE:
-		case UPNP_CONTROL_ACTION_REQUEST:
-		case UPNP_EVENT_UNSUBSCRIBE_COMPLETE:
-		case UPNP_CONTROL_GET_VAR_REQUEST:
-		break;
-	}
-
 	Cookie = Cookie;
 	return 0;
 }
+#endif
 
 
 /*----------------------------------------------------------------------------*/
@@ -614,8 +569,8 @@ static bool RefreshTO(char *UDN)
 
 	for (i = 0; i < MAX_RENDERERS; i++) {
 		if (glMRDevices[i].InUse && !strcmp(glMRDevices[i].UDN, UDN)) {
-			glMRDevices[i].UPnPTimeOut = false;
-			glMRDevices[i].UPnPMissingCount = glMRDevices[i].Config.UPnPRemoveCount;
+			glMRDevices[i].TimeOut = false;
+			glMRDevices[i].MissingCount = glMRDevices[i].Config.RemoveCount;
 			return true;
 		}
 	}
@@ -624,60 +579,61 @@ static bool RefreshTO(char *UDN)
 
 
 /*----------------------------------------------------------------------------*/
+char *GetmDNSAttribute(struct mDNSItem_s *p, char *name)
+{
+	int j;
+
+	for (j = 0; j < p->attr_count; j++)
+		if (!strcasecmp(p->attr[j].name, name))
+			return strdup(p->attr[j].value);
+
+	return NULL;
+}
+
+
+/*----------------------------------------------------------------------------*/
 static void *UpdateMRThread(void *args)
 {
-	struct sLocList *p, *m;
 	struct sMR *Device = NULL;
 	int i, TimeStamp;
+	DiscoveredList DiscDevices;
 
 	LOG_DEBUG("Begin Cast devices update", NULL);
 	TimeStamp = gettime_ms();
 
-	// first add any newly found uPNP renderer
-	ithread_mutex_lock(&glMRFoundMutex);
-	m = p = glMRFoundList;
-	glMRFoundList = NULL;
-	ithread_mutex_unlock(&glMRFoundMutex);
-
 	if (!glMainRunning) {
 		LOG_DEBUG("Aborting ...", NULL);
-		while (p) {
-			m = p->Next;
-			free(p->Location); free(p);
-			p = m;
-		}
 		return NULL;
 	}
 
-	while (p) {
-		IXML_Document *DescDoc = NULL;
-		char *UDN = NULL, *Manufacturer = NULL;
-		int rc;
-		void *n = p->Next;
+	query_mDNS(gl_mDNSId, "_googlecast._tcp.local", &DiscDevices, glScanTimeout);
 
-		rc = UpnpDownloadXmlDoc(p->Location, &DescDoc);
-		if (rc != UPNP_E_SUCCESS) {
-			LOG_DEBUG("Error obtaining description %s -- error = %d\n", p->Location, rc);
-			if (DescDoc) ixmlDocument_free(DescDoc);
-			p = n;
-			continue;
-		}
+	for (i = 0; i < DiscDevices.count; i++) {
+		char *UDN = NULL, *Name = NULL;
+		int j;
+		struct mDNSItem_s *p = &DiscDevices.items[i];
 
-		Manufacturer = XMLGetFirstDocumentItem(DescDoc, "manufacturer");
-		UDN = XMLGetFirstDocumentItem(DescDoc, "UDN");
-		if (!stristr(Manufacturer, "Logitech") && stristr(Manufacturer, "Google") && !RefreshTO(UDN)) {
+		// is the mDNS record usable
+		UDN = GetmDNSAttribute(p, "id");
+
+		if (UDN && !RefreshTO(UDN)) {
+			char *Model;
+
 			// new device so search a free spot.
-			for (i = 0; i < MAX_RENDERERS && glMRDevices[i].InUse; i++)
+			for (j = 0; j < MAX_RENDERERS && glMRDevices[j].InUse; j++);
 
 			// no more room !
-			if (i == MAX_RENDERERS) {
+			if (j == MAX_RENDERERS) {
 				LOG_ERROR("Too many Cast devices", NULL);
-				NFREE(UDN); NFREE(Manufacturer);
+				NFREE(UDN);
 				break;
 			}
+			else Device = &glMRDevices[j];
 
-			Device = &glMRDevices[i];
-			if (AddCastDevice(Device, UDN, DescDoc, p->Location) && !glSaveConfigFile) {
+			Name = GetmDNSAttribute(p, "fn");
+			if (!Name) Name = strdup(p->hostname);
+
+			if (AddCastDevice(Device, Name, UDN, p->addr, p->port) && !glSaveConfigFile) {
 				// create a new slimdevice
 				Device->SqueezeHandle = sq_reserve_device(Device, &sq_callback);
 				if (!Device->SqueezeHandle || !sq_run_device(Device->SqueezeHandle,
@@ -689,27 +645,26 @@ static void *UpdateMRThread(void *args)
 					DelCastDevice(Device);
 				}
 			}
+
+			// if model is a group, must ignore a few things
+			Model = GetmDNSAttribute(p, "md");
+			if (Model && !stristr(Model, "Group")) Device->Group = false;
+			NFREE(Model);
+
 		}
 
-		if (DescDoc) ixmlDocument_free(DescDoc);
-		NFREE(UDN);	NFREE(Manufacturer);
-		p = n;
+		NFREE(UDN);
+		NFREE(Name);
 	}
 
-	// free the list of discovered location URL's
-	p = m;
-	while (p) {
-		m = p->Next;
-		free(p->Location); free(p);
-		p = m;
-	}
+	free_discovered_list(&DiscDevices);
 
 	// then walk through the list of devices to remove missing ones
 	for (i = 0; i < MAX_RENDERERS; i++) {
 		Device = &glMRDevices[i];
 		if (!Device->InUse) continue;
-		if (Device->UPnPTimeOut && Device->UPnPMissingCount) Device->UPnPMissingCount--;
-		if (CastIsConnected(Device->CastCtx) || Device->UPnPMissingCount) continue;
+		if (Device->TimeOut && Device->MissingCount) Device->MissingCount--;
+		if (CastIsConnected(Device->CastCtx) || Device->MissingCount) continue;
 
 		LOG_INFO("[%p]: removing renderer (%s)", Device, Device->FriendlyName);
 		if (Device->SqueezeHandle) sq_delete_device(Device->SqueezeHandle);
@@ -717,6 +672,7 @@ static void *UpdateMRThread(void *args)
 	}
 
 	glDiscovery = true;
+
 	if (glAutoSaveConfigFile && !glSaveConfigFile) {
 		LOG_DEBUG("Updating configuration %s", glConfigName);
 		SaveConfig(glConfigName, glConfigID, false);
@@ -730,25 +686,28 @@ static void *UpdateMRThread(void *args)
 static void *MainThread(void *args)
 {
 	unsigned last = gettime_ms();
-	int ScanPoll = 0;
+	int ScanPoll = glScanInterval*1000 + 1;
 
 	while (glMainRunning) {
-		int i, rc;
+		int i;
 		int elapsed = gettime_ms() - last;
 
 		// reset timeout and re-scan devices
 		ScanPoll += elapsed;
-		if (gluPNPScanInterval && ScanPoll > gluPNPScanInterval*1000) {
+		if (glScanInterval && ScanPoll > glScanInterval*1000) {
+			pthread_attr_t attr;
 			ScanPoll = 0;
 
 			for (i = 0; i < MAX_RENDERERS; i++) {
-				glMRDevices[i].UPnPTimeOut = true;
+				glMRDevices[i].TimeOut = true;
 				glDiscovery = false;
 			}
 
-			// launch a new search for Media Renderer
-			rc = UpnpSearchAsync(glControlPointHandle, gluPNPScanTimeout, MEDIA_RENDERER, NULL);
-			if (UPNP_E_SUCCESS != rc) LOG_ERROR("Error sending search update%d", rc);
+			pthread_attr_init(&attr);
+			pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);
+			pthread_create(&glUpdateMRThread, &attr, &UpdateMRThread, NULL);
+			pthread_detach(glUpdateMRThread);
+			pthread_attr_destroy(&attr);
 		}
 
 		if (glLogFile && glLogLimit != - 1) {
@@ -783,18 +742,17 @@ static void *MainThread(void *args)
 
 
 /*----------------------------------------------------------------------------*/
-int uPNPInitialize(char *IPaddress, unsigned int *Port)
+int Initialize(char *IPaddress, unsigned int *Port)
 {
 	int rc;
 	struct UpnpVirtualDirCallbacks VirtualDirCallbacks;
 
-	if (gluPNPScanInterval) {
-		if (gluPNPScanInterval < SCAN_INTERVAL) gluPNPScanInterval = SCAN_INTERVAL;
-		if (gluPNPScanTimeout < SCAN_TIMEOUT) gluPNPScanTimeout = SCAN_TIMEOUT;
-		if (gluPNPScanTimeout > gluPNPScanInterval - SCAN_TIMEOUT) gluPNPScanTimeout = gluPNPScanInterval - SCAN_TIMEOUT;
+	if (glScanInterval) {
+		if (glScanInterval < SCAN_INTERVAL) glScanInterval = SCAN_INTERVAL;
+		if (glScanTimeout < SCAN_TIMEOUT) glScanTimeout = SCAN_TIMEOUT;
+		if (glScanTimeout > glScanInterval - SCAN_TIMEOUT) glScanTimeout = glScanInterval - SCAN_TIMEOUT;
 	}
 
-	ithread_mutex_init(&glMRFoundMutex, 0);
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 
 	UpnpSetLogLevel(UPNP_ALL);
@@ -803,7 +761,7 @@ int uPNPInitialize(char *IPaddress, unsigned int *Port)
 	UpnpSetMaxContentLength(60000);
 
 	if (rc != UPNP_E_SUCCESS) {
-		LOG_ERROR("uPNP init failed: %d\n", rc);
+		LOG_ERROR("UPnP init failed: %d\n", rc);
 		UpnpFinish();
 		return false;
 	}
@@ -815,8 +773,9 @@ int uPNPInitialize(char *IPaddress, unsigned int *Port)
 		*Port = UpnpGetServerPort();
 	}
 
-	LOG_INFO("uPNP init success - %s:%u", IPaddress, *Port);
+	LOG_INFO("UPnP init success - %s:%u", IPaddress, *Port);
 
+#ifdef USE_UPNP
 	rc = UpnpRegisterClient(CallbackEventHandler,
 				&glControlPointHandle, &glControlPointHandle);
 
@@ -828,6 +787,7 @@ int uPNPInitialize(char *IPaddress, unsigned int *Port)
 	else {
 		LOG_DEBUG("ControlPoint registered", NULL);
 	}
+#endif
 
 	rc = UpnpEnableWebserver(true);
 
@@ -868,18 +828,16 @@ int uPNPInitialize(char *IPaddress, unsigned int *Port)
 		LOG_DEBUG("Callbacks registered for VirtualDir", NULL);
 	}
 
-	/* start the main thread */
-	ithread_create(&glMainThread, NULL, &MainThread, NULL);
-	return true;
+	return true;
 }
 
 /*----------------------------------------------------------------------------*/
-int uPNPTerminate(void)
+int Terminate(void)
 {
-	LOG_DEBUG("terminate main thread ...", NULL);
-	ithread_join(glMainThread, NULL);
 	LOG_DEBUG("un-register libupnp callbacks ...", NULL);
+#ifdef USE_UPNP
 	UpnpUnRegisterClient(glControlPointHandle);
+#endif
 	LOG_DEBUG("disable webserver ...", NULL);
 	UpnpRemoveVirtualDir(glBaseVDIR);
 	UpnpEnableWebserver(false);
@@ -889,31 +847,10 @@ int uPNPTerminate(void)
 	return true;
 }
 
-/*----------------------------------------------------------------------------*/
-int uPNPSearchMediaRenderer(void)
-{
-	int rc;
-
-	/* search for (Media Render and wait 15s */
-	glDiscovery = false;
-	rc = UpnpSearchAsync(glControlPointHandle, SCAN_TIMEOUT, MEDIA_RENDERER, NULL);
-
-	if (UPNP_E_SUCCESS != rc) {
-		LOG_ERROR("Error sending uPNP search request%d", rc);
-		return false;
-	}
-	return true;
-}
-
 
 /*----------------------------------------------------------------------------*/
-static bool AddCastDevice(struct sMR *Device, char *UDN, IXML_Document *DescDoc, const char *location)
+static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, struct in_addr ip, u16_t port)
 {
-	char *deviceType = NULL;
-	char *friendlyName = NULL;
-	char *URLBase = NULL;
-	char *presURL = NULL;
-	char *manufacturer = NULL;
 	u32_t mac_size = 6;
 	pthread_attr_t attr;
 
@@ -924,40 +861,23 @@ static bool AddCastDevice(struct sMR *Device, char *UDN, IXML_Document *DescDoc,
 	LoadMRConfig(glConfigID, UDN, &Device->Config, &Device->sq_config);
 	if (!Device->Config.Enabled) return false;
 
-	// Read key elements from description document
-	deviceType = XMLGetFirstDocumentItem(DescDoc, "deviceType");
-	friendlyName = XMLGetFirstDocumentItem(DescDoc, "friendlyName");
-	URLBase = XMLGetFirstDocumentItem(DescDoc, "URLBase");
-	presURL = XMLGetFirstDocumentItem(DescDoc, "presentationURL");
-	manufacturer = XMLGetFirstDocumentItem(DescDoc, "manufacturer");
-
-	LOG_SDEBUG("UDN:\t%s\nDeviceType:\t%s\nFriendlyName:\t%s", UDN, deviceType, friendlyName);
-
-	if (presURL) {
-		char UsedPresURL[200] = "";
-		UpnpResolveURL((URLBase ? URLBase : location), presURL, UsedPresURL);
-		strcpy(Device->PresURL, UsedPresURL);
-	}
-	else strcpy(Device->PresURL, "");
-
-	LOG_INFO("[%p]: adding renderer (%s)", Device, friendlyName);
-
 	ithread_mutex_init(&Device->Mutex, 0);
+	strcpy(Device->UDN, UDN);
 	Device->Magic = MAGIC;
-	Device->UPnPTimeOut = false;
-	Device->UPnPMissingCount = Device->Config.UPnPRemoveCount;
+	Device->TimeOut = false;
+	Device->MissingCount = Device->Config.RemoveCount;
 	Device->on = false;
 	Device->SqueezeHandle = 0;
 	Device->Running = true;
 	Device->InUse = true;
 	Device->sqState = SQ_STOP;
 	Device->State = STOPPED;
-	strcpy(Device->UDN, UDN);
-	strcpy(Device->DescDocURL, location);
-	strcpy(Device->FriendlyName, friendlyName);
-	strcpy(Device->Manufacturer, manufacturer);
+	Device->Group = true;
+	strcpy(Device->FriendlyName, Name);
+	Device->ip = ip;
 
-	ExtractIP(location, &Device->ip);
+	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
+
 	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size) &&
 		SendARP(*((in_addr_t*) &Device->ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
 		LOG_ERROR("[%p]: cannot get mac %s", Device, Device->FriendlyName);
@@ -965,13 +885,10 @@ static bool AddCastDevice(struct sMR *Device, char *UDN, IXML_Document *DescDoc,
 		memset(Device->sq_config.mac, 0, sizeof(Device->sq_config.mac));
 	}
 
-	Device->CastCtx = StartCastDevice(Device, Device->ip);
+	// virtual players duplicate mac address
+	MakeMacUnique(Device);
 
-	NFREE(deviceType);
-	NFREE(friendlyName);
-	NFREE(URLBase);
-	NFREE(presURL);
-	NFREE(manufacturer);
+	Device->CastCtx = StartCastDevice(Device, Device->ip, port);
 
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);
@@ -1018,30 +935,28 @@ void DelCastDevice(struct sMR *Device)
 static bool Start(void)
 {
 	InitSSL();
-	if (!uPNPInitialize(glIPaddress, &glPort)) return false;
-	uPNPSearchMediaRenderer();
+	if (!Initialize(glIPaddress, &glPort)) return false;
+	gl_mDNSId = init_mDNS(false, glIPaddress);
+
+	/* start the main thread */
+	ithread_create(&glMainThread, NULL, &MainThread, NULL);
 	return true;
 }
 
 static bool Stop(void)
 {
-	struct sLocList *p, *m;
-
 	LOG_DEBUG("flush renderers ...", NULL);
 	FlushCastDevices();
-	LOG_DEBUG("terminate libupnp ...", NULL);
-	uPNPTerminate();
-	EndSSL();
 
-	ithread_mutex_lock(&glMRFoundMutex);
-	m = p = glMRFoundList;
-	glMRFoundList = NULL;
-	ithread_mutex_unlock(&glMRFoundMutex);
-	while (p) {
-		m = p->Next;
-		free(p->Location); free(p);
-		p = m;
-	}
+	// this forces an ongoing search to end
+	close_mDNS(gl_mDNSId);
+
+	LOG_DEBUG("terminate main thread ...", NULL);
+	ithread_join(glMainThread, NULL);
+
+	LOG_DEBUG("terminate libupnp ...", NULL);
+	Terminate();
+	EndSSL();
 
 	return true;
 }
@@ -1162,7 +1077,6 @@ bool ParseArgs(int argc, char **argv) {
 					if (!strcmp(l, "all") || !strcmp(l, "decode"))    glLog.decode = new;
 					if (!strcmp(l, "all") || !strcmp(l, "output"))    glLog.output = new;
 					if (!strcmp(l, "all") || !strcmp(l, "web")) glLog.web = new;
-					if (!strcmp(l, "all") || !strcmp(l, "upnp"))    glLog.upnp = new;
 					if (!strcmp(l, "all") || !strcmp(l, "main"))    glLog.main = new;
 					if (!strcmp(l, "all") || !strcmp(l, "sq2mr"))    glLog.sq2mr = new;
 
@@ -1261,8 +1175,8 @@ int main(int argc, char *argv[])
 	LOG_INFO("Buffer path %s", tmpdir);
 	free(tmpdir);
 
-	if (!strstr(gluPNPSocket, "?")) {
-		sscanf(gluPNPSocket, "%[^:]:%u", glIPaddress, &glPort);
+	if (!strstr(glUPnPSocket, "?")) {
+		sscanf(glUPnPSocket, "%[^:]:%u", glIPaddress, &glPort);
 	}
 
 	if (!Start()) {

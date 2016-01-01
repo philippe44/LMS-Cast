@@ -59,9 +59,9 @@
 	<input hidden type="text" class="stdedit" name="xmlparams" id="xmlparams" value="1" size="5">
 	<input hidden type="text" class="stdedit" name="prevseldevice" id="prevseldevice" value="[% prevseldevice %]" size="5">
 	
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPSCAN" desc="PLUGIN_CASTBRIDGE_UPNPSCAN_DESC" %]
-		[% "PLUGIN_CASTBRIDGE_SCANINTERVAL" | string %]</th>&nbsp<td><input type="text" class="stdedit" name="upnp_scan_interval" id="upnp_scan_interval" value="[% upnp_scan_interval %]" size="2"> (s)
-		[% "PLUGIN_CASTBRIDGE_SCANTIMEOUT" | string %]&nbsp<input type="text" class="stdedit" name="upnp_scan_timeout" id="upnp_scan_timeout" value="[% upnp_scan_timeout %]" size="2"> (s)
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_SCAN" desc="PLUGIN_CASTBRIDGE_SCAN_DESC" %]
+		[% "PLUGIN_CASTBRIDGE_SCANINTERVAL" | string %]</th>&nbsp<td><input type="text" class="stdedit" name="scan_interval" id="scan_interval" value="[% scan_interval %]" size="2"> (s)
+		[% "PLUGIN_CASTBRIDGE_SCANTIMEOUT" | string %]&nbsp<input type="text" class="stdedit" name="scan_timeout" id="scan_timeout" value="[% scan_timeout %]" size="2"> (s)
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPSOCKET" desc="PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC" %]
@@ -115,19 +115,19 @@
 		</select>
 	[% END %]
 	
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPMGMT" desc="PLUGIN_CASTBRIDGE_UPNPMGMT_DESC" %]
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_MDNSMGMT" desc="PLUGIN_CASTBRIDGE_MDNSMGMT_DESC" %]
 		[% "PLUGIN_CASTBRIDGE_ENABLEDEFS" | string %]
 		<select class="stdedit" name="enabled" id="enabled">
 		[% FOREACH entry IN YESNOBOX %] 
 			<option [% IF entry.1 == enabled %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]
 		</select>
-		[% "PLUGIN_CASTBRIDGE_UPNPREMOVECOUNT_1" | string %]<input type="text" class="stdedit" name="upnp_remove_count" id="upnp_remove_count" value="[% upnp_remove_count %]" size="2">&nbsp[% "PLUGIN_CASTBRIDGE_UPNPREMOVECOUNT_2" | string %]
+		[% "PLUGIN_CASTBRIDGE_REMOVECOUNT_1" | string %]<input type="text" class="stdedit" name="remove_count" id="remove_count" value="[% remove_count %]" size="2">&nbsp[% "PLUGIN_CASTBRIDGE_REMOVECOUNT_2" | string %]
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_VOLUMEMGMT" desc="PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC" %]
 		&nbsp[% "PLUGIN_CASTBRIDGE_VOLUMEONPLAY" | string %]&nbsp<select class="stdedit" name="volume_on_play" id="volume_on_play">
-		[% FOREACH entry IN [ ['',''], ['ignore all changes','-1'], ['transparent forward','0'] ] %]
+		[% FOREACH entry IN [ ['',''], ['ignore all changes','-1'], ['transparent forward','0'] ['only when playing','1'] ] %]
 			<option [% IF entry.1 == volume_on_play %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]
 		</select>

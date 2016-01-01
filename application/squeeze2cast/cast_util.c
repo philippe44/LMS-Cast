@@ -260,6 +260,29 @@ void CastSetVolume(void *p, u8_t Volume)
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
+
+/*----------------------------------------------------------------------------*/
+void CastSetDeviceVolume(void *p, u8_t Volume)
+{
+	tCastCtx *Ctx = (tCastCtx*) p;
+
+	if (Volume > 100) Volume = 100;
+
+	pthread_mutex_lock(&Ctx->Mutex);
+
+	if (Volume)
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
+						Ctx->reqId++, (double) Volume / 100.0);
+	else
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
+						Ctx->reqId++);
+
+	pthread_mutex_unlock(&Ctx->Mutex);
+}
+
+
 /*----------------------------------------------------------------------------*/
 int CastSeek(char *ControlURL, unsigned Interval)
 {

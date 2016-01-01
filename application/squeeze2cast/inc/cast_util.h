@@ -40,6 +40,7 @@ void 	CastClean(void *Ctx);
 void 	CastSimple(void *Ctx, char *Type);
 bool	CastLoad(void *Ctx, char *URI, char *ContentType, struct sq_metadata_s *MetaData);
 void 	CastSetVolume(void *p, u8_t Volume);
+void 	CastSetDeviceVolume(void *p, u8_t Volume);
 
 #endif
 

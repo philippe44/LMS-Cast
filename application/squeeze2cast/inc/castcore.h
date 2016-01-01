@@ -65,10 +65,12 @@ typedef struct {
 	char 			*sessionId, *transportId;
 	int				mediaSessionId;
 	enum { CAST_WAIT, CAST_WAIT_MEDIA } State;
-	in_addr_t		ip;
+	struct in_addr	ip;
+	u16_t			port;
 	tQueue			eventQueue, reqQueue;
 	int 			Volume;
 	u32_t			lastPong;
+	bool			group;
 } tCastCtx;
 
 typedef struct {

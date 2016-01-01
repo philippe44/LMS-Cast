@@ -58,7 +58,7 @@ typedef struct sMRConfig
 	bool		AcceptNextURI;
 	bool		SendMetaData;
 	bool		SendCoverArt;
-	int			UPnPRemoveCount;
+	int			RemoveCount;
 	bool		AutoPlay;
 } tMRConfig;
 
@@ -70,11 +70,8 @@ struct sMR {
 	sq_dev_param_t	sq_config;
 	bool on;
 	char UDN			[RESOURCE_LENGTH];
-	char DescDocURL		[RESOURCE_LENGTH];
 	char FriendlyName	[RESOURCE_LENGTH];
-	char PresURL		[RESOURCE_LENGTH];
-	char Manufacturer	[RESOURCE_LENGTH];
-	in_addr_t 		ip;
+	struct in_addr 		ip;
 	enum eMRstate 	State;
 	char			*CurrentURI;
 	char			*NextURI;
@@ -86,13 +83,14 @@ struct sMR {
 	u32_t			StartTime, LocalStartTime;
 #endif
 	unsigned		TrackPoll, KeepAlive;
-	bool			UPnPTimeOut;
+	bool			TimeOut;
 	int	 			SqueezeHandle;
 	void			*CastCtx;
 	ithread_mutex_t Mutex;
 	ithread_t 		Thread;
 	u8_t			Volume;
-	int				UPnPMissingCount;
+	bool			Group;
+	int				MissingCount;
 	bool			Running;
 };
 
@@ -112,15 +110,15 @@ struct sAction	{
 extern UpnpClient_Handle   	glControlPointHandle;
 extern unsigned int 		glPort;
 extern char 				glIPaddress[];
-extern char 				gluPNPSocket[];
+extern char 				glUPnPSocket[];
 extern u8_t		   			glMac[6];
 extern sq_log_level_t		glLog;
 extern s32_t				glLogLimit;
 extern tMRConfig			glMRConfig;
 extern sq_dev_param_t		glDeviceParam;
 extern char					glSQServer[SQ_STR_LENGTH];
-extern u32_t				gluPNPScanInterval;
-extern u32_t				gluPNPScanTimeout;
+extern u32_t				glScanInterval;
+extern u32_t				glScanTimeout;
 extern struct sMR			glMRDevices[MAX_RENDERERS];
 
 struct sMR 		*mr_File2Device(const char *FileName);

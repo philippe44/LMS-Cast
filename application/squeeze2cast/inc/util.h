@@ -45,6 +45,7 @@ void 		QueueFlush(tQueue *queue);
 
 char 		*uPNPEvent2String(Upnp_EventType S);
 void 		ExtractIP(const char *URL, in_addr_t *IP);
+void 		MakeMacUnique(struct sMR *Device);
 unsigned 	Time2Int(char *Time);
 int			pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_t msWait);
 
