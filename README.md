@@ -8,4 +8,5 @@ To re-compile, use makefile (Linux only, need some mods for OSX and Windows)
 using:
 https://github.com/nanopb/nanopb
 https://github.com/akheron/jansson
+https://github.com/philippe44/mDNS-SD
 https://sourceforge.net/projects/pupnp (there are a few patches to apply first against 1.6.19)
