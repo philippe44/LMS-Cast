@@ -89,6 +89,7 @@ struct sMR {
 	ithread_mutex_t Mutex;
 	ithread_t 		Thread;
 	u8_t			Volume;
+	u32_t			VolumeStamp;
 	bool			Group;
 	int				MissingCount;
 	bool			Running;

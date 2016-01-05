@@ -337,6 +337,7 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 			for (i = 100; Volume < LMSVolumeMap[i] && i; i--);
 
 			device->Volume = i;
+			device->VolumeStamp = gettime_ms();
 
 			if (!device->Config.VolumeOnPlay || (device->Config.VolumeOnPlay == 1 && device->sqState == SQ_PLAY))
 				CastSetDeviceVolume(device->CastCtx, device->Volume);
@@ -460,6 +461,7 @@ static void *MRThread(void *args)
 	unsigned last;
 	struct sMR *p = (struct sMR*) args;
 	json_t *data;
+	u16_t Volume = 0xff;
 
 	last = gettime_ms();
 
@@ -514,17 +516,25 @@ static void *MRThread(void *args)
 
 			}
 
-			// check for volume at the receiver level
+			// check for volume at the receiver level, but only record the change
 			if (type && !strcasecmp(type, "RECEIVER_STATUS")) {
 				double volume;
 				bool muted;
 
 				if (!p->Group && GetMediaVolume(data, 0, &volume, &muted)) {
 					u16_t vol = volume * 100 + 0.5;
-					if (volume != -1 && !muted && vol != p->Volume) {
-						LOG_INFO("[%p]: Volume local change %d (%f)", p, vol, volume);
-						sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &vol);
-					}
+					if (volume != -1 && !muted && vol != p->Volume) Volume = vol;
+				}
+			}
+
+			// now apply the volume change if any and if "filtering" has been made
+			if (Volume != 0xff && Volume != p->Volume)
+			{
+				u32_t now = gettime_ms();
+				if (now - p->VolumeStamp > 5000 || now < p->VolumeStamp) {
+					LOG_INFO("[%p]: Volume local change %d", p, Volume);
+					sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
+					Volume = 0xff;
 				}
 			}
 
@@ -873,6 +883,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, struct in_a
 	Device->sqState = SQ_STOP;
 	Device->State = STOPPED;
 	Device->Group = true;
+	Device->VolumeStamp = 0;
 	strcpy(Device->FriendlyName, Name);
 	Device->ip = ip;
 

@@ -1,9 +1,10 @@
 0.2.0.0
- - use mDNS for devcie detection
+ - use mDNS for device detection
  - Support grouped devices (appear as an extra player)
  - Volume changes are now at device level, unless <volume_on_play> is set to 1
  - Volume changes on the CC are forwarded to LMS, unless device is a group
  - Free device search was missing ;
+ - (dev-2): filter volume speed changes
  
 0.1.3.1
  - Documentation update on ReplayGain
