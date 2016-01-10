@@ -25,7 +25,8 @@
 #include "squeeze2cast.h"
 #include "webserver.h"
 
-static log_level	loglevel = lWARN;
+log_level	web_loglevel;
+static log_level	*loglevel = &web_loglevel;
 
 int WebGetInfo(const char *FileName, struct File_Info *Info)
 {
@@ -116,13 +117,6 @@ int WebClose(UpnpWebFileHandle FileHandle)
 
 	LOG_DEBUG("webserver close", NULL);
 	return UPNP_E_SUCCESS;
-}
-
-/*---------------------------------------------------------------------------*/
-void WebServerLogLevel(log_level level)
-{
-	LOG_WARN("webserver change loglevel %d", level);
-	loglevel = level;
 }
 
 

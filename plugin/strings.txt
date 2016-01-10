@@ -78,6 +78,21 @@ PLUGIN_CASTBRIDGE_SLIMPROTO
 PLUGIN_CASTBRIDGE_DECODE
 	EN	Decode debugging
 
+PLUGIN_CASTBRIDGE_CAST
+	EN	Casting debugging
+
+PLUGIN_CASTBRIDGE_UTIL
+	EN	Utilities debugging
+
+PLUGIN_CASTBRIDGE_SLIMMAIN
+	EN	Slim Main function debugging
+
+PLUGIN_CASTBRIDGE_WEB
+	EN	Webserver debugging
+
+PLUGIN_CASTBRIDGE_MAIN
+	EN	Main application debugging
+
 PLUGIN_CASTBRIDGE_LOGGING
 	EN	Logging options
 	

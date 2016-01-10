@@ -5,6 +5,7 @@
  - Volume changes on the CC are forwarded to LMS, unless device is a group
  - Free device search was missing ;
  - (dev-2): filter volume speed changes
+ - (dev-3): reorganize log management
  
 0.1.3.1
  - Documentation update on ReplayGain

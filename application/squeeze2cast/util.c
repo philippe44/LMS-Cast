@@ -30,15 +30,26 @@
 /* globals */
 /*----------------------------------------------------------------------------*/
 
+extern log_level	slimproto_loglevel;
+extern log_level	stream_loglevel;
+extern log_level	decode_loglevel;
+extern log_level	output_loglevel;
+extern log_level	web_loglevel;
+extern log_level	main_loglevel;
+extern log_level	slimmain_loglevel;
+extern log_level	util_loglevel;
+extern log_level	cast_loglevel;
+
 /*----------------------------------------------------------------------------*/
 /* locals */
 /*----------------------------------------------------------------------------*/
-static log_level loglevel = lWARN;
+extern log_level 	util_loglevel;
+static log_level 	*loglevel = &util_loglevel;
 
 /*----------------------------------------------------------------------------*/
 void UtilInit(log_level level)
 {
-	loglevel = level;
+	util_loglevel = level;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -465,13 +476,15 @@ void SaveConfig(char *name, void *ref, bool full)
 		XMLAddNode(doc, root, "upnp_socket", glUPnPSocket);
 		XMLAddNode(doc, root, "base_mac", "%02x:%02x:%02x:%02x:%02x:%02x", glMac[0],
 					glMac[1], glMac[2], glMac[3], glMac[4], glMac[5]);
-		XMLAddNode(doc, root, "slimproto_log", level2debug(glLog.slimproto));
-		XMLAddNode(doc, root, "stream_log", level2debug(glLog.stream));
-		XMLAddNode(doc, root, "output_log", level2debug(glLog.output));
-		XMLAddNode(doc, root, "decode_log", level2debug(glLog.decode));
-		XMLAddNode(doc, root, "web_log", level2debug(glLog.web));
-		XMLAddNode(doc, root, "main_log",level2debug(glLog.main));
-		XMLAddNode(doc, root, "sq2mr_log", level2debug(glLog.sq2mr));
+		XMLAddNode(doc, root, "slimproto_log", level2debug(slimproto_loglevel));
+		XMLAddNode(doc, root, "stream_log", level2debug(stream_loglevel));
+		XMLAddNode(doc, root, "output_log", level2debug(output_loglevel));
+		XMLAddNode(doc, root, "decode_log", level2debug(decode_loglevel));
+		XMLAddNode(doc, root, "web_log", level2debug(web_loglevel));
+		XMLAddNode(doc, root, "main_log",level2debug(main_loglevel));
+		XMLAddNode(doc, root, "slimmain_log", level2debug(slimmain_loglevel));
+		XMLAddNode(doc, root, "cast_log",level2debug(cast_loglevel));
+		XMLAddNode(doc, root, "util_log",level2debug(util_loglevel));
 		XMLAddNode(doc, root, "scan_interval", "%d", (u32_t) glScanInterval);
 		XMLAddNode(doc, root, "scan_timeout", "%d", (u32_t) glScanTimeout);
 		XMLAddNode(doc, root, "log_limit", "%d", (s32_t) glLogLimit);
@@ -581,13 +594,15 @@ static void LoadGlobalItem(char *name, char *val)
 
 	if (!strcmp(name, "server")) strcpy(glSQServer, val);
 	if (!strcmp(name, "upnp_socket")) strcpy(glUPnPSocket, val);
-	if (!strcmp(name, "slimproto_log")) glLog.slimproto = debug2level(val);
-	if (!strcmp(name, "stream_log")) glLog.stream = debug2level(val);
-	if (!strcmp(name, "output_log")) glLog.output = debug2level(val);
-	if (!strcmp(name, "decode_log")) glLog.decode = debug2level(val);
-	if (!strcmp(name, "web_log")) glLog.web = debug2level(val);
-	if (!strcmp(name, "main_log")) glLog.main = debug2level(val);
-	if (!strcmp(name, "sq2mr_log")) glLog.sq2mr = debug2level(val);
+	if (!strcmp(name, "slimproto_log")) slimproto_loglevel = debug2level(val);
+	if (!strcmp(name, "stream_log")) stream_loglevel = debug2level(val);
+	if (!strcmp(name, "output_log")) output_loglevel = debug2level(val);
+	if (!strcmp(name, "decode_log")) decode_loglevel = debug2level(val);
+	if (!strcmp(name, "web_log")) web_loglevel = debug2level(val);
+	if (!strcmp(name, "main_log")) main_loglevel = debug2level(val);
+	if (!strcmp(name, "slimmain_log")) slimmain_loglevel = debug2level(val);
+	if (!strcmp(name, "cast_log")) cast_loglevel = debug2level(val);
+	if (!strcmp(name, "util_log")) util_loglevel = debug2level(val);
 	if (!strcmp(name, "base_mac"))  {
 		unsigned mac[6];
 		int i;

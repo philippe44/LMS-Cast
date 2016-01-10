@@ -31,30 +31,18 @@
 #define BLOCKING_SOCKET
 #define SELECT_SOCKET
 
-
-#if LINUX || OSX || FREEBSD
-#define last_error() errno
-#elif WIN
-#define last_error() WSAGetLastError()
-#endif
-
-
 /*----------------------------------------------------------------------------*/
 /* locals */
 /*----------------------------------------------------------------------------*/
 static SSL_CTX *glSSLctx;
 static void *CastSocketThread(void *args);
 static void *CastPingThread(void *args);
-static log_level loglevel = lINFO;
+
+extern log_level cast_loglevel;
+static log_level *loglevel = &cast_loglevel;
+
 
 #define DEFAULT_RECEIVER	"CC1AD845"
-
-
-/*----------------------------------------------------------------------------*/
-void CastCoreInit(log_level level)
-{
-	loglevel = level;
-}
 
 
 /*----------------------------------------------------------------------------*/
@@ -274,7 +262,7 @@ bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...)
 	free(buffer);
 
 	if (!stristr(message.payload_utf8, "PING")) {
-		LOG_INFO("[%p]: Cast sending: %s", ssl, message.payload_utf8);
+		LOG_DEBUG("[%p]: Cast sending: %s", ssl, message.payload_utf8);
 	}
 
 	return status;
@@ -621,13 +609,13 @@ static void *CastSocketThread(void *args)
 			str = json_string_value(val);
 
 			if (!strcasecmp(str, "MEDIA_STATUS")) {
-				LOG_INFO("[%p]: type:%s (id:%d) %s", Ctx->owner, str, requestId, GetMediaItem_S(root, 0, "playerState"));
+				LOG_DEBUG("[%p]: type:%s (id:%d) %s", Ctx->owner, str, requestId, GetMediaItem_S(root, 0, "playerState"));
 			}
 			else {
-				LOG_INFO("[%p]: type:%s (id:%d)", Ctx->owner, str, requestId);
+				LOG_DEBUG("[%p]: type:%s (id:%d)", Ctx->owner, str, requestId);
 			}
 
-			LOG_DEBUG("(s:%s) (d:%s)\n%s", Message.source_id, Message.destination_id, Message.payload_utf8);
+			LOG_SDEBUG("(s:%s) (d:%s)\n%s", Message.source_id, Message.destination_id, Message.payload_utf8);
 
 			// Connection closed by peer
 			if (!strcasecmp(str,"CLOSE")) {

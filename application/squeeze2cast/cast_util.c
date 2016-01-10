@@ -30,15 +30,8 @@
 #include "cast_util.h"
 #include "squeeze2cast.h"
 
-static log_level loglevel = lWARN;
-
-
-/*----------------------------------------------------------------------------*/
-void CastInit(log_level level)
-{
-	loglevel = level;
-	CastCoreInit(level);
-}
+extern log_level cast_loglevel;
+static log_level *loglevel = &cast_loglevel;
 
 
 /*----------------------------------------------------------------------------*/
