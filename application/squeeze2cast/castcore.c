@@ -422,9 +422,19 @@ static void CastDisconnect(tCastCtx *Ctx, bool disc)
 }
 
 
+/*----------------------------------------------------------------------------*/
+void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
+{
+	if (Volume > 100) Volume = 100;
+
+	SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
+						Ctx->reqId++, Ctx->mediaSessionId, (double) Volume / 100.0);
+}
+
 
 /*----------------------------------------------------------------------------*/
-void *StartCastDevice(void *owner, struct in_addr ip, u16_t port)
+void *StartCastDevice(void *owner, struct in_addr ip, u16_t port, u8_t MediaVolume)
 {
 	tCastCtx *Ctx = malloc(sizeof(tCastCtx));
 	pthread_mutexattr_t mutexAttr;
@@ -438,7 +448,7 @@ void *StartCastDevice(void *owner, struct in_addr ip, u16_t port)
 	Ctx->Connect 	= CAST_IDLE;
 	Ctx->ip 		= ip;
 	Ctx->port		= port;
-	Ctx->Volume		= -1;
+	Ctx->MediaVolume  = MediaVolume;
 
 	QueueInit(&Ctx->eventQueue);
 	QueueInit(&Ctx->reqQueue);
@@ -667,8 +677,8 @@ static void *CastSocketThread(void *args)
 						Ctx->waitMedia = 0;
 						Ctx->mediaSessionId = id;
 						LOG_INFO("[%p]: Media session id %d", Ctx->owner, Ctx->mediaSessionId);
-						// Need to set volume when session is re-connected
-						if (Ctx->Volume != -1) SetVolume(Ctx, Ctx->Volume);
+						// set media volume when session is re-connected
+						SetMediaVolume(Ctx, Ctx->MediaVolume);
 					}
 					// Don't need to forward this, no valuable info
 					forward = false;

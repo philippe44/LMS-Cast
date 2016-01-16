@@ -68,7 +68,7 @@ typedef struct {
 	struct in_addr	ip;
 	u16_t			port;
 	tQueue			eventQueue, reqQueue;
-	int 			Volume;
+	u8_t 			MediaVolume;
 	u32_t			lastPong;
 	bool			group;
 } tCastCtx;

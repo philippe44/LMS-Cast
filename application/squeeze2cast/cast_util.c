@@ -219,42 +219,6 @@ void CastClean(void *p)
 
 
 /*----------------------------------------------------------------------------*/
-void SetVolume(tCastCtx *Ctx, u8_t Volume)
-{
-	if (Volume)
-		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
-						Ctx->reqId++, Ctx->mediaSessionId, (double) Volume / 100.0);
-	else
-		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"muted\":true}}",
-						Ctx->reqId++, Ctx->mediaSessionId);
-}
-
-
-/*----------------------------------------------------------------------------*/
-void CastSetVolume(void *p, u8_t Volume)
-{
-	tCastCtx *Ctx = (tCastCtx*) p;
-
-	if (Volume > 100) Volume = 100;
-
-	// no media session, nothing to do
-	pthread_mutex_lock(&Ctx->Mutex);
-
-	if (Ctx->mediaSessionId) {
-
-		Ctx->Volume = -1;
-		SetVolume(Ctx, Volume);
-
-	}
-	else Ctx->Volume = Volume;
-
-	pthread_mutex_unlock(&Ctx->Mutex);
-}
-
-
-/*----------------------------------------------------------------------------*/
 void CastSetDeviceVolume(void *p, u8_t Volume)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;

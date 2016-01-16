@@ -62,7 +62,7 @@ bool				glAutoSaveConfigFile = false;
 bool				glGracefullShutdown = true;
 int					gl_mDNSId;
 
-log_level	slimproto_loglevel = lWARN;
+log_level	slimproto_loglevel = lINFO;
 log_level	stream_loglevel = lWARN;
 log_level	decode_loglevel = lWARN;
 log_level	output_loglevel = lWARN;
@@ -83,6 +83,7 @@ tMRConfig			glMRConfig = {
 							true,
 							3,
 							false,
+							50,
 					};
 
 static u8_t LMSVolumeMap[101] = {
@@ -909,7 +910,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, struct in_a
 	// virtual players duplicate mac address
 	MakeMacUnique(Device);
 
-	Device->CastCtx = StartCastDevice(Device, Device->ip, port);
+	Device->CastCtx = StartCastDevice(Device, Device->ip, port, Device->Config.MediaVolume);
 
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);

@@ -60,6 +60,7 @@ typedef struct sMRConfig
 	bool		SendCoverArt;
 	int			RemoveCount;
 	bool		AutoPlay;
+	int			MediaVolume;
 } tMRConfig;
 
 
