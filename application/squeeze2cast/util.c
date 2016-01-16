@@ -47,12 +47,6 @@ extern log_level 	util_loglevel;
 static log_level 	*loglevel = &util_loglevel;
 
 /*----------------------------------------------------------------------------*/
-void UtilInit(log_level level)
-{
-	util_loglevel = level;
-}
-
-/*----------------------------------------------------------------------------*/
 void ExtractIP(const char *URL, in_addr_t *IP)
 {
 	int i;
@@ -503,6 +497,7 @@ void SaveConfig(char *name, void *ref, bool full)
 		XMLAddNode(doc, common, "flac_header", "%d", (int) glDeviceParam.flac_header);
 		XMLAddNode(doc, common, "send_icy", "%d", (int) glDeviceParam.send_icy);
 		XMLAddNode(doc, common, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
+		XMLAddNode(doc, common, "media_volume", "%d", (int) glMRConfig.MediaVolume);
 		XMLAddNode(doc, common, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
 		XMLAddNode(doc, common, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
 		XMLAddNode(doc, common, "remove_count", "%d", (u32_t) glMRConfig.RemoveCount);
@@ -574,6 +569,7 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "keep_buffer_file"))sq_conf->keep_buffer_file = atol(val);
 	if (!strcmp(name, "remove_count"))Conf->RemoveCount = atol(val);
 	if (!strcmp(name, "volume_on_play")) Conf->VolumeOnPlay = atol(val);
+	if (!strcmp(name, "media_volume")) Conf->MediaVolume = atol(val);
 	if (!strcmp(name, "auto_play")) Conf->AutoPlay = atol(val);
 	if (!strcmp(name, "send_metadata")) Conf->SendMetaData = atol(val);
 	if (!strcmp(name, "send_coverart")) Conf->SendCoverArt = atol(val);
