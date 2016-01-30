@@ -1,13 +1,14 @@
 0.2.0.0
- - use mDNS for device detection
+ - Use mDNS for device detection
  - Support grouped devices (appear as an extra player)
- - Volume changes are now at device level, unless <volume_on_play> is set to 1
+ - Volume changes are now at device level (not session level)
+ - Volume commands can ignored when not playing
  - Volume changes on the CC are forwarded to LMS, unless device is a group
+ - Add volume scaling factor (using media session volume for individual players and ratio for group)
  - Free device search was missing ;
- - (dev-2): filter volume speed changes
- - (dev-3): reorganize log management
- - (dev-4): add volume scaling factor (using media session volume)
- 
+ - Filter volume speed changes
+ - Reorganize log management
+  
 0.1.3.1
  - Documentation update on ReplayGain
  

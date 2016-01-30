@@ -212,7 +212,7 @@ static char license[] =
 /*----------------------------------------------------------------------------*/
 static void *MRThread(void *args);
 static void *UpdateMRThread(void *args);
-static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, struct in_addr ip, u16_t port);
+static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool Group, struct in_addr ip, u16_t port);
 void 		DelCastDevice(struct sMR *Device);
 static int	Terminate(void);
 static int  Initialize(char *IPaddress, unsigned int *Port);
@@ -639,6 +639,7 @@ static void *UpdateMRThread(void *args)
 
 		if (UDN && !RefreshTO(UDN)) {
 			char *Model;
+			bool Group;
 
 			// new device so search a free spot.
 			for (j = 0; j < MAX_RENDERERS && glMRDevices[j].InUse; j++);
@@ -654,7 +655,13 @@ static void *UpdateMRThread(void *args)
 			Name = GetmDNSAttribute(p, "fn");
 			if (!Name) Name = strdup(p->hostname);
 
-			if (AddCastDevice(Device, Name, UDN, p->addr, p->port) && !glSaveConfigFile) {
+			// if model is a group, must ignore a few things
+			Model = GetmDNSAttribute(p, "md");
+			if (Model && !stristr(Model, "Group")) Group = false;
+			else Group = true;
+			NFREE(Model);
+
+			if (AddCastDevice(Device, Name, UDN, Group, p->addr, p->port) && !glSaveConfigFile) {
 				// create a new slimdevice
 				Device->SqueezeHandle = sq_reserve_device(Device, &sq_callback);
 				if (!Device->SqueezeHandle || !sq_run_device(Device->SqueezeHandle,
@@ -667,10 +674,6 @@ static void *UpdateMRThread(void *args)
 				}
 			}
 
-			// if model is a group, must ignore a few things
-			Model = GetmDNSAttribute(p, "md");
-			if (Model && !stristr(Model, "Group")) Device->Group = false;
-			NFREE(Model);
 
 		}
 
@@ -870,7 +873,7 @@ int Terminate(void)
 
 
 /*----------------------------------------------------------------------------*/
-static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, struct in_addr ip, u16_t port)
+static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group, struct in_addr ip, u16_t port)
 {
 	u32_t mac_size = 6;
 	pthread_attr_t attr;
@@ -893,7 +896,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, struct in_a
 	Device->InUse = true;
 	Device->sqState = SQ_STOP;
 	Device->State = STOPPED;
-	Device->Group = true;
+	Device->Group = group;
 	Device->VolumeStamp = 0;
 	strcpy(Device->FriendlyName, Name);
 	Device->ip = ip;
@@ -910,7 +913,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, struct in_a
 	// virtual players duplicate mac address
 	MakeMacUnique(Device);
 
-	Device->CastCtx = StartCastDevice(Device, Device->ip, port, Device->Config.MediaVolume);
+	Device->CastCtx = StartCastDevice(Device, Device->Group, Device->ip, port, Device->Config.MediaVolume);
 
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);

@@ -39,7 +39,7 @@ void InitSSL(void);
 void EndSSL(void);
 
 json_t 	*GetTimedEvent(void *p, u32_t msWait);
-void 	*StartCastDevice(void *owner, struct in_addr ip, u16_t port, u8_t MediaVolume);
+void 	*StartCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8_t MediaVolume);
 void 	StopCastDevice(void *Ctx);
 bool	CastIsConnected(void *Ctx);
 

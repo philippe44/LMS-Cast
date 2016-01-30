@@ -223,6 +223,8 @@ void CastSetDeviceVolume(void *p, u8_t Volume)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;
 
+	if (Ctx->group) Volume = ((u32_t) Volume * Ctx->MediaVolume) / 100;
+
 	if (Volume > 100) Volume = 100;
 
 	pthread_mutex_lock(&Ctx->Mutex);

@@ -434,7 +434,7 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 
 
 /*----------------------------------------------------------------------------*/
-void *StartCastDevice(void *owner, struct in_addr ip, u16_t port, u8_t MediaVolume)
+void *StartCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8_t MediaVolume)
 {
 	tCastCtx *Ctx = malloc(sizeof(tCastCtx));
 	pthread_mutexattr_t mutexAttr;
@@ -449,6 +449,7 @@ void *StartCastDevice(void *owner, struct in_addr ip, u16_t port, u8_t MediaVolu
 	Ctx->ip 		= ip;
 	Ctx->port		= port;
 	Ctx->MediaVolume  = MediaVolume;
+	Ctx->group 		= group;
 
 	QueueInit(&Ctx->eventQueue);
 	QueueInit(&Ctx->reqQueue);
