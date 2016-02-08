@@ -1,3 +1,8 @@
+0.2.0.1
+ - Duration should not be adjusted when playing a live webradio
+ - armv6hf version runs on raspberry pi B
+ - Remove ppc build
+
 0.2.0.0
  - Use mDNS for device detection
  - Support grouped devices (appear as an extra player)
