@@ -1,7 +1,8 @@
-0.2.0.1
+0.2.0.1-dev-2
  - Duration should not be adjusted when playing a live webradio
  - armv6hf version runs on raspberry pi B
  - Remove ppc build
+ - Gathering metadata when scanning was creating usage of a NULL pointer
 
 0.2.0.0
  - Use mDNS for device detection
