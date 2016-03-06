@@ -1,3 +1,6 @@
+0.2.0.2
+ - Change libupnp to handle AndroidTV request (range 0-1 to try to guess file size)
+
 0.2.0.1
  - Duration should not be adjusted when playing a live webradio
  - armv6hf version runs on raspberry pi B

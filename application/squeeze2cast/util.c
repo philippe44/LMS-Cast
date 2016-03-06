@@ -488,6 +488,7 @@ void SaveConfig(char *name, void *ref, bool full)
 		XMLAddNode(doc, common, "output_size", "%d", (u32_t) glDeviceParam.output_buf_size);
 		XMLAddNode(doc, common, "buffer_dir", glDeviceParam.buffer_dir);
 		XMLAddNode(doc, common, "buffer_limit", "%d", (u32_t) glDeviceParam.buffer_limit);
+		XMLAddNode(doc, common, "stream_length", "%d", (s32_t) glMRConfig.StreamLength);
 		XMLAddNode(doc, common, "max_read_wait", "%d", (int) glDeviceParam.max_read_wait);
 		XMLAddNode(doc, common, "max_GET_bytes", "%d", (s32_t) glDeviceParam.max_get_bytes);
 		XMLAddNode(doc, common, "keep_buffer_file", "%d", (int) glDeviceParam.keep_buffer_file);
