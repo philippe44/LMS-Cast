@@ -808,7 +808,7 @@ static int CreateHTTPRangeResponseHeader(
 	/* Jump = */
 	Ptr = Ptr + 1;
 	RangeRC = GetNextRange(&Ptr, &FirstByte, &LastByte);
-	if (FileLength < 0 && LastByte != -1) {
+	if (FileLength < 0 && LastByte != -1 && LastByte != 1) {
 		free(RangeInput);
 		return HTTP_REQUEST_RANGE_NOT_SATISFIABLE;
 	}
@@ -832,6 +832,19 @@ static int CreateHTTPRangeResponseHeader(
 				free(RangeInput);
 				return HTTP_INTERNAL_SERVER_ERROR;
 			}
+		} else if (FirstByte == 0 && LastByte == 1 && FileLength < 0) {
+			/* client tries to guess length by getting 1 byte but file size is
+			unknown or using chunked */
+			Instr->RangeOffset = 0;
+			Instr->ReadSendSize = 1;
+			rc = snprintf(Instr->RangeHeader,
+				sizeof(Instr->RangeHeader),
+				"CONTENT-RANGE: bytes 0-1/*" "\r\n");
+			if (rc < 0 || (unsigned int) rc >= sizeof(Instr->RangeHeader)) {
+				free(RangeInput);
+				return HTTP_INTERNAL_SERVER_ERROR;
+			}
+
 		} else if (FirstByte >= 0 && LastByte >= 0 && LastByte >= FirstByte) {
 			if (LastByte >= FileLength)
 				LastByte = FileLength - 1;
