@@ -2,6 +2,7 @@
  - Change libupnp to handle AndroidTV request (range 0-1 to try to guess file size)
  - Bring back ppc version
  - Add x86-64-static version
+ - Build a proper softfp for armv5
 
 0.2.0.1
  - Duration should not be adjusted when playing a live webradio
