@@ -23,7 +23,7 @@ sub binaries {
 	if ($os->{'os'} eq 'Linux') {
 
 		if ($os->{'osArch'} =~ /x86_64/) {
-			return qw(squeeze2cast-x86-64);
+			return qw(squeeze2cast-x86-64 squeeze2cast-x86-64-static);
 		}
 		if ($os->{'binArch'} =~ /i386/) {
 			return qw(squeeze2cast-x86 squeeze2cast-x86-static);
@@ -36,7 +36,7 @@ sub binaries {
 		}
 		
 		# fallback to offering all linux options for case when architecture detection does not work
-		return qw(squeeze2cast-x86-64 squeeze2cast-x86 squeeze2cast-x86-static squeeze2cast-armv6hf squeeze2cast-armv5 squeeze2cast-armv5-static squeeze2cast-ppc squeeze2cast-ppc-static);
+		return qw(squeeze2cast-x86-64 squeeze2cast-x86-64-static squeeze2cast-x86 squeeze2cast-x86-static squeeze2cast-armv6hf squeeze2cast-armv5 squeeze2cast-armv5-static squeeze2cast-ppc squeeze2cast-ppc-static);
 	}
 	
 	if ($os->{'os'} eq 'Darwin') {
