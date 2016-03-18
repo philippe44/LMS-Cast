@@ -602,6 +602,7 @@ static void *CastSocketThread(void *args)
 			int interval = 100;
 			LOG_WARN("[%p]: SSL connection closed", Ctx);
 			CastDisconnect(Ctx, true);
+			usleep(100000);
 			while (Ctx->running && !CastConnect(Ctx)) {
 				usleep(interval * 1000);
 				if (interval < 5000) interval *= 2;
