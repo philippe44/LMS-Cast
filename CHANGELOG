@@ -4,6 +4,8 @@
  - Add x86-64-static version
  - Build a proper softfp for armv5
  - (dev-3) mdns search was missing some answers ==> causing device to be missed
+ - (dev-4) detect ip/port change
+ 
 
 0.2.0.1
  - Duration should not be adjusted when playing a live webradio

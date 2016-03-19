@@ -635,9 +635,9 @@ static void *UpdateMRThread(void *args)
 		struct mDNSItem_s *p = &DiscDevices.items[i];
 
 		// is the mDNS record usable
-		UDN = GetmDNSAttribute(p, "id");
+		if ((UDN = GetmDNSAttribute(p, "id")) == NULL) continue;
 
-		if (UDN && !RefreshTO(UDN)) {
+		if (!RefreshTO(UDN)) {
 			char *Model;
 			bool Group;
 
@@ -673,8 +673,12 @@ static void *UpdateMRThread(void *args)
 					DelCastDevice(Device);
 				}
 			}
-
-
+		}
+		else for (j = 0; j < MAX_RENDERERS; j++) {
+			if (glMRDevices[j].InUse && !strcmp(glMRDevices[j].UDN, UDN)) {
+				UpdateCastDevice(glMRDevices[j].CastCtx, p->addr, p->port);
+				break;
+			}
 		}
 
 		NFREE(UDN);
@@ -899,12 +903,13 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->Group = group;
 	Device->VolumeStamp = 0;
 	strcpy(Device->FriendlyName, Name);
-	Device->ip = ip;
+	//Device->ip = ip;
+	//Device->port = port;
 
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
 
 	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size) &&
-		SendARP(*((in_addr_t*) &Device->ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
+		SendARP(*((in_addr_t*) &ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
 		LOG_ERROR("[%p]: cannot get mac %s", Device, Device->FriendlyName);
 		// not sure what SendARP does with the MAC if it does not find one
 		memset(Device->sq_config.mac, 0, sizeof(Device->sq_config.mac));
@@ -913,7 +918,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	// virtual players duplicate mac address
 	MakeMacUnique(Device);
 
-	Device->CastCtx = StartCastDevice(Device, Device->Group, Device->ip, port, Device->Config.MediaVolume);
+	Device->CastCtx = StartCastDevice(Device, Device->Group, ip, port, Device->Config.MediaVolume);
 
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);

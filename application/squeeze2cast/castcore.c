@@ -433,8 +433,8 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 }
 
 
-/*----------------------------------------------------------------------------*/
-void *StartCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8_t MediaVolume)
+/*----------------------------------------------------------------------------*/
+void *StartCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8_t MediaVolume)
 {
 	tCastCtx *Ctx = malloc(sizeof(tCastCtx));
 	pthread_mutexattr_t mutexAttr;
@@ -466,6 +466,27 @@ void *StartCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8
 	pthread_create(&Ctx->PingThread, NULL, &CastPingThread, Ctx);
 
 	return Ctx;
+}
+
+
+/*----------------------------------------------------------------------------*/
+void UpdateCastDevice(void *p, struct in_addr ip, u16_t port)
+{
+	tCastCtx *Ctx = p;
+
+	if (Ctx->port != port || Ctx->ip.s_addr != ip.s_addr) {
+		LOG_INFO("[%p]: changed ip:port %s:%d", Ctx, inet_ntoa(ip), port);
+		pthread_mutex_lock(&Ctx->Mutex);
+		Ctx->ip	= ip;
+		Ctx->port = port;
+		pthread_mutex_unlock(&Ctx->Mutex);
+		/*
+		Cast disconnection must be done here as the cast thread is likely, but
+		not 100% sure, in the re-connect loop, with the increasing retry timer.
+		But reconnection is surely done by the cast thread
+		*/
+		CastDisconnect(Ctx, true);
+	}
 }
 
 
