@@ -1,10 +1,13 @@
+0.2.0.3-dev-1
+ - in stream thread, endtok static parameter was breaking multi-thread !
+
 0.2.0.2
  - Change libupnp to handle AndroidTV request (range 0-1 to try to guess file size)
  - Bring back ppc version
  - Add x86-64-static version
  - Build a proper softfp for armv5
  - (dev-3) mdns search was missing some answers ==> causing device to be missed
- - (dev-4) detect ip/port change
+ - (dev-4) detect ip:port change
  
 
 0.2.0.1
