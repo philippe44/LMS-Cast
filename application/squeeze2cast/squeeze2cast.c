@@ -49,7 +49,7 @@ TODO :
 /*----------------------------------------------------------------------------*/
 char				glBaseVDIR[] = "LMS2CAST";
 char				glSQServer[SQ_STR_LENGTH] = "?";
-u8_t				glMac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05 };
+
 #if LINUX || FREEBSD
 bool				glDaemonize = false;
 #endif
@@ -908,11 +908,14 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
 
-	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size) &&
-		SendARP(*((in_addr_t*) &ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
-		LOG_ERROR("[%p]: cannot get mac %s", Device, Device->FriendlyName);
-		// not sure what SendARP does with the MAC if it does not find one
-		memset(Device->sq_config.mac, 0, sizeof(Device->sq_config.mac));
+	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size)) {
+		if (SendARP(*((in_addr_t*) &Device->ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
+			u32_t hash = hash32(UDN);
+
+			LOG_ERROR("[%p]: cannot get mac %s, creating fake %x", Device, Device->FriendlyName, hash);
+			memset(Device->sq_config.mac, 0xcc, 2);
+			memcpy(Device->sq_config.mac + 2, &hash, 4);
+		}
 	}
 
 	// virtual players duplicate mac address
@@ -1195,8 +1198,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (strstr(glSQServer, "?")) sq_init(NULL, glMac);
-	else sq_init(glSQServer, glMac);
+	if (strstr(glSQServer, "?")) sq_init(NULL);
+	else sq_init(glSQServer);
 
 	tmpdir = malloc(SQ_STR_LENGTH);
 	GetTempPath(SQ_STR_LENGTH, tmpdir);
