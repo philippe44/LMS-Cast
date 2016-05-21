@@ -909,13 +909,13 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
 
 	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size)) {
-		if (SendARP(*((in_addr_t*) &Device->ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
+		if (SendARP(*((in_addr_t*) &ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
 			u32_t hash = hash32(UDN);
 
 			LOG_ERROR("[%p]: cannot get mac %s, creating fake %x", Device, Device->FriendlyName, hash);
-			memset(Device->sq_config.mac, 0xcc, 2);
 			memcpy(Device->sq_config.mac + 2, &hash, 4);
 		}
+		memset(Device->sq_config.mac, 0xcc, 2);
 	}
 
 	// virtual players duplicate mac address
