@@ -116,7 +116,8 @@
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_MDNSMGMT" desc="PLUGIN_CASTBRIDGE_MDNSMGMT_DESC" %]
-		[% "PLUGIN_CASTBRIDGE_ENABLEDEFS" | string %]
+		[% "PLUGIN_CASTBRIDGE_SERVER" | string %]&nbsp<input type="text" class="stdedit" name="server" id="server" value="[% server %]" size="10">
+		&nbsp[% "PLUGIN_CASTBRIDGE_ENABLEDEFS" | string %]
 		<select class="stdedit" name="enabled" id="enabled">
 		[% FOREACH entry IN YESNOBOX %] 
 			<option [% IF entry.1 == enabled %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
@@ -126,7 +127,7 @@
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_VOLUMEMGMT" desc="PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC" %]
-		&nbsp[% "PLUGIN_CASTBRIDGE_VOLUMEONPLAY" | string %]&nbsp<select class="stdedit" name="volume_on_play" id="volume_on_play">
+		[% "PLUGIN_CASTBRIDGE_VOLUMEONPLAY" | string %]&nbsp<select class="stdedit" name="volume_on_play" id="volume_on_play">
 		[% FOREACH entry IN [ ['',''], ['ignore all changes','-1'], ['transparent forward','0'] ['only when playing','1'] ] %]
 			<option [% IF entry.1 == volume_on_play %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]

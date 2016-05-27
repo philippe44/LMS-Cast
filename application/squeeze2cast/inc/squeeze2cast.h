@@ -117,7 +117,6 @@ extern u8_t		   			glMac[6];
 extern s32_t				glLogLimit;
 extern tMRConfig			glMRConfig;
 extern sq_dev_param_t		glDeviceParam;
-extern char					glSQServer[SQ_STR_LENGTH];
 extern u32_t				glScanInterval;
 extern u32_t				glScanTimeout;
 extern struct sMR			glMRDevices[MAX_RENDERERS];

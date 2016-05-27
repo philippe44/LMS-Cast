@@ -224,6 +224,9 @@ PLUGIN_CASTBRIDGE_FLACHEADER
 PLUGIN_CASTBRIDGE_L24FORMAT
 	EN	24 bits PCM
 	
+PLUGIN_CASTBRIDGE_SERVER
+	EN	LMS Server
+	
 PLUGIN_CASTBRIDGE_ENABLED
 	EN	Enabled
 	
@@ -246,8 +249,11 @@ PLUGIN_CASTBRIDGE_MDNSMGMT
 	EN	Player discovery options
 	
 PLUGIN_CASTBRIDGE_MDNSMGMT_DESC
-	EN	Misc options<br>- For the default list newly discovered players can be automatically added to LMS – For individual players a 
-	EN	player can be enabled or disabled<br>- Number of mDNS scan cycles a player can be found missing before being removed
+	EN	Misc options
+	EN	<br>- For the default list newly discovered players can be automatically added to LMS 
+	EN	<br>– For individual players a player can be enabled or disabled
+	EN	<br>- Number of mDNS scan cycles a player can be found missing before being removed
+	EN	<br>- Force LMS server (? for auto-discovery)
 
 PLUGIN_CASTBRIDGE_ENABLEDEFS
 	EN	Player is enabled
