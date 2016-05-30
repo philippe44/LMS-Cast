@@ -162,7 +162,7 @@
 	[% FOREACH entry IN devices %]
 		[% IF entry.udn != '.common.' %]
 			<tr><td><input name="enabled.[% entry.udn %]" type="checkbox" value="1" [% IF entry.enabled %] checked [% END %]></td>
-			<th>[% entry.name %]<th>[% entry.mac %]</th><th>&nbsp[% entry.udn %]</th></tr>
+			<th>[% entry.name %]<th>&nbsp[% entry.mac %]</th><th>&nbsp[% entry.udn %]</th>&nbsp<th>[% entry.friendly_name %]</th></tr>
 		[% END %]
 	[% END %]
 	</table>

@@ -1084,7 +1084,7 @@ sq_dev_handle_t sq_reserve_device(void *MR, sq_callback_t callback)
 
 
 /*---------------------------------------------------------------------------*/
-bool sq_run_device(sq_dev_handle_t handle, char *name, sq_dev_param_t *param)
+bool sq_run_device(sq_dev_handle_t handle, sq_dev_param_t *param)
 {
 	int i;
 	struct thread_ctx_s *ctx = &thread_ctx[handle - 1];
@@ -1157,7 +1157,7 @@ bool sq_run_device(sq_dev_handle_t handle, char *name, sq_dev_param_t *param)
 	}
 #endif
 
-	slimproto_thread_init(name, "", ctx);
+	slimproto_thread_init(ctx);
 
 	return true;
 }
