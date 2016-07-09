@@ -128,6 +128,8 @@ typedef __int64 s64_t;
 
 #define RTLD_NOW 0
 
+#define SL_LITTLE_ENDIAN (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+
 #endif
 
 #endif     // __SQUEEZEDEFS_H
