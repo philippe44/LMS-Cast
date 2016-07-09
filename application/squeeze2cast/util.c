@@ -316,6 +316,25 @@ IXML_Node *XMLAddNode(IXML_Document *doc, IXML_Node *parent, char *name, char *f
 
 
 /*----------------------------------------------------------------------------*/
+IXML_Node *XMLUpdateNode(IXML_Document *doc, IXML_Node *parent, char *name, char *fmt, ...)
+{
+	IXML_Node *node = (IXML_Node*) ixmlDocument_getElementById((IXML_Document*) parent, name);
+
+	if (!node) {
+		char buf[256];
+		va_list args;
+
+		va_start(args, fmt);
+		vsprintf(buf, fmt, args);
+		node = XMLAddNode(doc, parent, name, buf);
+		va_end(args);
+	}
+
+	return node;
+}
+
+
+/*----------------------------------------------------------------------------*/
 int XMLAddAttribute(IXML_Document *doc, IXML_Node *parent, char *name, char *fmt, ...)
 {
 	char buf[256];
@@ -448,7 +467,7 @@ void SaveConfig(char *name, void *ref, bool full)
 	old_root = ixmlDocument_getElementById(old_doc, "squeeze2cast");
 
 	if (!full && old_doc) {
-		root = ixmlNode_cloneNode((IXML_Node*) old_root, true);
+		ixmlDocument_importNode(doc, (IXML_Node*) old_root, true, &root);
 		ixmlNode_appendChild((IXML_Node*) doc, root);
 
 		list = ixmlDocument_getElementsByTagName((IXML_Document*) root, "device");
@@ -460,46 +479,47 @@ void SaveConfig(char *name, void *ref, bool full)
 			ixmlNode_free(device);
 		}
 		if (list) ixmlNodeList_free(list);
+		common = (IXML_Node*) ixmlDocument_getElementById((IXML_Document*) root, "common");
 	}
 	else {
 		root = XMLAddNode(doc, NULL, "squeeze2cast", NULL);
-
-		XMLAddNode(doc, root, "upnp_socket", glUPnPSocket);
-		XMLAddNode(doc, root, "slimproto_log", level2debug(slimproto_loglevel));
-		XMLAddNode(doc, root, "stream_log", level2debug(stream_loglevel));
-		XMLAddNode(doc, root, "output_log", level2debug(output_loglevel));
-		XMLAddNode(doc, root, "decode_log", level2debug(decode_loglevel));
-		XMLAddNode(doc, root, "web_log", level2debug(web_loglevel));
-		XMLAddNode(doc, root, "main_log",level2debug(main_loglevel));
-		XMLAddNode(doc, root, "slimmain_log", level2debug(slimmain_loglevel));
-		XMLAddNode(doc, root, "cast_log",level2debug(cast_loglevel));
-		XMLAddNode(doc, root, "util_log",level2debug(util_loglevel));
-		XMLAddNode(doc, root, "scan_interval", "%d", (u32_t) glScanInterval);
-		XMLAddNode(doc, root, "scan_timeout", "%d", (u32_t) glScanTimeout);
-		XMLAddNode(doc, root, "log_limit", "%d", (s32_t) glLogLimit);
-
-		common = XMLAddNode(doc, root, "common", NULL);
-		XMLAddNode(doc, common, "streambuf_size", "%d", (u32_t) glDeviceParam.stream_buf_size);
-		XMLAddNode(doc, common, "output_size", "%d", (u32_t) glDeviceParam.output_buf_size);
-		XMLAddNode(doc, common, "buffer_dir", glDeviceParam.buffer_dir);
-		XMLAddNode(doc, common, "buffer_limit", "%d", (u32_t) glDeviceParam.buffer_limit);
-		XMLAddNode(doc, common, "stream_length", "%d", (s32_t) glMRConfig.StreamLength);
-		XMLAddNode(doc, common, "max_read_wait", "%d", (int) glDeviceParam.max_read_wait);
-		XMLAddNode(doc, common, "max_GET_bytes", "%d", (s32_t) glDeviceParam.max_get_bytes);
-		XMLAddNode(doc, common, "keep_buffer_file", "%d", (int) glDeviceParam.keep_buffer_file);
-		XMLAddNode(doc, common, "enabled", "%d", (int) glMRConfig.Enabled);
-		XMLAddNode(doc, common, "codecs", glDeviceParam.codecs);
-		XMLAddNode(doc, common, "sample_rate", "%d", (int) glDeviceParam.sample_rate);
-		XMLAddNode(doc, common, "flac_header", "%d", (int) glDeviceParam.flac_header);
-		XMLAddNode(doc, common, "send_icy", "%d", (int) glDeviceParam.send_icy);
-		XMLAddNode(doc, common, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
-		XMLAddNode(doc, common, "media_volume", "%d", (int) glMRConfig.MediaVolume);
-		XMLAddNode(doc, common, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
-		XMLAddNode(doc, common, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
-		XMLAddNode(doc, common, "remove_count", "%d", (u32_t) glMRConfig.RemoveCount);
-		XMLAddNode(doc, common, "auto_play", "%d", (int) glMRConfig.AutoPlay);
-		XMLAddNode(doc, common, "server", glDeviceParam.server);
+		common = (IXML_Node*) XMLAddNode(doc, root, "common", NULL);
 	}
+
+	XMLUpdateNode(doc, root, "upnp_socket", glUPnPSocket);
+	XMLUpdateNode(doc, root, "slimproto_log", level2debug(slimproto_loglevel));
+	XMLUpdateNode(doc, root, "stream_log", level2debug(stream_loglevel));
+	XMLUpdateNode(doc, root, "output_log", level2debug(output_loglevel));
+	XMLUpdateNode(doc, root, "decode_log", level2debug(decode_loglevel));
+	XMLUpdateNode(doc, root, "web_log", level2debug(web_loglevel));
+	XMLUpdateNode(doc, root, "main_log",level2debug(main_loglevel));
+	XMLUpdateNode(doc, root, "slimmain_log", level2debug(slimmain_loglevel));
+	XMLUpdateNode(doc, root, "cast_log",level2debug(cast_loglevel));
+	XMLUpdateNode(doc, root, "util_log",level2debug(util_loglevel));
+	XMLUpdateNode(doc, root, "scan_interval", "%d", (u32_t) glScanInterval);
+	XMLUpdateNode(doc, root, "scan_timeout", "%d", (u32_t) glScanTimeout);
+	XMLUpdateNode(doc, root, "log_limit", "%d", (s32_t) glLogLimit);
+
+	XMLUpdateNode(doc, common, "streambuf_size", "%d", (u32_t) glDeviceParam.stream_buf_size);
+	XMLUpdateNode(doc, common, "output_size", "%d", (u32_t) glDeviceParam.output_buf_size);
+	XMLUpdateNode(doc, common, "buffer_dir", glDeviceParam.buffer_dir);
+	XMLUpdateNode(doc, common, "buffer_limit", "%d", (u32_t) glDeviceParam.buffer_limit);
+	XMLUpdateNode(doc, common, "stream_length", "%d", (s32_t) glMRConfig.StreamLength);
+	XMLUpdateNode(doc, common, "stream_pacing_size", "%d", (int) glDeviceParam.stream_pacing_size);
+	XMLUpdateNode(doc, common, "max_GET_bytes", "%d", (s32_t) glDeviceParam.max_get_bytes);
+	XMLUpdateNode(doc, common, "keep_buffer_file", "%d", (int) glDeviceParam.keep_buffer_file);
+	XMLUpdateNode(doc, common, "enabled", "%d", (int) glMRConfig.Enabled);
+	XMLUpdateNode(doc, common, "codecs", glDeviceParam.codecs);
+	XMLUpdateNode(doc, common, "sample_rate", "%d", (int) glDeviceParam.sample_rate);
+	XMLUpdateNode(doc, common, "flac_header", "%d", (int) glDeviceParam.flac_header);
+	XMLUpdateNode(doc, common, "send_icy", "%d", (int) glDeviceParam.send_icy);
+	XMLUpdateNode(doc, common, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
+	XMLUpdateNode(doc, common, "media_volume", "%d", (int) glMRConfig.MediaVolume);
+	XMLUpdateNode(doc, common, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
+	XMLUpdateNode(doc, common, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
+	XMLUpdateNode(doc, common, "remove_count", "%d", (u32_t) glMRConfig.RemoveCount);
+	XMLUpdateNode(doc, common, "auto_play", "%d", (int) glMRConfig.AutoPlay);
+	XMLUpdateNode(doc, common, "server", glDeviceParam.server);
 
 	for (i = 0; i < MAX_RENDERERS; i++) {
 		IXML_Node *dev_node;
@@ -511,13 +531,13 @@ void SaveConfig(char *name, void *ref, bool full)
 		if (old_doc && ((dev_node = (IXML_Node*) FindMRConfig(old_doc, p->UDN)) != NULL)) {
 			IXML_Node *node;
 
-			dev_node = ixmlNode_cloneNode(dev_node, true);
+			ixmlDocument_importNode(doc, dev_node, true, &dev_node);
 			ixmlNode_appendChild((IXML_Node*) root, dev_node);
 			node = (IXML_Node*) ixmlDocument_getElementById((IXML_Document*) dev_node, "name");
 			node = ixmlNode_getFirstChild(node);
 			ixmlNode_setNodeValue(node, p->sq_config.name);
 			// TODO: remove after migration
-			if (!ixmlDocument_getElementById((IXML_Document*) dev_node, "friendly_name")) XMLAddNode(doc, dev_node, "friendly_name", p->FriendlyName);
+			XMLUpdateNode(doc, dev_node, "friendly_name", p->FriendlyName);
 		}
 		// new device, add nodes
 		else {
@@ -542,7 +562,7 @@ void SaveConfig(char *name, void *ref, bool full)
 		node = ixmlNode_getFirstChild(node);
 		udn = (char*) ixmlNode_getNodeValue(node);
 		if (!FindMRConfig(doc, udn)) {
-			device = ixmlNode_cloneNode(device, true);
+			ixmlDocument_importNode(doc, device, true, &device);
 			ixmlNode_appendChild((IXML_Node*) root, device);
 		}
 	}
@@ -566,7 +586,7 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "buffer_dir")) strcpy(sq_conf->buffer_dir, val);
 	if (!strcmp(name, "buffer_limit")) sq_conf->buffer_limit = atol(val);
 	if (!strcmp(name, "stream_length")) Conf->StreamLength = atol(val);
-	if (!strcmp(name, "max_read_wait")) sq_conf->max_read_wait = atol(val);
+	if (!strcmp(name, "stream_pacing_size")) sq_conf->stream_pacing_size = atol(val);
 	if (!strcmp(name, "max_GET_bytes")) sq_conf->max_get_bytes = atol(val);
 	if (!strcmp(name, "send_icy")) sq_conf->send_icy = atol(val);
 	if (!strcmp(name, "enabled")) Conf->Enabled = atol(val);

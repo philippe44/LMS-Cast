@@ -92,15 +92,11 @@
 	[% END %]		
 
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_BUFFERS" desc="PLUGIN_CASTBRIDGE_BUFFERS_DESC" %]
-		[% "PLUGIN_CASTBRIDGE_BUFFERDIR" | string %]&nbsp<input type="text" class="stdedit" name="buffer_dir" id="buffer_dir" value="[% buffer_dir %]" size="30">
-		[% "PLUGIN_CASTBRIDGE_BUFFERLIMIT" | string %]&nbsp<input type="text" class="stdedit" name="buffer_limit" id="buffer_limit" value="[% buffer_limit %]" size="10">
+		[% "PLUGIN_CASTBRIDGE_BUFFERDIR" | string %]&nbsp<input type="text" class="stdedit" name="buffer_dir" id="buffer_dir" value="[% buffer_dir %]" size="20">
+		[% "PLUGIN_CASTBRIDGE_BUFFERLIMIT" | string %]&nbsp<input type="text" class="stdedit" name="buffer_limit" id="buffer_limit" value="[% buffer_limit %]" size="7">
+		[% "PLUGIN_CASTBRIDGE_STREAMPACINGSIZE" | string %]&nbsp<input type="text" class="stdedit" name="stream_pacing_size" id="stream_pacing_size" value="[% stream_pacing_size %]" size="4">
 	[% END %]
 	
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_HTTPOPTIONS" desc="PLUGIN_CASTBRIDGE_HTTPOPTIONS_DESC" %]
-		[% "PLUGIN_CASTBRIDGE_MAXREADWAIT" | string %]
-		<input type="text" class="stdedit" name="max_read_wait" id="max_read_wait" value="[% max_read_wait %]" size="3">
-	[% END %]
-		
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CODECSPARAM" desc="PLUGIN_CASTBRIDGE_CODECSPARAM_DESC" %]
 		[% "PLUGIN_CASTBRIDGE_CODECS" | string %]&nbsp<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="10">
 		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]&nbsp<select class="stdedit" name="sample_rate" id="sample_rate">

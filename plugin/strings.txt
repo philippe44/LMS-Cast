@@ -55,7 +55,7 @@ PLUGIN_CASTBRIDGE_OPTIONS_DESC
 	EN	for details.
 
 PLUGIN_CASTBRIDGE_DEBUG
-	EN	Debug Settings
+	EN	Additional debugging
 
 PLUGIN_CASTBRIDGE_DEBUG_DESC
 	EN	Specify debugging level for writing to the log file.
@@ -160,43 +160,24 @@ PLUGIN_CASTBRIDGE_SCANTIMEOUT
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
 
-PLUGIN_CASTBRIDGE_HTTPOPTIONS
-	EN	Device communication options
-
-PLUGIN_CASTBRIDGE_HTTPOPTIONS_DESC
-	EN	Various streaming options for communication with LMS and with the Chromecast device (see user guide)
-	EN	<br>- Live streams (webradios) require a timeout to detect idle connection
-
-PLUGIN_CASTBRIDGE_MAXREADWAIT
-	EN	Live streaming timeout (x50ms)
-
-PLUGIN_CASTBRIDGE_ACCEPTNEXTURI
-	EN	Player supports gapless 
-
-PLUGIN_CASTBRIDGE_ACCEPTNEXTURI_DESC
-	EN	Some players don't support gapless playback and thus don't automatically move to next track in playlist. 
-
-PLUGIN_CASTBRIDGE_PAUSEMGMT
-	EN	Pause/Resume management
-
-PLUGIN_CASTBRIDGE_SEEKAFTERPAUSE
-	EN	Force reposition on resume
-	
-PLUGIN_CASTBRIDGE_BYTESEEK
-	EN	Accept byte seek
-	
 PLUGIN_CASTBRIDGE_BUFFERS
 	EN	Audio file buffers
 
 PLUGIN_CASTBRIDGE_BUFFERS_DESC
-	EN	Audio streams are buffered locally while sending to the Chromecast player. <br>- Enter ? to let the system decide which directory 
-	EN	to use<br>- "Max Size" defines the largest size a single file can take before it is shrunk. Set to -1 for unlimited
+	EN	Audio streams are buffered locally while sending to the Chromecast player. 
+	EN	<br>- Enter ? to let the system decide which directory to use
+	EN	<br>- "Max Size" defines the largest size a single file can take before it is shrunk. Set to -1 for unlimited
+	EN	<br>- "Pacing Size" set size of write ahead to prevent buffering spike for remote streams. Set to -1 for 
+	EN	unlimited (see user guide)
 
 PLUGIN_CASTBRIDGE_BUFFERDIR
 	EN	Directory
 
 PLUGIN_CASTBRIDGE_BUFFERLIMIT
 	EN	Max Size
+	
+PLUGIN_CASTBRIDGE_STREAMPACINGSIZE
+	EN	Pacing size
 
 PLUGIN_CASTBRIDGE_CODECSPARAM
 	EN	Audio codec parameters
