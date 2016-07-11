@@ -116,7 +116,7 @@ sq_dev_param_t glDeviceParam = {
 					"?",
 					"",
 					-1L,
-					2*1024*1024L,
+					1024*1024L,
 					0,
 					{ 0x00,0x00,0x00,0x00,0x00,0x00 },
 					false,
