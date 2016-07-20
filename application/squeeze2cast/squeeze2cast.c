@@ -778,7 +778,7 @@ int Initialize(char *IPaddress, unsigned int *Port)
 	int rc;
 	struct UpnpVirtualDirCallbacks VirtualDirCallbacks;
 
-	if (glScanInterval) {
+	if (glScanInterval) {
 		if (glScanInterval < SCAN_INTERVAL) glScanInterval = SCAN_INTERVAL;
 		if (glScanTimeout < SCAN_TIMEOUT) glScanTimeout = SCAN_TIMEOUT;
 		if (glScanTimeout > glScanInterval - SCAN_TIMEOUT) glScanTimeout = glScanInterval - SCAN_TIMEOUT;
@@ -906,8 +906,6 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->Group = group;
 	Device->VolumeStamp = 0;
 	strcpy(Device->FriendlyName, Name);
-	//Device->ip = ip;
-	//Device->port = port;
 
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
 
@@ -972,7 +970,9 @@ static bool Start(void)
 {
 	InitSSL();
 	if (!Initialize(glIPaddress, &glPort)) return false;
-	gl_mDNSId = init_mDNS(false, glIPaddress);
+
+	// initialize mDNS query
+	gl_mDNSId = init_mDNS(false, inet_addr(glIPaddress));
 
 	/* start the main thread */
 	ithread_create(&glMainThread, NULL, &MainThread, NULL);
