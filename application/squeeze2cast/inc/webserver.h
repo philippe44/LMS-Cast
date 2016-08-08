@@ -37,7 +37,6 @@ int WebRead(UpnpWebFileHandle FileHandle, char *buf, size_t buflen);
 int WebWrite(UpnpWebFileHandle FileHandle, char *buf, size_t buflen);
 int WebSeek(UpnpWebFileHandle FileHandle, off_t offset, int origin);
 int WebClose(UpnpWebFileHandle FileHandle);
-void WebServerLogLevel(log_level level);
 
 extern char glBaseVDIR[];
 

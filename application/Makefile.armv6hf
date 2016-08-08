@@ -1,0 +1,10 @@
+CFLAGS  ?= -Wall -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES)
+LDFLAGS ?= -lpthread -lssl -lcrypto -ldl -lm -lrt -lz -L. 
+# for LD debug -s
+
+OBJ					= bin/armv6hf
+EXECUTABLE 			= bin/squeeze2cast-armv6hf
+EXECUTABLE_STATIC 	= bin/squeeze2cast-armv6hf-static
+
+include Makefile
+

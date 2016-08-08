@@ -24,6 +24,7 @@
 #include "squeezedefs.h"
 #include "util.h"
 #include "util_common.h"
+#include "log_util.h"
 #include "upnptools.h"
 
 /*----------------------------------------------------------------------------*/

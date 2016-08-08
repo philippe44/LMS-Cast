@@ -93,7 +93,7 @@ config.xml
 tests/
 sonos/
 misc/
-bin/
+application/bin
 bin.old/
 #plugin/Bin
 /repo*.xml
@@ -101,4 +101,5 @@ bin.old/
 alpha/
 _backup/
 application - 1.x/
+*.xml
 

@@ -29,7 +29,6 @@ typedef enum { CAST_PLAY, CAST_PAUSE, CAST_STOP } tCastAction;
 struct sq_metadata_s;
 struct sMRConfig;
 
-void  	CastInit(log_level level);
 void	CastGetStatus(void *Ctx);
 void	CastGetMediaStatus(void *Ctx);
 

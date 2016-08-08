@@ -33,6 +33,7 @@
 #include "upnptools.h"
 #include "webserver.h"
 #include "util_common.h"
+#include "log_util.h"
 #include "util.h"
 #include "cast_util.h"
 #include "castitf.h"
@@ -241,7 +242,7 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 		LOG_DEBUG("[%p]: device set on/off %d", caller, device->on);
 	}
 
-	if (!device->on) {
+	if (!device->on && action != SQ_SETNAME) {
 		LOG_DEBUG("[%p]: device off or not controlled by LMS", caller);
 		return false;
 	}
@@ -910,10 +911,10 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
 
 	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size)) {
-		if (SendARP(*((in_addr_t*) &ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
+		if (group || SendARP(*((in_addr_t*) &ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
 			u32_t hash = hash32(UDN);
 
-			LOG_ERROR("[%p]: cannot get mac %s, creating fake %x", Device, Device->FriendlyName, hash);
+			LOG_ERROR("[%p]: creating MAC %x", Device, Device->FriendlyName, hash);
 			memcpy(Device->sq_config.mac + 2, &hash, 4);
 		}
 		memset(Device->sq_config.mac, 0xcc, 2);
@@ -968,11 +969,14 @@ void DelCastDevice(struct sMR *Device)
 /*----------------------------------------------------------------------------*/
 static bool Start(void)
 {
+	struct in_addr addr;
+
 	InitSSL();
 	if (!Initialize(glIPaddress, &glPort)) return false;
 
 	// initialize mDNS query
-	gl_mDNSId = init_mDNS(false, inet_addr(glIPaddress));
+	addr.s_addr = inet_addr(glIPaddress);
+	gl_mDNSId = init_mDNS(false, addr);
 
 	/* start the main thread */
 	ithread_create(&glMainThread, NULL, &MainThread, NULL);

@@ -1,0 +1,9 @@
+CFLAGS  ?= -Wall -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES)
+LDFLAGS ?= -lpthread -lssl -lcrypto -ldl -lm -lrt -lz -L. 
+
+OBJ					= bin/ppc
+EXECUTABLE 			= bin/squeeze2cast-ppc
+EXECUTABLE_STATIC	= bin/squeeze2cast-ppc-static
+
+include Makefile
+

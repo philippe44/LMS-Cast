@@ -24,6 +24,7 @@
 #include "squeezedefs.h"
 #include "squeeze2cast.h"
 #include "webserver.h"
+#include "log_util.h"
 
 log_level	web_loglevel;
 static log_level	*loglevel = &web_loglevel;

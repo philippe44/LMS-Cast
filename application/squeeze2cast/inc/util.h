@@ -58,14 +58,12 @@ int 	   	XMLFindAndParseService(IXML_Document *DescDoc, const char *location,
 							const char *serviceType, char **serviceId,
 							char **eventURL, char **controlURL);
 
-void 	   	uPNPLogLevel(log_level level);
 int 		GetMediaItem_I(json_t *root, int n, char *item);
 double 		GetMediaItem_F(json_t *root, int n, char *item);
 const char 	*GetMediaItem_S(json_t *root, int n, char *item);
 const char  *GetAppIdItem(json_t *root, char* appId, char *item);
 bool 		GetMediaVolume(json_t *root, int n, double *volume, bool *muted);
 
-void 	  	UtilInit(log_level level);
 bool 	  	SetContentType(struct sMR *Device, sq_seturi_t *uri);
 void	  	SaveConfig(char *name, void *ref, bool full);
 void	   	*LoadConfig(char *name, tMRConfig *Conf, sq_dev_param_t *sq_conf);

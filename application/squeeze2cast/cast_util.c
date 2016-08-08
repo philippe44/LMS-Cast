@@ -24,6 +24,7 @@
 #include <math.h>
 
 #include "squeezedefs.h"
+#include "log_util.h"
 #include "util_common.h"
 #include "util.h"
 #include "castcore.h"

@@ -24,9 +24,11 @@
 #include "squeezedefs.h"
 #include "squeeze2cast.h"
 #include "util_common.h"
+#include "log_util.h"
 #include "util.h"
 #include "castcore.h"
 #include "castitf.h"
+
 
 #define BLOCKING_SOCKET
 #define SELECT_SOCKET

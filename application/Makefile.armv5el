@@ -1,0 +1,11 @@
+CFLAGS  ?= -Wall -mfloat-abi=soft -fPIC -ggdb -O2 -march=armv5 $(OPTS) $(INCLUDE) $(DEFINES)
+LDFLAGS ?= -lpthread -lssl -lcrypto -ldl -lm -lrt -lz -L. 
+
+# for LD debug -s
+
+OBJ					= bin/armv5el
+EXECUTABLE 			= bin/squeeze2cast-armv5el
+EXECUTABLE_STATIC 	= bin/squeeze2cast-armv5el-static
+
+include Makefile
+
