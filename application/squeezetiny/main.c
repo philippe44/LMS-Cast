@@ -233,10 +233,8 @@ static char *cli_decode(char *str) {
 }
 
 #define CLI_SEND_SLEEP (10000)
-
-#define CLI_SEND_TO (1*1000000)
-
-/*---------------------------------------------------------------------------*/
+#define CLI_SEND_TO (1*1000000)
+/*---------------------------------------------------------------------------*/
 char *cli_send_cmd(char *cmd, bool req, bool decode, struct thread_ctx_s *ctx)
 {
 #define CLI_LEN 2048
@@ -259,7 +257,10 @@ static char *cli_decode(char *str) {
 		int k;
 		usleep(CLI_SEND_SLEEP);
 		k = recv(ctx->cli_sock, packet + len, CLI_LEN-1 - len, 0);
-		if (k < 0) continue;
+		if (k < 0) {
+			if (last_error() == ERROR_WOULDBLOCK) continue;
+			else break;
+		}
 		len += k;
 		packet[len] = '\0';
 		if (strchr(packet, '\n') && stristr(packet, cmd)) {
@@ -753,8 +754,7 @@ void sq_set_sizes(void *desc)
 	p->raw_size = p->file_size;
 
 	// if not a raw format, then duration and raw size cannot be altered
-
-	if (strcmp(p->ext, "wav") && strcmp(p->ext, "aif") && strcmp(p->ext, "pcm")) return;
+	if (strcmp(p->ext, "wav") && strcmp(p->ext, "aif") && strcmp(p->ext, "pcm")) return;
 
 	sample_size = (p->sample_size == 24 && p->owner->config.L24_format == L24_TRUNC_16) ? 16 : p->sample_size;
 

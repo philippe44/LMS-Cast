@@ -242,7 +242,7 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 		LOG_DEBUG("[%p]: device set on/off %d", caller, device->on);
 	}
 
-	if (!device->on && action != SQ_SETNAME) {
+	if (!device->on && action != SQ_SETNAME && action != SQ_SETSERVER) {
 		LOG_DEBUG("[%p]: device off or not controlled by LMS", caller);
 		return false;
 	}
@@ -359,6 +359,9 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 		}
 		case SQ_SETNAME:
 			strcpy(device->sq_config.name, param);
+			break;
+		case SQ_SETSERVER:
+			strcpy(device->sq_config.server, inet_ntoa(*(struct in_addr*) param));
 			break;
 		default:
 			break;

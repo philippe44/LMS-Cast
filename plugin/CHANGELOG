@@ -4,7 +4,13 @@
  - add pacing option to prevent buffering to be greedy (use <pacing_size)
  - cli_wait set at 1s
  - (dev-3) Handle PPC byte ordering
- - (dev3) mDNS interface change
+ - (dev-3) mDNS interface change
+ - (dev-4) force MAC address creation from UDN for virtual groups
+ - (dev-4) armv5 is renamed armv5-el
+ - (dev-4) setname was not working when device was powered off
+ - (dev-4) re-connect if CLI socket is closed
+ - (dev-5) cli_send_cmd returns immediately in case of socket error (no wait)
+ - (dev-5) server address is memorized on LMS change
  
 0.2.2.1
  - Player name set from LMS are now persistent, no need to set it from the plugin settings

@@ -59,10 +59,10 @@
 #endif
 
 #include "util_common.h"
+#include "log_util.h"
 
-#include "log_util.h"
 
-extern log_level 	util_loglevel;
+extern log_level 	util_loglevel;
 //static log_level 	*loglevel = &util_loglevel;
 
 /*---------------------------------------------------------------------------*/
