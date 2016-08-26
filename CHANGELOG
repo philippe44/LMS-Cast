@@ -6,13 +6,14 @@
  - (dev-3) Handle PPC byte ordering
  - (dev-3) mDNS interface change
  - (dev-4) force MAC address creation from UDN for virtual groups
- - (dev-4) armv5 is renamed armv5-el
+ - (dev-4) armv5 is renamed armv5el
  - (dev-4) setname was not working when device was powered off
  - (dev-4) re-connect if CLI socket is closed
  - (dev-5) cli_send_cmd returns immediately in case of socket error (no wait)
  - (dev-5) server address is memorized on LMS change
  - (dev-6) CLI commands can return empty string !
  - (dev-6) path can be NULL in metadata if index is wrong
+ - (dev-7) cli_cmd parser checks for exact sent string as LMS seems to send garbage at the beginning from time to time
  
 0.2.2.1
  - Player name set from LMS are now persistent, no need to set it from the plugin settings
