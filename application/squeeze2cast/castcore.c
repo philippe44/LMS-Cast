@@ -162,6 +162,8 @@ bool read_bytes(SSL *ssl, void *buffer, u16_t bytes)
 	u16_t read = 0;
 	sockfd sock = SSL_get_fd(ssl);
 
+	if (sock == -1) return false;
+
 	while (bytes - read) {
 		int nb;
 #ifdef SELECT_SOCKET
@@ -294,7 +296,8 @@ bool GetNextMessage(SSL *ssl, CastMessage *message)
 	u32_t len;
 	u8_t *buf;
 
-	if (!read_bytes(ssl, &len, 4)) return false;
+	// the SSL might just have been closed by another thread
+	if (!ssl || !read_bytes(ssl, &len, 4)) return false;
 
 	swap32(&len);
 	if ((buf = malloc(len))== NULL) return false;
@@ -488,7 +491,8 @@ void UpdateCastDevice(void *p, struct in_addr ip, u16_t port)
 		/*
 		Cast disconnection must be done here as the cast thread is likely, but
 		not 100% sure, in the re-connect loop, with the increasing retry timer.
-		But reconnection is surely done by the cast thread
+		But reconnection is surely done by the cast thread. Note the the call
+		below will set SSL to NULL, so cast thread must be carefull with that
 		*/
 		CastDisconnect(Ctx, true);
 	}
@@ -624,6 +628,7 @@ static void *CastSocketThread(void *args)
 		bool forward = true;
 		const char *str = NULL;
 
+		// this SSL access is not mutex protected, but it should be fine
 		if (!GetNextMessage(Ctx->ssl, &Message)) {
 			int interval = 100;
 			LOG_WARN("[%p]: SSL connection closed", Ctx);

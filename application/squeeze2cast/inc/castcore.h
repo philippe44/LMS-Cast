@@ -76,7 +76,7 @@ typedef struct {
 typedef struct {
 	char Type[32] ;
 	union {
-		json_t * msg;
+		json_t *msg;
 	} data;
 } tReqItem;
 
