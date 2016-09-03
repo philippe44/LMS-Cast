@@ -309,7 +309,11 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 		case SQ_UNPAUSE:
 			if (device->CurrentURI) {
 				if (device->Config.VolumeOnPlay == 1)
-					CastSetDeviceVolume(device->CastCtx, device->Volume);
+					/* BUG:
+					seems that CCA, when unpause, ignore volume command that are
+					lower or equal than current volume. So need to fake a change
+					*/
+					CastSetDeviceVolume(device->CastCtx, device->Volume - 1);
 
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
@@ -321,8 +325,12 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 				device->StartTime = sq_get_time(device->SqueezeHandle);
 				device->LocalStartTime = gettime_ms();
 #endif
-				if (device->Config.VolumeOnPlay == 1)
-					CastSetDeviceVolume(device->CastCtx, device->Volume);
+				/* BUG:
+				seems that CCA, when unpause, ignore volume command that are
+				lower or equal than current volume. So need to fake a change
+				*/
+    			if (device->Config.VolumeOnPlay == 1)
+					CastSetDeviceVolume(device->CastCtx, device->Volume - 1);
 
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
@@ -345,14 +353,16 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 			break;
 		case SQ_VOLUME: {
 			u32_t Volume = *(u16_t*)p;
+			u32_t now = gettime_ms();
 			int i;
 
 			for (i = 100; Volume < LMSVolumeMap[i] && i; i--);
 
 			device->Volume = i;
-			device->VolumeStamp = gettime_ms();
+			LOG_INFO("Volume %d", i);
 
-			if (!device->Config.VolumeOnPlay || (device->Config.VolumeOnPlay == 1 && device->sqState == SQ_PLAY))
+			if ((now > device->VolumeStamp + 1000 || now < device->VolumeStamp) &&
+				(!device->Config.VolumeOnPlay || (device->Config.VolumeOnPlay == 1 && device->sqState == SQ_PLAY)))
 				CastSetDeviceVolume(device->CastCtx, device->Volume);
 
 			break;
@@ -549,12 +559,10 @@ static void *MRThread(void *args)
 			// now apply the volume change if any and if "filtering" has been made
 			if (Volume != 0xff && Volume != p->Volume)
 			{
-				u32_t now = gettime_ms();
-				if (now - p->VolumeStamp > 5000 || now < p->VolumeStamp) {
-					LOG_INFO("[%p]: Volume local change %d", p, Volume);
-					sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
-					Volume = 0xff;
-				}
+				p->VolumeStamp = gettime_ms();
+				LOG_INFO("[%p]: Volume local change %d", p, Volume);
+				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
+				Volume = 0xff;
 			}
 
 			// Cast devices has closed the connection
