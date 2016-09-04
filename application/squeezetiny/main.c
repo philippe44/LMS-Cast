@@ -232,6 +232,36 @@ static char *cli_decode(char *str) {
 	return res;
 }
 
+/*---------------------------------------------------------------------------*/
+bool cli_open_socket(struct thread_ctx_s *ctx) {
+	struct sockaddr_in addr;
+
+	if (ctx->cli_sock > 0) return true;
+
+	ctx->cli_sock = socket(AF_INET, SOCK_STREAM, 0);
+	set_nonblock(ctx->cli_sock);
+	set_nosigpipe(ctx->cli_sock);
+
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = ctx->slimproto_ip;
+	addr.sin_port = htons(9090);
+
+	if (connect(ctx->cli_sock, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+#if !WIN
+		if (last_error() != EINPROGRESS) {
+#else
+		if (last_error() != WSAEWOULDBLOCK) {
+#endif
+			LOG_ERROR("[%p] unable to connect to server with cli", ctx);
+			ctx->cli_sock = -1;
+			return false;
+		}
+	}
+
+	LOG_INFO("[%p]: opened CLI socket %d", ctx, ctx->cli_sock);
+	return true;
+}
+
 #define CLI_SEND_SLEEP (10000)
 #define CLI_SEND_TO (1*1000000)
 /*---------------------------------------------------------------------------*/
@@ -244,6 +274,14 @@ static char *cli_decode(char *str) {
 	char *rsp = NULL;
 
 	mutex_lock(ctx->cli_mutex);
+
+	if (!cli_open_socket(ctx)) {
+		mutex_unlock(ctx->cli_mutex);
+		return NULL;
+	}
+
+	ctx->cli_timestamp = gettime_ms();
+
 	wait = CLI_SEND_TO / CLI_SEND_SLEEP;
 	cmd = cli_encode(cmd);
 	if (req) len = sprintf(packet, "%s ?\n", cmd);
