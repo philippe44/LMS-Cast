@@ -1,6 +1,7 @@
 0.2.2.3
  - When changing IP::PORT, a race condition could lead to use a NULL SSL context and crash
  - Volume filtering inverted: ignore commands from LMS that are result of a local change feedback (less than 1s)
+ - seek offset trace had wrong format (%zu)
  
 0.2.2.2 
  - when using "songinfo" query, LMS wants a client_id, although documented differently
