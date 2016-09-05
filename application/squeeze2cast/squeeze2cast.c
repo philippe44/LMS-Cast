@@ -309,11 +309,7 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 		case SQ_UNPAUSE:
 			if (device->CurrentURI) {
 				if (device->Config.VolumeOnPlay == 1)
-					/* BUG:
-					seems that CCA, when unpause, ignore volume command that are
-					lower or equal than current volume. So need to fake a change
-					*/
-					CastSetDeviceVolume(device->CastCtx, device->Volume - 1);
+					CastSetDeviceVolume(device->CastCtx, device->Volume);
 
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
@@ -325,12 +321,8 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 				device->StartTime = sq_get_time(device->SqueezeHandle);
 				device->LocalStartTime = gettime_ms();
 #endif
-				/* BUG:
-				seems that CCA, when unpause, ignore volume command that are
-				lower or equal than current volume. So need to fake a change
-				*/
-    			if (device->Config.VolumeOnPlay == 1)
-					CastSetDeviceVolume(device->CastCtx, device->Volume - 1);
+				if (device->Config.VolumeOnPlay == 1)
+					CastSetDeviceVolume(device->CastCtx, device->Volume);
 
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;

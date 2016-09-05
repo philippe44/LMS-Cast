@@ -1,5 +1,6 @@
 0.2.2.5
  - too many CLI socket were consumed when all bridges were opened - open on demand and close after 10sec
+ - volume change in 2 steps: un-muted then set level, otherwise CCA do not unmute properly
 
 0.2.2.4
  - When changing IP::PORT, a race condition could lead to use a NULL SSL context and crash

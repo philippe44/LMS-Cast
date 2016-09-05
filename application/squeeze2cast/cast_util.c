@@ -231,10 +231,24 @@ void CastSetDeviceVolume(void *p, u8_t Volume)
 
 	pthread_mutex_lock(&Ctx->Mutex);
 
-	if (Volume)
+	if (Volume) {
+		/* BUG:
+		seems that CCA, do not work well when both muted and volume are set in
+		the same JSON message. In such case, quite often un-mute does not happen
+		*/
+#if 1
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":false}}",
+						Ctx->reqId++);
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf}}",
+						Ctx->reqId++, (double) Volume / 100.0);
+#else
 		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
 						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
 						Ctx->reqId++, (double) Volume / 100.0);
+#endif
+	}
 	else
 		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
 						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
