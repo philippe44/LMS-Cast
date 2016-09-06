@@ -1,3 +1,6 @@
+0.2.2.6
+ - get_time/set_time and get_metadata were not re-opening CLI socket (testing it before)
+
 0.2.2.5
  - too many CLI socket were consumed when all bridges were opened - open on demand and close after 10sec
  - volume change in 2 steps: un-muted then set level, otherwise CCA do not unmute properly
