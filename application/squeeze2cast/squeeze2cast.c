@@ -39,6 +39,7 @@
 #include "castitf.h"
 #include "mdnssd-itf.h"
 
+
 /*
 TODO :
 - for no pause, the solution will be to send the elapsed time to LMS through CLI so that it does take care of the seek
@@ -130,7 +131,6 @@ static ithread_t 	glMainThread;
 char				glUPnPSocket[128] = "?";
 unsigned int 		glPort;
 char 				glIPaddress[128] = "";
-UpnpClient_Handle 	glControlPointHandle;
 void				*glConfigID = NULL;
 char				glConfigName[SQ_STR_LENGTH] = "./config.xml";
 static bool			glDiscovery = false;
@@ -377,7 +377,6 @@ static int  Initialize(char *IPaddress, unsigned int *Port);
 /*----------------------------------------------------------------------------*/
 void SyncNotifState(const char *State, struct sMR* Device)
 {
-	struct sAction *Action = NULL;
 	sq_event_t Event = SQ_NONE;
 	bool Param = false;
 
@@ -395,20 +394,20 @@ void SyncNotifState(const char *State, struct sMR* Device)
 			LOG_INFO("[%p]: Cast stop", Device);
 			if (Device->NextURI && !Device->Config.AcceptNextURI) {
 
-					// fake a "SETURI" and a "PLAY" request
-					NFREE(Device->CurrentURI);
-					Device->CurrentURI = malloc(strlen(Device->NextURI) + 1);
-					strcpy(Device->CurrentURI, Device->NextURI);
-					NFREE(Device->NextURI);
+				// fake a "SETURI" and a "PLAY" request
+				NFREE(Device->CurrentURI);
+				Device->CurrentURI = malloc(strlen(Device->NextURI) + 1);
+				strcpy(Device->CurrentURI, Device->NextURI);
+				NFREE(Device->NextURI);
 
-					CastLoad(Device->CastCtx, Device->CurrentURI, Device->ContentType,
-						      (Device->Config.SendMetaData) ? &Device->MetaData : NULL);
-					sq_free_metadata(&Device->MetaData);
+				CastLoad(Device->CastCtx, Device->CurrentURI, Device->ContentType,
+						  (Device->Config.SendMetaData) ? &Device->MetaData : NULL);
+				sq_free_metadata(&Device->MetaData);
 
-					CastPlay(Device->CastCtx);
+				CastPlay(Device->CastCtx);
 
-					Event = SQ_TRACK_CHANGE;
-					LOG_INFO("[%p]: no gapless %s", Device, Device->CurrentURI);
+				Event = SQ_TRACK_CHANGE;
+				LOG_INFO("[%p]: no gapless %s", Device, Device->CurrentURI);
 			}
 			else {
 				// Can be a user stop, an error or a normal stop
@@ -425,9 +424,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 			LOG_INFO("[%p]: Cast playing", Device);
 			switch (Device->sqState) {
 			case SQ_PAUSE:
-				if (!Action || (Action->Action != SQ_PAUSE)) {
-					Param = true;
-				}
+				Param = true;
 			case SQ_PLAY:
 				Event = SQ_PLAY;
 				break;
@@ -446,13 +443,14 @@ void SyncNotifState(const char *State, struct sMR* Device)
 
 	if (!strcasecmp(State, "PAUSED")) {
 		/*
-		STOPPED ==> PAUSED is not a valid transition but Cast device start
-		playing in PAUSE state
+		Cast devices start "paused" so there is a first status received with
+		that state, even if the play request has been sent. Make sure that
+		this is filtered out and that "pause" state are only taken into account
+		when already playing
 		*/
-		if (Device->State != PAUSED && Device->State != STOPPED) {
-
-			// detect unsollicited pause, but do not confuse it with a fast pause/play
-			if (Device->sqState != SQ_PAUSE && (!Action || (Action->Action != SQ_PLAY && Action->Action != SQ_UNPAUSE))) {
+		if (Device->State == PLAYING) {
+			// detect unsollicited pause, but do not confuse it with a fast pause/play
+			if (Device->sqState != SQ_PAUSE) {
 				Event = SQ_PAUSE;
 				Param = true;
 			}
@@ -530,7 +528,11 @@ static void *MRThread(void *args)
 				if (p->State == PLAYING) {
 					u32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
 #if !defined(REPOS_TIME)
-					if (elapsed > gettime_ms() - p->LocalStartTime + 5000) elapsed -= p->StartTime;
+					// LMS reposition time can be a bit BEFORE seek time ...
+					if (elapsed > gettime_ms() - p->LocalStartTime + 5000) {
+						if (elapsed > p->StartTime)	elapsed -= p->StartTime;
+						else elapsed = 0;
+					}
 #endif
 					sq_notify(p->SqueezeHandle, p, SQ_TIME, NULL, &elapsed);
 				}
@@ -577,18 +579,6 @@ static void *MRThread(void *args)
 
 	return NULL;
 }
-
-
-#ifdef USE_UPNP
-/*----------------------------------------------------------------------------*/
-int CallbackEventHandler(Upnp_EventType EventType, void *Event, void *Cookie)
-{
-	LOG_SDEBUG("event: %i [%s] [%p]", EventType, uPNPEvent2String(EventType), Cookie);
-
-	Cookie = Cookie;
-	return 0;
-}
-#endif
 
 
 /*----------------------------------------------------------------------------*/
@@ -810,20 +800,6 @@ int Initialize(char *IPaddress, unsigned int *Port)
 
 	LOG_INFO("UPnP init success - %s:%u", IPaddress, *Port);
 
-#ifdef USE_UPNP
-	rc = UpnpRegisterClient(CallbackEventHandler,
-				&glControlPointHandle, &glControlPointHandle);
-
-	if (rc != UPNP_E_SUCCESS) {
-		LOG_ERROR("Error registering ControlPoint: %d", rc);
-		UpnpFinish();
-		return false;
-	}
-	else {
-		LOG_DEBUG("ControlPoint registered", NULL);
-	}
-#endif
-
 	rc = UpnpEnableWebserver(true);
 
 	if (rc != UPNP_E_SUCCESS) {
@@ -870,9 +846,6 @@ int Initialize(char *IPaddress, unsigned int *Port)
 int Terminate(void)
 {
 	LOG_DEBUG("un-register libupnp callbacks ...", NULL);
-#ifdef USE_UPNP
-	UpnpUnRegisterClient(glControlPointHandle);
-#endif
 	LOG_DEBUG("disable webserver ...", NULL);
 	UpnpRemoveVirtualDir(glBaseVDIR);
 	UpnpEnableWebserver(false);

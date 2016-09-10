@@ -1,3 +1,8 @@
+0.2.3.0
+ - send corrected time position only if seektime > LMS thread
+ - remove USE_UPNP option, all is now mDNS
+ - remove a few uPnP useless code oldies
+ 
 0.2.2.6
  - get_time/set_time and get_metadata were not re-opening CLI socket (testing it before)
 

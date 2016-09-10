@@ -46,7 +46,7 @@
 #define SCAN_INTERVAL	30
 
 
-enum 	eMRstate { STOPPED, PLAYING, PAUSED, IDLE };
+enum 	eMRstate { STOPPED, PLAYING, PAUSED };
 
 typedef struct sMRConfig
 {
@@ -83,7 +83,7 @@ struct sMR {
 #if !defined(REPOS_TIME)
 	u32_t			StartTime, LocalStartTime;
 #endif
-	unsigned		TrackPoll, KeepAlive;
+	unsigned		TrackPoll;
 	bool			TimeOut;
 	int	 			SqueezeHandle;
 	void			*CastCtx;
@@ -96,20 +96,6 @@ struct sMR {
 	bool			Running;
 };
 
-struct sAction	{
-	sq_dev_handle_t Handle;
-	struct sMR		*Caller;
-	sq_action_t 	Action;
-	u8_t 			*Cookie;
-	union {
-		u32_t	Volume;
-		u32_t	Time;
-	} 				Param;
-	struct sAction	*Next;
-	bool			Ordered;
-};
-
-extern UpnpClient_Handle   	glControlPointHandle;
 extern unsigned int 		glPort;
 extern char 				glIPaddress[];
 extern char 				glUPnPSocket[];
@@ -120,11 +106,5 @@ extern sq_dev_param_t		glDeviceParam;
 extern u32_t				glScanInterval;
 extern u32_t				glScanTimeout;
 extern struct sMR			glMRDevices[MAX_RENDERERS];
-
-struct sMR 		*mr_File2Device(const char *FileName);
-sq_dev_handle_t	mr_GetSqHandle(struct sMR *Device);
-int 			CallbackEventHandler(Upnp_EventType EventType, void *Event, void *Cookie);
-int 			CallbackActionHandler(Upnp_EventType EventType, void *Event, void *Cookie);
-
 
 #endif
