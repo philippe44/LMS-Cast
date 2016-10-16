@@ -52,7 +52,8 @@ typedef struct sMRConfig
 {
 	int			StreamLength;		// length of the "fake" file
 	sq_mode_t	ProcessMode;   		// DIRECT, STREAM, FULL
-	bool		Enabled;			//
+	bool		Enabled;
+	bool		DefaultOn;
 	char		Name[SQ_STR_LENGTH];
 	int 		VolumeOnPlay;		// change only volume when playing has started or disable volume commands
 	bool		AcceptNextURI;

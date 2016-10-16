@@ -1,3 +1,6 @@
+0.2.4.0 
+ - add <default_on> to create the virtual player on by default (required by Roon)
+ 
 0.2.3.0
  - send corrected time position only if seektime > LMS thread
  - remove USE_UPNP option, all is now mDNS

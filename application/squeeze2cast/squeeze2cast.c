@@ -77,6 +77,7 @@ tMRConfig			glMRConfig = {
 							-2L,
 							SQ_STREAM,
 							true,
+							false,
 							"",
 							1,
 							false,
@@ -661,7 +662,7 @@ static void *UpdateMRThread(void *args)
 
 			if (AddCastDevice(Device, Name, UDN, Group, p->addr, p->port) && !glSaveConfigFile) {
 				// create a new slimdevice
-				Device->SqueezeHandle = sq_reserve_device(Device, &sq_callback);
+				Device->SqueezeHandle = sq_reserve_device(Device, Device->on, &sq_callback);
    				if (!*(Device->sq_config.name)) strcpy(Device->sq_config.name, Device->FriendlyName);
 				if (!Device->SqueezeHandle || !sq_run_device(Device->SqueezeHandle, &Device->sq_config)) {
 					sq_release_device(Device->SqueezeHandle);
@@ -874,7 +875,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->Magic = MAGIC;
 	Device->TimeOut = false;
 	Device->MissingCount = Device->Config.RemoveCount;
-	Device->on = false;
+	Device->on = Device->Config.DefaultOn;
 	Device->SqueezeHandle = 0;
 	Device->Running = true;
 	Device->InUse = true;
