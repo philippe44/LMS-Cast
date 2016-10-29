@@ -43,5 +43,6 @@ void 	*StartCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u
 void 	UpdateCastDevice(void *Ctx, struct in_addr ip, u16_t port);
 void 	StopCastDevice(void *Ctx);
 bool	CastIsConnected(void *Ctx);
+bool 	CastIsMediaSession(void *Ctx);
 
 #endif

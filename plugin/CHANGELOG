@@ -1,5 +1,7 @@
 0.2.4.0 
- - add <default_on> to create the virtual player on by default (required by Roon)
+ - add <roon_mode> for Roon compatibility (default on and no cli use)
+ - Roon server can't accept a time spurious time report ==> make sure a mediasession is active
+ - try to avoid deadlock when responseId is newer than WaitId
  
 0.2.3.0
  - send corrected time position only if seektime > LMS thread

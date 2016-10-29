@@ -679,7 +679,7 @@ static void *CastSocketThread(void *args)
 				forward = false;
 			}
 
-			if (Ctx->waitId && Ctx->waitId == requestId) {
+			if (Ctx->waitId && Ctx->waitId <= requestId) {
 
 				// receiver status before connection is fully established
 				if (!strcasecmp(str,"RECEIVER_STATUS") && Ctx->Connect == CAST_CONNECTING) {

@@ -49,6 +49,22 @@ bool CastIsConnected(void *p)
 
 
 /*----------------------------------------------------------------------------*/
+bool CastIsMediaSession(void *p)
+{
+	tCastCtx *Ctx = (tCastCtx*) p;
+	bool status;
+
+	if (!Ctx) return false;
+
+	pthread_mutex_lock(&Ctx->Mutex);
+	status = Ctx->mediaSessionId != 0;
+	pthread_mutex_unlock(&Ctx->Mutex);
+
+	return status;
+}
+
+
+/*----------------------------------------------------------------------------*/
 void CastGetStatus(void *p)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;

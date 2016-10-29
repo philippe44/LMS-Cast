@@ -123,6 +123,7 @@ sq_dev_param_t glDeviceParam = {
 					0,
 					{ 0x00,0x00,0x00,0x00,0x00,0x00 },
 					false,
+					true,
 				} ;
 
 /*----------------------------------------------------------------------------*/
@@ -526,7 +527,7 @@ static void *MRThread(void *args)
 				devices seems to report time according to seekpoint, so in case
 				difference is too large, it means that we have a LMS repositioning
 				*/
-				if (p->State == PLAYING) {
+				if (p->State == PLAYING && p->sqState == SQ_PLAY && CastIsMediaSession(p->CastCtx)) {
 					u32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
 #if !defined(REPOS_TIME)
 					// LMS reposition time can be a bit BEFORE seek time ...
@@ -875,7 +876,6 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->Magic = MAGIC;
 	Device->TimeOut = false;
 	Device->MissingCount = Device->Config.RemoveCount;
-	Device->on = Device->Config.DefaultOn;
 	Device->SqueezeHandle = 0;
 	Device->Running = true;
 	Device->InUse = true;
@@ -883,6 +883,10 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->State = STOPPED;
 	Device->Group = group;
 	Device->VolumeStamp = 0;
+	if (Device->Config.RoonMode) {
+		Device->on = true;
+		Device->sq_config.use_cli = false;
+	}
 	strcpy(Device->FriendlyName, Name);
 
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
