@@ -1,6 +1,6 @@
 # LMS-to-Cast
 
-Allow Chromecast devices to be used in Logitech Media Server.
+Allows Chromecast devices to be used in Logitech Media Server.
 Pre-packaged versions for Windows (XP and above), Linux (x86, x64 and ARM) and OSX can be found here https://sourceforge.net/projects/lms-to-cast/ and here https://sourceforge.net/projects/lms-plugins-philippe44/
 
 =============================================
