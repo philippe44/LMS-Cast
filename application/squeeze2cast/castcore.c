@@ -535,6 +535,19 @@ void ProcessQueue(tCastCtx *Ctx) {
 
 	if ((item = QueueExtract(&Ctx->reqQueue)) == NULL) return;
 
+	if (!strcasecmp(item->Type, "SET_VOLUME")) {
+		Ctx->waitId = Ctx->reqId++;
+
+		if (item->data.Volume)
+			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
+							Ctx->waitId, (double) item->data.Volume / 100.0);
+		else
+			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
+							Ctx->waitId);
+	}
+
 	if (!strcasecmp(item->Type, "PLAY")) {
 		if (Ctx->mediaSessionId) {
 			Ctx->waitId = Ctx->reqId++;
@@ -679,6 +692,9 @@ static void *CastSocketThread(void *args)
 				forward = false;
 			}
 
+			LOG_DEBUG("[%p]: recvID %u (waitID %u)", Ctx, Ctx->waitId, requestId);
+
+			// expected request acknowledge
 			if (Ctx->waitId && Ctx->waitId <= requestId) {
 
 				// receiver status before connection is fully established

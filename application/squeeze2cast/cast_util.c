@@ -236,10 +236,12 @@ void CastClean(void *p)
 
 
 
+#if 0
 /*----------------------------------------------------------------------------*/
-void CastSetDeviceVolume(void *p, u8_t Volume)
+void _CastSetDeviceVolume(void *p, u8_t Volume)
 {
 	tCastCtx *Ctx = (tCastCtx*) p;
+	//return;
 
 	if (Ctx->group) Volume = ((u32_t) Volume * Ctx->MediaVolume) / 100;
 
@@ -269,6 +271,42 @@ void CastSetDeviceVolume(void *p, u8_t Volume)
 		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
 						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
 						Ctx->reqId++);
+
+	pthread_mutex_unlock(&Ctx->Mutex);
+}
+#endif
+
+
+/*----------------------------------------------------------------------------*/
+void CastSetDeviceVolume(void *p, u8_t Volume)
+{
+	tCastCtx *Ctx = (tCastCtx*) p;
+
+	if (Ctx->group) Volume = ((u32_t) Volume * Ctx->MediaVolume) / 100;
+
+	if (Volume > 100) Volume = 100;
+
+	pthread_mutex_lock(&Ctx->Mutex);
+
+	if (!Ctx->waitId) {
+		Ctx->waitId = Ctx->reqId++;
+
+		if (Volume)
+			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
+							Ctx->reqId++, (double) Volume / 100.0);
+		else
+			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
+							Ctx->reqId++);
+	}
+	else {
+		tReqItem *req = malloc(sizeof(tReqItem));
+		strcpy(req->Type, "SET_VOLUME");
+		req->data.Volume = Volume;
+		QueueInsert(&Ctx->reqQueue, req);
+		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+	}
 
 	pthread_mutex_unlock(&Ctx->Mutex);
 }

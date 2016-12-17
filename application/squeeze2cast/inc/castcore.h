@@ -77,6 +77,7 @@ typedef struct {
 	char Type[32] ;
 	union {
 		json_t *msg;
+		u8_t Volume;
 	} data;
 } tReqItem;
 

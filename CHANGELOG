@@ -1,3 +1,6 @@
+0.2.4.1
+ - Volume command must be queued otherwise CCV ignores (not CCA) the previous request (could be a LAUNCH) 
+
 0.2.4.0 
  - add <roon_mode> for Roon compatibility (default on and no cli use)
  - Roon server can't accept a time spurious time report ==> make sure a mediasession is active
