@@ -1159,7 +1159,12 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	LOG_ERROR("Starting squeeze2cast version: %s\n", VERSION);
+	LOG_ERROR("Starting squeeze2cast version: %s", VERSION);
+
+	if (strtod("0.30", NULL) != 0.30) {
+		LOG_ERROR("Wrong GLIBC version, use -static build", NULL);
+		exit(1);
+	}
 
 	if (!glConfigID) {
 		LOG_ERROR("\n\n!!!!!!!!!!!!!!!!!! ERROR LOADING CONFIG FILE !!!!!!!!!!!!!!!!!!!!!\n", NULL);

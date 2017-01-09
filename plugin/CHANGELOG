@@ -1,3 +1,11 @@
+0.2.5.1
+ - move to cross-compilation chain to solve rpi-1 compatibility
+ - detect float problem at startup
+ 
+0.2.4.2
+ - Compiling on Wheezy and eglibc 2.13 causes a fail strtod on arm5el (softfloat) when used with GLIB 2.19 (more recent debian) ... no fix yet, need to use statically linked library or armv6hf
+ - clean armv6 compilation flags
+ 
 0.2.4.1
  - Volume command must be queued otherwise CCV ignores (not CCA) the previous request (could be a LAUNCH) 
 
