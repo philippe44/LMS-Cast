@@ -28,8 +28,11 @@ sub binaries {
 		if ($os->{'binArch'} =~ /i386/) {
 			return qw(squeeze2cast-x86 squeeze2cast-x86-static);
 		}
+		if ($os->{'binArch'} =~ /armhf/) {
+			return qw(squeeze2cast-armv6hf squeeze2cast-armv6hf-static);
+		}
 		if ($os->{'binArch'} =~ /arm/) {
-			return qw(squeeze2cast-armv6hf squeeze2cast-armv6hf-static squeeze2cast-armv5el squeeze2cast-armv5el-static);
+			return qw(squeeze2cast-armv5el squeeze2cast-armv5el-static);
 		}
 		if ($os->{'binArch'} =~ /powerpc/) {
 			return qw(squeeze2cast-ppc squeeze2cast-ppc-static);
