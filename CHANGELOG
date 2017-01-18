@@ -1,7 +1,9 @@
+0.2.5.2 
+ - armv5el moved to armv5te with softfp (use FPU if available)
+
 0.2.5.1
  - move to cross-compilation chain to solve rpi-1 compatibility
  - detect float problem at startup for soft float version (armv5el)
- - limits binary offering to float version when CPU with hard float detected
  - add Linux/sparc version
  
 0.2.4.2
