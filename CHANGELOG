@@ -1,5 +1,6 @@
 0.2.5.2 
- - armv5el moved to armv5te with softfp (use FPU if available)
+- re-introduce armv5te with soft floating only
+ - limit the binary offering to what's supported by the platform
 
 0.2.5.1
  - move to cross-compilation chain to solve rpi-1 compatibility
