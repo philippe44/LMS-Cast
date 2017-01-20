@@ -147,10 +147,14 @@ PLUGIN_CASTBRIDGE_SCAN_DESC
 
 PLUGIN_CASTBRIDGE_UPNPSOCKET
 	EN	Network socket to use
+	
+PLUGIN_CASTBRIDGE_USELMSSOCKET
+	EN	Use LMS' network interface
 
 PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC
 	EN	The socket (IP:port) used by the bridge. This is especially useful if you have a computer with multiple network interfaces.
-	EN	Use "?" (without ") to let the bridge decide
+	EN	Use "?" (without ") to let the bridge decide or check "use LMS' network interface" to make sure the Bridge uses the same
+	EN	network as LMS
 	
 PLUGIN_CASTBRIDGE_SCANINTERVAL
 	EN	Scan for Chromecast devices every

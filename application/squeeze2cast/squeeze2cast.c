@@ -131,7 +131,7 @@ sq_dev_param_t glDeviceParam = {
 /*----------------------------------------------------------------------------*/
 static ithread_t 	glMainThread;
 char				glUPnPSocket[128] = "?";
-unsigned int 		glPort;
+unsigned int 		glPort = 0;
 char 				glIPaddress[128] = "";
 void				*glConfigID = NULL;
 char				glConfigName[SQ_STR_LENGTH] = "./config.xml";
@@ -156,7 +156,8 @@ static char usage[] =
 			VERSION "\n"
 		   "See -t for license terms\n"
 		   "Usage: [options]\n"
-		   "  -s <server>[:<port>]\tConnect to specified server, otherwise uses autodiscovery to find server\n"
+		   "  -s <server[:port]>\tConnect to specified server, otherwise uses autodiscovery to find server\n"
+		   "  -b <address[:port]>]\tNetwork address and port to bind to\n"
 		   "  -x <config file>\tread config from file (default is ./config.xml)\n"
 		   "  -i <config file>\tdiscover players, save <config file> and exit\n"
 		   "  -I \t\t\tauto save config at every network scan\n"
@@ -219,7 +220,7 @@ static void *UpdateMRThread(void *args);
 static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool Group, struct in_addr ip, u16_t port);
 void 		DelCastDevice(struct sMR *Device);
 static int	Terminate(void);
-static int  Initialize(char *IPaddress, unsigned int *Port);
+static int  Initialize(void);
 
 /*----------------------------------------------------------------------------*/
 bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t *cookie, void *param)
@@ -769,7 +770,7 @@ static void *MainThread(void *args)
 
 
 /*----------------------------------------------------------------------------*/
-int Initialize(char *IPaddress, unsigned int *Port)
+int Initialize(void)
 {
 	int rc;
 	struct UpnpVirtualDirCallbacks VirtualDirCallbacks;
@@ -783,9 +784,12 @@ int Initialize(char *IPaddress, unsigned int *Port)
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 
 	UpnpSetLogLevel(UPNP_ALL);
-	if (*IPaddress) rc = UpnpInit(IPaddress, *Port);
-	else rc = UpnpInit(NULL, *Port);
 	UpnpSetMaxContentLength(60000);
+
+	if (!strstr(glUPnPSocket, "?")) sscanf(glUPnPSocket, "%[^:]:%u", glIPaddress, &glPort);
+
+	if (*glIPaddress) rc = UpnpInit(glIPaddress, glPort);
+	else rc = UpnpInit(NULL, glPort);
 
 	if (rc != UPNP_E_SUCCESS) {
 		LOG_ERROR("UPnP init failed: %d\n", rc);
@@ -793,14 +797,10 @@ int Initialize(char *IPaddress, unsigned int *Port)
 		return false;
 	}
 
-	if (!*IPaddress) {
-		strcpy(IPaddress, UpnpGetServerIpAddress());
-	}
-	if (!*Port) {
-		*Port = UpnpGetServerPort();
-	}
+	if (!*glIPaddress) strcpy(glIPaddress, UpnpGetServerIpAddress());
+	if (!glPort) glPort = UpnpGetServerPort();
 
-	LOG_INFO("UPnP init success - %s:%u", IPaddress, *Port);
+	LOG_INFO("UPnP init success - %s:%u", glIPaddress, glPort);
 
 	rc = UpnpEnableWebserver(true);
 
@@ -953,7 +953,7 @@ static bool Start(void)
 	struct in_addr addr;
 
 	InitSSL();
-	if (!Initialize(glIPaddress, &glPort)) return false;
+	if (!Initialize()) return false;
 
 	// initialize mDNS query
 	addr.s_addr = inet_addr(glIPaddress);
@@ -1019,7 +1019,7 @@ bool ParseArgs(int argc, char **argv) {
 
 	while (optind < argc && strlen(argv[optind]) >= 2 && argv[optind][0] == '-') {
 		char *opt = argv[optind] + 1;
-		if (strstr("stxdfpi", opt) && optind < argc - 1) {
+		if (strstr("stxdfpib", opt) && optind < argc - 1) {
 			optarg = argv[optind + 1];
 			optind += 2;
 		} else if (strstr("tzZIk"
@@ -1041,6 +1041,9 @@ bool ParseArgs(int argc, char **argv) {
 		switch (opt[0]) {
 		case 's':
 			strcpy(glDeviceParam.server, optarg);
+			break;
+		case 'b':
+			strcpy(glUPnPSocket, optarg);
 			break;
 #if RESAMPLE
 		case 'u':
@@ -1191,10 +1194,6 @@ int main(int argc, char *argv[])
 	}
 
 	sq_init();
-
-	if (!strstr(glUPnPSocket, "?")) {
-		sscanf(glUPnPSocket, "%[^:]:%u", glIPaddress, &glPort);
-	}
 
 	if (!Start()) {
 		LOG_ERROR("Cannot start uPnP", NULL);

@@ -64,7 +64,7 @@ sub handler {
 
 		$log->debug("save settings required");
 		
-		my @bool  = qw(autorun logging autosave eraselog);
+		my @bool  = qw(autorun logging autosave eraselog useLMSsocket);
 		my @other = qw(output bin debugs opts);
 		my $skipxml;
 				
@@ -104,6 +104,8 @@ sub handler {
 		
 			$log->info('Writing XML:', $params->{'seldevice'});
 			for my $p (@xmlmain) {
+				
+				next if !defined $params->{ $p };
 				
 				if ($params->{ $p } eq '') {
 					delete $xmlconfig->{ $p };
@@ -231,7 +233,7 @@ sub handler2 {
 
 	$params->{'binary'}   = Plugins::CastBridge::Squeeze2cast->bin;
 	$params->{'binaries'} = [ Plugins::CastBridge::Squeeze2cast->binaries ];
-	for my $param (qw(autorun output bin opts debugs logging configfile autosave eraselog)) {
+	for my $param (qw(autorun output bin opts debugs logging configfile autosave eraselog useLMSsocket)) {
 		$params->{ $param } = $prefs->get($param);
 	}
 	
