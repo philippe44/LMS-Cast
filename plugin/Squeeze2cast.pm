@@ -42,7 +42,8 @@ sub binaries {
 		}
 		
 		# fallback to offering all linux options for case when architecture detection does not work
-		return qw(squeeze2cast-x86-64 squeeze2cast-x86-64-static squeeze2cast-x86 squeeze2cast-x86-static squeeze2cast-armv6hf squeeze2cast-armv6hf-static squeeze2cast-armv5te squeeze2cast-armv5te-static squeeze2cast-ppc squeeze2cast-ppc-static squeeze2cast-sparc squeeze2cast-sparc-static);
+		return qw(squeeze2cast-x86-64 squeeze2cast-x86-64-static squeeze2cast-x86 squeeze2cast-x86-static squeeze2cast-armv6hf squeeze2cast-armv6hf-static squeeze2cast-armv5te squeeze2cast-armv5te-static squeeze2cast-ppc squeeze2cast-ppc-static 
+		squeeze2cast-sparc squeeze2cast-sparc-static);
 	}
 	
 	if ($os->{'os'} eq 'Darwin') {
