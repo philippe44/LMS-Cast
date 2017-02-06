@@ -565,7 +565,7 @@ static void *MRThread(void *args)
 			{
 				p->VolumeStamp = gettime_ms();
 				LOG_INFO("[%p]: Volume local change %d", p, Volume);
-//				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
+				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
 				Volume = 0xff;
 			}
 
