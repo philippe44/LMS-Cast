@@ -237,12 +237,15 @@ static int  Initialize(void);
 	if (action == SQ_ONOFF) {
 		device->on = *((bool*) param);
 
-		if (device->on && device->Config.AutoPlay)
-			sq_notify(device->SqueezeHandle, device, SQ_PLAY, NULL, &device->on);
+		LOG_INFO("[%p]: device set %s", caller, device->on ? "ON" : "OFF");
 
-		if (!device->on) CastClean(device->CastCtx);
-
-		LOG_DEBUG("[%p]: device set on/off %d", caller, device->on);
+		if (device->on) {
+			CastPowerOn(device->CastCtx);
+			if (device->Config.AutoPlay) sq_notify(device->SqueezeHandle, device, SQ_PLAY, NULL, &device->on);
+		} else {
+			// cannot disconnect when LMS is configured for pause when OFF
+			if (device->sqState == SQ_STOP) CastPowerOff(device->CastCtx);
+		}
 	}
 
 	if (!device->on && action != SQ_SETNAME && action != SQ_SETSERVER) {
@@ -329,6 +332,7 @@ static int  Initialize(void);
 
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
+				device->sqStamp = gettime_ms();
 			}
 			else rc = false;
 			break;
@@ -337,10 +341,12 @@ static int  Initialize(void);
 			NFREE(device->CurrentURI);
 			NFREE(device->NextURI);
 			device->sqState = action;
+			device->sqStamp = gettime_ms();
 			break;
 		case SQ_PAUSE:
 			CastPause(device->CastCtx);
 			device->sqState = action;
+			device->sqStamp = gettime_ms();
 			break;
 		case SQ_NEXT:
 			break;
@@ -382,6 +388,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 {
 	sq_event_t Event = SQ_NONE;
 	bool Param = false;
+	u32_t now = gettime_ms();
 
 	// an update can have happended that has destroyed the device
 	if (!Device->InUse) return;
@@ -429,7 +436,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 			case SQ_PAUSE:
 				Param = true;
 			case SQ_PLAY:
-				Event = SQ_PLAY;
+				if (now > Device->sqStamp + 2000) Event = SQ_PLAY;
 				break;
 			default:
 				/*
@@ -453,7 +460,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 		*/
 		if (Device->State == PLAYING) {
 			// detect unsollicited pause, but do not confuse it with a fast pause/play
-			if (Device->sqState != SQ_PAUSE) {
+			if (Device->sqState != SQ_PAUSE && now > Device->sqStamp + 2000) {
 				Event = SQ_PAUSE;
 				Param = true;
 			}
@@ -558,7 +565,7 @@ static void *MRThread(void *args)
 			{
 				p->VolumeStamp = gettime_ms();
 				LOG_INFO("[%p]: Volume local change %d", p, Volume);
-				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
+//				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
 				Volume = 0xff;
 			}
 
@@ -904,7 +911,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	// virtual players duplicate mac address
 	MakeMacUnique(Device);
 
-	Device->CastCtx = StartCastDevice(Device, Device->Group, ip, port, Device->Config.MediaVolume);
+	Device->CastCtx = CreateCastDevice(Device, Device->Group, ip, port, Device->Config.MediaVolume);
 
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);

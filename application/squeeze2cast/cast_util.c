@@ -183,7 +183,7 @@ void CastSimple(void *p, char *Type)
 
 		}
 		else {
-			LOG_WARN("[%p]: Play req w/o a session", Ctx->owner);
+			LOG_WARN("[%p]: %s req w/o a session", Type, Ctx->owner);
 	   }
 	}
 	else {
@@ -224,57 +224,17 @@ void CastStop(void *p)
 
 
 /*----------------------------------------------------------------------------*/
-void CastClean(void *p)
+void CastPowerOff(void *p)
 {
-	tCastCtx *Ctx = (tCastCtx*) p;
-
-	pthread_mutex_lock(&Ctx->Mutex);
-	CastQueueFlush(&Ctx->reqQueue);
-	Ctx->waitId = Ctx->mediaSessionId = 0;
-	pthread_mutex_unlock(&Ctx->Mutex);
+	CastDisconnect(p, true);
 }
 
 
-
-#if 0
 /*----------------------------------------------------------------------------*/
-void _CastSetDeviceVolume(void *p, u8_t Volume)
+void CastPowerOn(void *p)
 {
-	tCastCtx *Ctx = (tCastCtx*) p;
-	//return;
-
-	if (Ctx->group) Volume = ((u32_t) Volume * Ctx->MediaVolume) / 100;
-
-	if (Volume > 100) Volume = 100;
-
-	pthread_mutex_lock(&Ctx->Mutex);
-
-	if (Volume) {
-		/* BUG:
-		seems that CCA, do not work well when both muted and volume are set in
-		the same JSON message. In such case, quite often un-mute does not happen
-		*/
-#if 1
-		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":false}}",
-						Ctx->reqId++);
-		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf}}",
-						Ctx->reqId++, (double) Volume / 100.0);
-#else
-		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
-						Ctx->reqId++, (double) Volume / 100.0);
-#endif
-	}
-	else
-		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
-						Ctx->reqId++);
-
-	pthread_mutex_unlock(&Ctx->Mutex);
+	CastConnect(p);
 }
-#endif
 
 
 /*----------------------------------------------------------------------------*/
@@ -284,28 +244,23 @@ void CastSetDeviceVolume(void *p, u8_t Volume)
 
 	if (Ctx->group) Volume = ((u32_t) Volume * Ctx->MediaVolume) / 100;
 
-	if (Volume > 100) Volume = 100;
-
+	if (Volume > 100) Volume = 100;
+
 	pthread_mutex_lock(&Ctx->Mutex);
 
-	if (!Ctx->waitId) {
-		Ctx->waitId = Ctx->reqId++;
+	if (Volume) {
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%f}}",
+						Ctx->reqId++, (float) Volume / 100.0);
 
-		if (Volume)
-			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
-							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
-							Ctx->reqId++, (double) Volume / 100.0);
-		else
-			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
-							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
-							Ctx->reqId++);
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":false}}",
+						Ctx->reqId++);
 	}
 	else {
-		tReqItem *req = malloc(sizeof(tReqItem));
-		strcpy(req->Type, "SET_VOLUME");
-		req->data.Volume = Volume;
-		QueueInsert(&Ctx->reqQueue, req);
-		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
+						Ctx->reqId++);
 	}
 
 	pthread_mutex_unlock(&Ctx->Mutex);

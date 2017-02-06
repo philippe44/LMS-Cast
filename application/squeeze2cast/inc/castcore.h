@@ -51,9 +51,9 @@
 
 typedef int sockfd;
 
-typedef struct {
+typedef struct sCastCtx {
 	bool			running;
-	enum { CAST_IDLE, CAST_CONNECTING, CAST_CONNECTED } Connect;
+	enum { CAST_DISCONNECTED, CAST_IDLE, CAST_CONNECTING, CAST_CONNECTED } Connect;
 	void			*owner;
 	SSL 			*ssl;
 	bool			sslConnect;
@@ -81,9 +81,11 @@ typedef struct {
 	} data;
 } tReqItem;
 
-bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...);
-bool ConnectReceiver(tCastCtx *Ctx);
-void SetVolume(tCastCtx *Ctx, u8_t Volume);
-void CastQueueFlush(tQueue *Queue);
+bool 	SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...);
+bool 	ConnectReceiver(tCastCtx *Ctx);
+void 	SetVolume(tCastCtx *Ctx, u8_t Volume);
+void 	CastQueueFlush(tQueue *Queue);
+bool	CastConnect(struct sCastCtx *Ctx);
+void 	CastDisconnect(struct sCastCtx *Ctx, bool disc);
 
 #endif

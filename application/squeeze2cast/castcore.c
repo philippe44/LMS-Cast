@@ -351,13 +351,15 @@ bool ConnectReceiver(tCastCtx *Ctx)
 
 
 /*----------------------------------------------------------------------------*/
-static bool CastConnect(tCastCtx *Ctx)
+bool CastConnect(struct sCastCtx *Ctx)
 {
 	int err;
 	struct sockaddr_in addr;
 
 	// do nothing if we are already connected
-	if(!Ctx->ssl) Ctx->ssl  = SSL_new(glSSLctx);
+	if (Ctx->ssl) return true;
+
+	Ctx->ssl  = SSL_new(glSSLctx);
 	Ctx->sock = socket(AF_INET, SOCK_STREAM, 0);
 	set_nonblock(Ctx->sock);
 	set_nosigpipe(Ctx->sock);
@@ -404,18 +406,23 @@ static bool CastConnect(tCastCtx *Ctx)
 
 
 /*----------------------------------------------------------------------------*/
-static void CastDisconnect(tCastCtx *Ctx, bool disc)
+void CastDisconnect(struct sCastCtx *Ctx, bool disc)
 {
 	pthread_mutex_lock(&Ctx->Mutex);
 
+	// powered off already
+	if (Ctx->Connect == CAST_DISCONNECTED) {
+		pthread_mutex_unlock(&Ctx->Mutex);
+		return;
+	}
+
 	Ctx->reqId = 1;
 	Ctx->waitId = Ctx->mediaSessionId = 0;
-	Ctx->Connect = CAST_IDLE;
 	NFREE(Ctx->sessionId);
 	NFREE(Ctx->transportId);
 	QueueFlush(&Ctx->eventQueue);
 	CastQueueFlush(&Ctx->reqQueue);
-	if (disc && Ctx->ssl) {
+	if (Ctx->ssl) {
 		SSL_shutdown(Ctx->ssl);
 #if 0
 		// FIXME: causes a segfault !
@@ -425,6 +432,9 @@ static void CastDisconnect(tCastCtx *Ctx, bool disc)
 		closesocket(Ctx->sock);
 		Ctx->sslConnect = false;
 	}
+
+	if (disc) Ctx->Connect = CAST_DISCONNECTED;
+	else Ctx->Connect = CAST_IDLE;
 
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
@@ -442,7 +452,7 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 
 
 /*----------------------------------------------------------------------------*/
-void *StartCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8_t MediaVolume)
+void *CreateCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8_t MediaVolume)
 {
 	tCastCtx *Ctx = malloc(sizeof(tCastCtx));
 	pthread_mutexattr_t mutexAttr;
@@ -453,7 +463,7 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 	Ctx->owner 		= owner;
 	Ctx->ssl 		= NULL;
 	Ctx->sslConnect = false;
-	Ctx->Connect 	= CAST_IDLE;
+	Ctx->Connect 	= CAST_DISCONNECTED;
 	Ctx->ip 		= ip;
 	Ctx->port		= port;
 	Ctx->MediaVolume  = MediaVolume;
@@ -467,8 +477,6 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 	pthread_mutexattr_destroy(&mutexAttr);
 	pthread_mutex_init(&Ctx->eventMutex, 0);
 	pthread_cond_init(&Ctx->eventCond, 0);
-
-	CastConnect(Ctx);
 
 	pthread_create(&Ctx->Thread, NULL, &CastSocketThread, Ctx);
 	pthread_create(&Ctx->PingThread, NULL, &CastPingThread, Ctx);
@@ -494,7 +502,7 @@ void UpdateCastDevice(void *p, struct in_addr ip, u16_t port)
 		But reconnection is surely done by the cast thread. Note the the call
 		below will set SSL to NULL, so cast thread must be carefull with that
 		*/
-		CastDisconnect(Ctx, true);
+		CastDisconnect(Ctx, false);
 	}
 }
 
@@ -538,23 +546,25 @@ void ProcessQueue(tCastCtx *Ctx) {
 	if (!strcasecmp(item->Type, "SET_VOLUME")) {
 		Ctx->waitId = Ctx->reqId++;
 
-		if (item->data.Volume)
+		if (item->data.Volume) {
 			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
-							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
-							Ctx->waitId, (double) item->data.Volume / 100.0);
-		else
+							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%f}}",
+							Ctx->reqId++, (float) item->data.Volume / 100.0);
+		}
+		else {
 			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
 							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
-							Ctx->waitId);
+							Ctx->reqId++);
+		}
 	}
 
-	if (!strcasecmp(item->Type, "PLAY")) {
+	if (!strcasecmp(item->Type, "PLAY") || !strcasecmp(item->Type, "PAUSE")) {
 		if (Ctx->mediaSessionId) {
 			Ctx->waitId = Ctx->reqId++;
 
 			SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-							"{\"type\":\"PLAY\",\"requestId\":%d,\"mediaSessionId\":%d}",
-							Ctx->waitId, Ctx->mediaSessionId);
+							"{\"type\":\"%s\",\"requestId\":%d,\"mediaSessionId\":%d}",
+							item->Type, Ctx->waitId, Ctx->mediaSessionId);
 		}
 		else {
 			LOG_WARN("[%p]: PLAY un-queued but no media session", Ctx->owner);
@@ -609,7 +619,7 @@ static void *CastPingThread(void *args)
 				SendCastMessage(Ctx->ssl, CAST_BEAT, NULL, "{\"type\":\"PING\"}");
 				if (now - Ctx->lastPong > 15000) {
 					LOG_INFO("[%p]: No response to ping", Ctx);
-					CastDisconnect(Ctx, true);
+					CastDisconnect(Ctx, false);
 				}
 			}
 
@@ -641,11 +651,17 @@ static void *CastSocketThread(void *args)
 		bool forward = true;
 		const char *str = NULL;
 
+		// allow "virtual" power off
+		if (Ctx->Connect == CAST_DISCONNECTED) {
+			usleep(100000);
+			continue;
+		}
+
 		// this SSL access is not mutex protected, but it should be fine
 		if (!GetNextMessage(Ctx->ssl, &Message)) {
 			int interval = 100;
 			LOG_WARN("[%p]: SSL connection closed", Ctx);
-			CastDisconnect(Ctx, true);
+			CastDisconnect(Ctx, false);
 			usleep(100000);
 			while (Ctx->running && !CastConnect(Ctx)) {
 				usleep(interval * 1000);
@@ -667,7 +683,7 @@ static void *CastSocketThread(void *args)
 			if (!strcasecmp(str, "MEDIA_STATUS")) {
 				LOG_DEBUG("[%p]: type:%s (id:%d) %s", Ctx->owner, str, requestId, GetMediaItem_S(root, 0, "playerState"));
 			}
-			else {
+			else if (strcasecmp(str, "PONG") || *loglevel == lSDEBUG) {
 				LOG_DEBUG("[%p]: type:%s (id:%d)", Ctx->owner, str, requestId);
 			}
 
@@ -675,7 +691,7 @@ static void *CastSocketThread(void *args)
 
 			// Connection closed by peer
 			if (!strcasecmp(str,"CLOSE")) {
-				CastDisconnect(Ctx, false);
+				CastDisconnect(Ctx, true);
 			}
 
 			// respond to device ping
@@ -692,7 +708,7 @@ static void *CastSocketThread(void *args)
 				forward = false;
 			}
 
-			LOG_DEBUG("[%p]: recvID %u (waitID %u)", Ctx, Ctx->waitId, requestId);
+			LOG_SDEBUG("[%p]: recvID %u (waitID %u)", Ctx, Ctx->waitId, requestId);
 
 			// expected request acknowledge
 			if (Ctx->waitId && Ctx->waitId <= requestId) {

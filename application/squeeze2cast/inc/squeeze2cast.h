@@ -80,6 +80,7 @@ struct sMR {
 	char			ContentType[SQ_STR_LENGTH];		// a bit patchy ... to buffer next URI
 	sq_metadata_t	MetaData;
 	sq_action_t		sqState;
+	u32_t			sqStamp;
 	u32_t			Elapsed;
 #if !defined(REPOS_TIME)
 	u32_t			StartTime, LocalStartTime;

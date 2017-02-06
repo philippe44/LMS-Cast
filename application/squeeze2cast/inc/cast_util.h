@@ -32,8 +32,10 @@ struct sMRConfig;
 void	CastGetStatus(void *Ctx);
 void	CastGetMediaStatus(void *Ctx);
 
+void 	CastPowerOff(void *Ctx);
+void 	CastPowerOn(void *Ctx);
+
 void 	CastStop(void *Ctx);
-void 	CastClean(void *Ctx);
 #define CastPlay(Ctx)	CastSimple(Ctx, "PLAY")
 #define CastPause(Ctx)	CastSimple(Ctx, "PAUSE")
 void 	CastSimple(void *Ctx, char *Type);
