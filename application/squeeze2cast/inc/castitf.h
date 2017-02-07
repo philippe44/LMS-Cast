@@ -41,7 +41,7 @@ void EndSSL(void);
 json_t 	*GetTimedEvent(void *p, u32_t msWait);
 void 	*CreateCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8_t MediaVolume);
 void 	UpdateCastDevice(void *Ctx, struct in_addr ip, u16_t port);
-void 	StopCastDevice(void *Ctx);
+void 	DeleteCastDevice(void *Ctx);
 bool	CastIsConnected(void *Ctx);
 bool 	CastIsMediaSession(void *Ctx);
 

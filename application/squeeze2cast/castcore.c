@@ -324,23 +324,23 @@ json_t *GetTimedEvent(void *p, u32_t msWait)
 
 
 /*----------------------------------------------------------------------------*/
-bool ConnectReceiver(tCastCtx *Ctx)
+bool LaunchReceiver(tCastCtx *Ctx)
 {
-	pthread_mutex_lock(&Ctx->Mutex);
-
-	// cannot connect if SSL connection is lost
-	if (!Ctx->sslConnect) {
+	// try to reconnect if SSL connection is lost
+	if (!CastConnect(Ctx)) {
 		pthread_mutex_unlock(&Ctx->Mutex);
 		return false;
 	}
 
+	pthread_mutex_lock(&Ctx->Mutex);
+
 	// already connected, all good
-	if (Ctx->Connect == CAST_CONNECTED) {
+	if (Ctx->Status == CAST_LAUNCHED) {
 		pthread_mutex_unlock(&Ctx->Mutex);
 		return true;
 	}
 
-	Ctx->Connect = CAST_CONNECTING;
+	Ctx->Status = CAST_LAUNCHING;
 	Ctx->waitId = Ctx->reqId++;
 
 	SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
@@ -356,8 +356,13 @@ bool CastConnect(struct sCastCtx *Ctx)
 	int err;
 	struct sockaddr_in addr;
 
+	pthread_mutex_lock(&Ctx->Mutex);
+
 	// do nothing if we are already connected
-	if (Ctx->ssl) return true;
+	if (Ctx->ssl) {
+		pthread_mutex_unlock(&Ctx->Mutex);
+		return true;
+	}
 
 	Ctx->ssl  = SSL_new(glSSLctx);
 	Ctx->sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -377,6 +382,7 @@ bool CastConnect(struct sCastCtx *Ctx)
 	if (err) {
 		closesocket(Ctx->sock);
 		LOG_ERROR("[%p]: Cannot open socket connection (%d)", Ctx->owner, err);
+		pthread_mutex_unlock(&Ctx->Mutex);
 		return false;
 	}
 
@@ -391,12 +397,17 @@ bool CastConnect(struct sCastCtx *Ctx)
 	else {
 		err = SSL_get_error(Ctx->ssl,err);
 		LOG_ERROR("[%p]: Cannot open SSL connection (%d)", Ctx->owner, err);
+		closesocket(Ctx->sock);
+#if 0
+		// FIXME: causes a segfault !
+		SSL_free(Ctx->ssl);
+#endif
+		Ctx->ssl = NULL;
+		pthread_mutex_unlock(&Ctx->Mutex);
 		return false;
 	}
 
-	pthread_mutex_lock(&Ctx->Mutex);
-	Ctx->sslConnect = true;
-	Ctx->Connect = CAST_IDLE;
+	Ctx->Status = CAST_IDLE;
 	Ctx->lastPong = gettime_ms();
 	SendCastMessage(Ctx->ssl, CAST_CONNECTION, NULL, "{\"type\":\"CONNECT\"}");
 	pthread_mutex_unlock(&Ctx->Mutex);
@@ -406,12 +417,12 @@ bool CastConnect(struct sCastCtx *Ctx)
 
 
 /*----------------------------------------------------------------------------*/
-void CastDisconnect(struct sCastCtx *Ctx, bool disc)
+void CastDisconnect(struct sCastCtx *Ctx)
 {
 	pthread_mutex_lock(&Ctx->Mutex);
 
 	// powered off already
-	if (Ctx->Connect == CAST_DISCONNECTED) {
+	if (Ctx->Status == CAST_DISCONNECTED) {
 		pthread_mutex_unlock(&Ctx->Mutex);
 		return;
 	}
@@ -430,11 +441,9 @@ void CastDisconnect(struct sCastCtx *Ctx, bool disc)
 #endif
 		Ctx->ssl = NULL;
 		closesocket(Ctx->sock);
-		Ctx->sslConnect = false;
 	}
 
-	if (disc) Ctx->Connect = CAST_DISCONNECTED;
-	else Ctx->Connect = CAST_IDLE;
+	Ctx->Status = CAST_DISCONNECTED;
 
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
@@ -462,8 +471,7 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 	Ctx->sessionId 	= Ctx->transportId = NULL;
 	Ctx->owner 		= owner;
 	Ctx->ssl 		= NULL;
-	Ctx->sslConnect = false;
-	Ctx->Connect 	= CAST_DISCONNECTED;
+	Ctx->Status 	= CAST_DISCONNECTED;
 	Ctx->ip 		= ip;
 	Ctx->port		= port;
 	Ctx->MediaVolume  = MediaVolume;
@@ -496,25 +504,19 @@ void UpdateCastDevice(void *p, struct in_addr ip, u16_t port)
 		Ctx->ip	= ip;
 		Ctx->port = port;
 		pthread_mutex_unlock(&Ctx->Mutex);
-		/*
-		Cast disconnection must be done here as the cast thread is likely, but
-		not 100% sure, in the re-connect loop, with the increasing retry timer.
-		But reconnection is surely done by the cast thread. Note the the call
-		below will set SSL to NULL, so cast thread must be carefull with that
-		*/
-		CastDisconnect(Ctx, false);
+		CastDisconnect(Ctx);
 	}
 }
 
 
 /*----------------------------------------------------------------------------*/
-void StopCastDevice(void *p)
+void DeleteCastDevice(void *p)
 {
 	tCastCtx *Ctx = p;
 
 	pthread_mutex_lock(&Ctx->Mutex);
 	Ctx->running = false;
-	CastDisconnect(Ctx, true);
+	CastDisconnect(Ctx);
 	pthread_mutex_unlock(&Ctx->Mutex);
 	pthread_join(Ctx->PingThread, NULL);
 	pthread_join(Ctx->Thread, NULL);
@@ -546,6 +548,8 @@ void ProcessQueue(tCastCtx *Ctx) {
 	if (!strcasecmp(item->Type, "SET_VOLUME")) {
 		Ctx->waitId = Ctx->reqId++;
 
+		LOG_INFO("[%p]: Processing VOLUME (id:%u)", Ctx->owner, Ctx->waitId);
+
 		if (item->data.Volume) {
 			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
 							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%f}}",
@@ -562,6 +566,8 @@ void ProcessQueue(tCastCtx *Ctx) {
 		if (Ctx->mediaSessionId) {
 			Ctx->waitId = Ctx->reqId++;
 
+			LOG_INFO("[%p]: Processing %s (id:%u)", Ctx->owner, item->Type, Ctx->waitId);
+
 			SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
 							"{\"type\":\"%s\",\"requestId\":%d,\"mediaSessionId\":%d}",
 							item->Type, Ctx->waitId, Ctx->mediaSessionId);
@@ -575,10 +581,12 @@ void ProcessQueue(tCastCtx *Ctx) {
 		json_t *msg = item->data.msg;
 		char *str;
 
-		if (Ctx->Connect == CAST_CONNECTED) {
+		if (Ctx->Status == CAST_LAUNCHED) {
 			Ctx->waitId = Ctx->reqId++;
 			Ctx->waitMedia = Ctx->waitId;
 			Ctx->mediaSessionId = 0;
+
+			LOG_INFO("[%p]: Processing LOAD (id:%u)", Ctx->owner, Ctx->waitId);
 
 			msg = json_pack("{ss,si,ss,sf,sb,so}", "type", "LOAD",
 							"requestId", Ctx->waitId, "sessionId", Ctx->sessionId,
@@ -611,24 +619,25 @@ static void *CastPingThread(void *args)
 	while (Ctx->running) {
 		u32_t now = gettime_ms();
 
-		if (now - last > 3000) {
+		if (now - last > 3000 && Ctx->Status != CAST_DISCONNECTED) {
 			pthread_mutex_lock(&Ctx->Mutex);
 
 			// ping SSL connection
-			if (Ctx->sslConnect) {
+			if (Ctx->ssl) {
 				SendCastMessage(Ctx->ssl, CAST_BEAT, NULL, "{\"type\":\"PING\"}");
 				if (now - Ctx->lastPong > 15000) {
 					LOG_INFO("[%p]: No response to ping", Ctx);
-					CastDisconnect(Ctx, false);
+					CastDisconnect(Ctx);
 				}
 			}
 
 			// then ping RECEIVER connection
-			if (Ctx->Connect == CAST_CONNECTED) SendCastMessage(Ctx->ssl, CAST_BEAT, Ctx->transportId, "{\"type\":\"PING\"}");
+			if (Ctx->Status == CAST_LAUNCHED) SendCastMessage(Ctx->ssl, CAST_BEAT, Ctx->transportId, "{\"type\":\"PING\"}");
 
 			pthread_mutex_unlock(&Ctx->Mutex);
 			last = now;
 		}
+
 		usleep(50000);
 	}
 
@@ -652,21 +661,15 @@ static void *CastSocketThread(void *args)
 		const char *str = NULL;
 
 		// allow "virtual" power off
-		if (Ctx->Connect == CAST_DISCONNECTED) {
+		if (Ctx->Status == CAST_DISCONNECTED) {
 			usleep(100000);
 			continue;
 		}
 
 		// this SSL access is not mutex protected, but it should be fine
 		if (!GetNextMessage(Ctx->ssl, &Message)) {
-			int interval = 100;
 			LOG_WARN("[%p]: SSL connection closed", Ctx);
-			CastDisconnect(Ctx, false);
-			usleep(100000);
-			while (Ctx->running && !CastConnect(Ctx)) {
-				usleep(interval * 1000);
-				if (interval < 5000) interval *= 2;
-			}
+			CastDisconnect(Ctx);
 			continue;
 		}
 
@@ -691,7 +694,7 @@ static void *CastSocketThread(void *args)
 
 			// Connection closed by peer
 			if (!strcasecmp(str,"CLOSE")) {
-				CastDisconnect(Ctx, true);
+				CastDisconnect(Ctx);
 			}
 
 			// respond to device ping
@@ -714,7 +717,7 @@ static void *CastSocketThread(void *args)
 			if (Ctx->waitId && Ctx->waitId <= requestId) {
 
 				// receiver status before connection is fully established
-				if (!strcasecmp(str,"RECEIVER_STATUS") && Ctx->Connect == CAST_CONNECTING) {
+				if (!strcasecmp(str,"RECEIVER_STATUS") && Ctx->Status == CAST_LAUNCHING) {
 					const char *str;
 
 					NFREE(Ctx->sessionId);
@@ -725,7 +728,7 @@ static void *CastSocketThread(void *args)
 					if (str) Ctx->transportId = strdup(str);
 
 					if (Ctx->sessionId && Ctx->transportId) {
-						Ctx->Connect = CAST_CONNECTED;
+						Ctx->Status = CAST_LAUNCHED;
 						LOG_INFO("[%p]: Receiver launched", Ctx->owner);
 						SendCastMessage(Ctx->ssl, CAST_CONNECTION, Ctx->transportId,
 									"{\"type\":\"CONNECT\",\"origin\":{}}");
@@ -751,7 +754,7 @@ static void *CastSocketThread(void *args)
 
 				// must be done at the end, once all parameters have been acquired
 				Ctx->waitId = 0;
-				if (Ctx->Connect == CAST_CONNECTED) ProcessQueue(Ctx);
+				if (Ctx->Status == CAST_LAUNCHED) ProcessQueue(Ctx);
 
 			}
 

@@ -1,8 +1,9 @@
 0.2.6.0
- - Pause command was ignored !!!
+ - 'pause' command was ignored !!!
  - handle CCA bug with mute (level must be changed for unmute to work)
- - Allow disconnect on poweroff (but not if LMS to "pause" on poweroff)
+ - allow disconnect on poweroff (but not if LMS to "pause" on poweroff)
  - filter quick pause/play
+ - redo connect/ping/disconnect logic to be less aggressive
 
 0.2.5.3
  - add Linux sparc support (experimental)

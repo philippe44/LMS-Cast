@@ -218,7 +218,7 @@ static char license[] =
 static void *MRThread(void *args);
 static void *UpdateMRThread(void *args);
 static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool Group, struct in_addr ip, u16_t port);
-void 		DelCastDevice(struct sMR *Device);
+void 		RemoveCastDevice(struct sMR *Device);
 static int	Terminate(void);
 static int  Initialize(void);
 
@@ -677,7 +677,7 @@ static void *UpdateMRThread(void *args)
 					sq_release_device(Device->SqueezeHandle);
 					Device->SqueezeHandle = 0;
 					LOG_ERROR("[%p]: cannot create squeezelite instance (%s)", Device, Device->FriendlyName);
-					DelCastDevice(Device);
+					RemoveCastDevice(Device);
 				}
 			}
 		}
@@ -703,7 +703,7 @@ static void *UpdateMRThread(void *args)
 
 		LOG_INFO("[%p]: removing renderer (%s)", Device, Device->FriendlyName);
 		if (Device->SqueezeHandle) sq_delete_device(Device->SqueezeHandle);
-		DelCastDevice(Device);
+		RemoveCastDevice(Device);
 	}
 
 	glDiscovery = true;
@@ -931,14 +931,14 @@ void FlushCastDevices(void)
 		struct sMR *p = &glMRDevices[i];
 		if (p->InUse) {
 			if (p->sqState == SQ_PLAY || p->sqState == SQ_PAUSE) CastStop(p->CastCtx);
-			DelCastDevice(p);
+			RemoveCastDevice(p);
 		}
 	}
 }
 
 
 /*----------------------------------------------------------------------------*/
-void DelCastDevice(struct sMR *Device)
+void RemoveCastDevice(struct sMR *Device)
 {
 	pthread_mutex_lock(&Device->Mutex);
 	Device->Running = false;
@@ -946,7 +946,7 @@ void DelCastDevice(struct sMR *Device)
 	pthread_mutex_unlock(&Device->Mutex);
 	pthread_join(Device->Thread, NULL);
 
-	StopCastDevice(Device->CastCtx);
+	DeleteCastDevice(Device->CastCtx);
 	NFREE(Device->CurrentURI);
 	NFREE(Device->NextURI);
 

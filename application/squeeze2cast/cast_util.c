@@ -42,7 +42,7 @@ bool CastIsConnected(void *p)
 	bool status;
 
 	pthread_mutex_lock(&Ctx->Mutex);
-	status = Ctx->ssl && Ctx->sslConnect;
+	status = (Ctx->ssl != NULL);
 	pthread_mutex_unlock(&Ctx->Mutex);
 	return status;
 }
@@ -105,7 +105,7 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 	json_t *msg;
 	char* str;
 
-	if (!ConnectReceiver(Ctx)) {
+	if (!LaunchReceiver(Ctx)) {
 		LOG_ERROR("[%p]: Cannot connect Cast receiver", Ctx->owner);
 		return false;
 	}
@@ -134,8 +134,8 @@ bool CastLoad(void *p, char *URI, char *ContentType, struct sq_metadata_s *MetaD
 
 	pthread_mutex_lock(&Ctx->Mutex);
 
-	// if connected and no STOP pending (precaution) just send message
-	if (Ctx->Connect == CAST_CONNECTED && !Ctx->waitId) {
+	// if receiver launched and no STOP pending (precaution) just send message
+	if (Ctx->Status == CAST_LAUNCHED && !Ctx->waitId) {
 		Ctx->waitId = Ctx->reqId++;
 		Ctx->waitMedia = Ctx->waitId;
 		Ctx->mediaSessionId = 0;
@@ -172,7 +172,7 @@ void CastSimple(void *p, char *Type)
 
 	// lock on wait for a Cast response
 	pthread_mutex_lock(&Ctx->Mutex);
-	if (Ctx->Connect == CAST_CONNECTED && !Ctx->waitId) {
+	if (Ctx->Status == CAST_LAUNCHED && !Ctx->waitId) {
 		// no media session, nothing to do
 		if (Ctx->mediaSessionId) {
 			Ctx->waitId = Ctx->reqId++;
@@ -205,7 +205,7 @@ void CastStop(void *p)
 	// lock on wait for a Cast response
 	pthread_mutex_lock(&Ctx->Mutex);
 	CastQueueFlush(&Ctx->reqQueue);
-	if (Ctx->Connect == CAST_CONNECTED && Ctx->mediaSessionId) {
+	if (Ctx->Status == CAST_LAUNCHED && Ctx->mediaSessionId) {
 		Ctx->waitId = Ctx->reqId++;
 
 		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
@@ -226,7 +226,7 @@ void CastStop(void *p)
 /*----------------------------------------------------------------------------*/
 void CastPowerOff(void *p)
 {
-	CastDisconnect(p, true);
+	CastDisconnect(p);
 }
 
 
