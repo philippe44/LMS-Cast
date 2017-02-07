@@ -341,7 +341,6 @@ static int  Initialize(void);
 			NFREE(device->CurrentURI);
 			NFREE(device->NextURI);
 			device->sqState = action;
-			device->sqStamp = gettime_ms();
 			break;
 		case SQ_PAUSE:
 			CastPause(device->CastCtx);
@@ -436,7 +435,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 			case SQ_PAUSE:
 				Param = true;
 			case SQ_PLAY:
-				if (now > Device->sqStamp + 2000) Event = SQ_PLAY;
+				Event = SQ_PLAY;
 				break;
 			default:
 				/*
