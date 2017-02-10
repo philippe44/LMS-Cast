@@ -334,16 +334,21 @@ bool LaunchReceiver(tCastCtx *Ctx)
 
 	pthread_mutex_lock(&Ctx->Mutex);
 
-	// already connected, all good
-	if (Ctx->Status == CAST_LAUNCHED) {
-		pthread_mutex_unlock(&Ctx->Mutex);
-		return true;
+	switch (Ctx->Status) {
+		case CAST_LAUNCHED:
+			break;
+		case CAST_CONNECTING:
+			Ctx->Status = CAST_LAUNCH;
+			break;
+		case CAST_CONNECTED:
+			Ctx->Status = CAST_LAUNCHING;
+			Ctx->waitId = Ctx->reqId++;
+			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
+
+			LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
+			break;
 	}
 
-	Ctx->Status = CAST_LAUNCHING;
-	Ctx->waitId = Ctx->reqId++;
-
-	SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
 	pthread_mutex_unlock(&Ctx->Mutex);
 
 	return true;
@@ -407,7 +412,7 @@ bool CastConnect(struct sCastCtx *Ctx)
 		return false;
 	}
 
-	Ctx->Status = CAST_IDLE;
+	Ctx->Status = CAST_CONNECTING;
 	Ctx->lastPong = gettime_ms();
 	SendCastMessage(Ctx->ssl, CAST_CONNECTION, NULL, "{\"type\":\"CONNECT\"}");
 	pthread_mutex_unlock(&Ctx->Mutex);
@@ -704,9 +709,15 @@ static void *CastSocketThread(void *args)
 				forward = false;
 			}
 
-			// respond to device ping
+			// receiving pong
 			if (!strcasecmp(str,"PONG")) {
 				Ctx->lastPong = gettime_ms();
+				if (Ctx->Status == CAST_LAUNCH) {
+					Ctx->Status = CAST_LAUNCHING;
+					Ctx->waitId = Ctx->reqId++;
+					SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
+					LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
+				} else if (Ctx->Status == CAST_CONNECTING) Ctx->Status = CAST_CONNECTED;
 				json_decref(root);
 				forward = false;
 			}

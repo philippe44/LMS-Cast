@@ -53,7 +53,7 @@ typedef int sockfd;
 
 typedef struct sCastCtx {
 	bool			running;
-	enum { CAST_DISCONNECTED, CAST_IDLE, CAST_LAUNCHING, CAST_LAUNCHED } Status;
+	enum { CAST_DISCONNECTED, CAST_CONNECTING, CAST_CONNECTED, CAST_LAUNCH, CAST_LAUNCHING, CAST_LAUNCHED } Status;
 	void			*owner;
 	SSL 			*ssl;
 	sockfd 			sock;

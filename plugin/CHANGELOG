@@ -4,6 +4,7 @@
  - allow disconnect on poweroff (but not if LMS to "pause" on poweroff)
  - filter quick pause/play
  - redo connect/ping/disconnect logic to be less aggressive
+ - (dev-3) lauching receiver must wait for SSL connection, otherwise 1st play is missed
 
 0.2.5.3
  - add Linux sparc support (experimental)
