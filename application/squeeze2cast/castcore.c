@@ -338,7 +338,7 @@ bool LaunchReceiver(tCastCtx *Ctx)
 		case CAST_LAUNCHED:
 			break;
 		case CAST_CONNECTING:
-			Ctx->Status = CAST_LAUNCH;
+			Ctx->Status = CAST_AUTOLAUNCH;
 			break;
 		case CAST_CONNECTED:
 			Ctx->Status = CAST_LAUNCHING;
@@ -712,12 +712,14 @@ static void *CastSocketThread(void *args)
 			// receiving pong
 			if (!strcasecmp(str,"PONG")) {
 				Ctx->lastPong = gettime_ms();
-				if (Ctx->Status == CAST_LAUNCH) {
+				// connection established, start receiver was requested
+				if (Ctx->Status == CAST_AUTOLAUNCH) {
 					Ctx->Status = CAST_LAUNCHING;
 					Ctx->waitId = Ctx->reqId++;
 					SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
 					LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
 				} else if (Ctx->Status == CAST_CONNECTING) Ctx->Status = CAST_CONNECTED;
+
 				json_decref(root);
 				forward = false;
 			}
