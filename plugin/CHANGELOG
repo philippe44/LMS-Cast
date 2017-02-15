@@ -1,3 +1,6 @@
+0.2.6.1
+ - lock state happened when receiver launchw as failing 
+ 
 0.2.6.0
  - 'pause' command was ignored !!!
  - handle CCA bug with mute (level must be changed for unmute to work)

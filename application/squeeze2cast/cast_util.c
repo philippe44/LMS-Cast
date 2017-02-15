@@ -216,7 +216,12 @@ void CastStop(void *p)
 
 	}
 	else {
-			LOG_WARN("[%p]: Stop req w/o session or connect", Ctx->owner);
+		if (Ctx->Status == CAST_LAUNCHING) {
+			Ctx->Status = CAST_CONNECTED;
+			LOG_WARN("[%p]: Stop while still launching receiver", Ctx->owner);
+		} else {
+			LOG_WARN("[%p]: Stop w/o session or connect", Ctx->owner);
+		}
 	}
 
 	pthread_mutex_unlock(&Ctx->Mutex);

@@ -347,6 +347,9 @@ bool LaunchReceiver(tCastCtx *Ctx)
 
 			LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
 			break;
+		default:
+			LOG_INFO("[%p]: unhandled state %d", Ctx->owner);
+			break;
 	}
 
 	pthread_mutex_unlock(&Ctx->Mutex);
