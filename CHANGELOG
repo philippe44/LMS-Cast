@@ -1,5 +1,10 @@
+0.2.6.2
+ - when IP address of <common> was set, all devices were forced we the same address
+ - correct XML updating of <name>
+ - change seek access to maitain same line of code with upnp version
+ 
 0.2.6.1
- - lock state happened when receiver launchw as failing 
+ - lock state happened when receiver launch as failing 
  
 0.2.6.0
  - 'pause' command was ignored !!!

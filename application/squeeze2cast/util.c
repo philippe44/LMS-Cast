@@ -317,19 +317,22 @@ IXML_Node *XMLAddNode(IXML_Document *doc, IXML_Node *parent, char *name, char *f
 
 
 /*----------------------------------------------------------------------------*/
-IXML_Node *XMLUpdateNode(IXML_Document *doc, IXML_Node *parent, char *name, char *fmt, ...)
+IXML_Node *XMLUpdateNode(IXML_Document *doc, IXML_Node *parent, bool refresh, char *name, char *fmt, ...)
 {
+	char buf[256];
+	va_list args;
 	IXML_Node *node = (IXML_Node*) ixmlDocument_getElementById((IXML_Document*) parent, name);
 
-	if (!node) {
-		char buf[256];
-		va_list args;
+	va_start(args, fmt);
+	vsprintf(buf, fmt, args);
 
-		va_start(args, fmt);
-		vsprintf(buf, fmt, args);
-		node = XMLAddNode(doc, parent, name, buf);
-		va_end(args);
+	if (!node) XMLAddNode(doc, parent, name, buf);
+	else if (refresh) {
+		node = ixmlNode_getFirstChild(node);
+		ixmlNode_setNodeValue(node, buf);
 	}
+
+	va_end(args);
 
 	return node;
 }
@@ -487,41 +490,41 @@ void SaveConfig(char *name, void *ref, bool full)
 		common = (IXML_Node*) XMLAddNode(doc, root, "common", NULL);
 	}
 
-	XMLUpdateNode(doc, root, "upnp_socket", glUPnPSocket);
-	XMLUpdateNode(doc, root, "slimproto_log", level2debug(slimproto_loglevel));
-	XMLUpdateNode(doc, root, "stream_log", level2debug(stream_loglevel));
-	XMLUpdateNode(doc, root, "output_log", level2debug(output_loglevel));
-	XMLUpdateNode(doc, root, "decode_log", level2debug(decode_loglevel));
-	XMLUpdateNode(doc, root, "web_log", level2debug(web_loglevel));
-	XMLUpdateNode(doc, root, "main_log",level2debug(main_loglevel));
-	XMLUpdateNode(doc, root, "slimmain_log", level2debug(slimmain_loglevel));
-	XMLUpdateNode(doc, root, "cast_log",level2debug(cast_loglevel));
-	XMLUpdateNode(doc, root, "util_log",level2debug(util_loglevel));
-	XMLUpdateNode(doc, root, "scan_interval", "%d", (u32_t) glScanInterval);
-	XMLUpdateNode(doc, root, "scan_timeout", "%d", (u32_t) glScanTimeout);
-	XMLUpdateNode(doc, root, "log_limit", "%d", (s32_t) glLogLimit);
+	XMLUpdateNode(doc, root, false, "upnp_socket", glUPnPSocket);
+	XMLUpdateNode(doc, root, false, "slimproto_log", level2debug(slimproto_loglevel));
+	XMLUpdateNode(doc, root, false, "stream_log", level2debug(stream_loglevel));
+	XMLUpdateNode(doc, root, false, "output_log", level2debug(output_loglevel));
+	XMLUpdateNode(doc, root, false, "decode_log", level2debug(decode_loglevel));
+	XMLUpdateNode(doc, root, false, "web_log", level2debug(web_loglevel));
+	XMLUpdateNode(doc, root, false, "main_log",level2debug(main_loglevel));
+	XMLUpdateNode(doc, root, false, "slimmain_log", level2debug(slimmain_loglevel));
+	XMLUpdateNode(doc, root, false, "cast_log",level2debug(cast_loglevel));
+	XMLUpdateNode(doc, root, false, "util_log",level2debug(util_loglevel));
+	XMLUpdateNode(doc, root, false, "scan_interval", "%d", (u32_t) glScanInterval);
+	XMLUpdateNode(doc, root, false, "scan_timeout", "%d", (u32_t) glScanTimeout);
+	XMLUpdateNode(doc, root, false, "log_limit", "%d", (s32_t) glLogLimit);
 
-	XMLUpdateNode(doc, common, "streambuf_size", "%d", (u32_t) glDeviceParam.stream_buf_size);
-	XMLUpdateNode(doc, common, "output_size", "%d", (u32_t) glDeviceParam.output_buf_size);
-	XMLUpdateNode(doc, common, "buffer_dir", glDeviceParam.buffer_dir);
-	XMLUpdateNode(doc, common, "buffer_limit", "%d", (u32_t) glDeviceParam.buffer_limit);
-	XMLUpdateNode(doc, common, "stream_length", "%d", (s32_t) glMRConfig.StreamLength);
-	XMLUpdateNode(doc, common, "stream_pacing_size", "%d", (int) glDeviceParam.stream_pacing_size);
-	XMLUpdateNode(doc, common, "max_GET_bytes", "%d", (s32_t) glDeviceParam.max_get_bytes);
-	XMLUpdateNode(doc, common, "keep_buffer_file", "%d", (int) glDeviceParam.keep_buffer_file);
-	XMLUpdateNode(doc, common, "enabled", "%d", (int) glMRConfig.Enabled);
-	XMLUpdateNode(doc, common, "roon_mode", "%d", (int) glMRConfig.RoonMode);
-	XMLUpdateNode(doc, common, "codecs", glDeviceParam.codecs);
-	XMLUpdateNode(doc, common, "sample_rate", "%d", (int) glDeviceParam.sample_rate);
-	XMLUpdateNode(doc, common, "flac_header", "%d", (int) glDeviceParam.flac_header);
-	XMLUpdateNode(doc, common, "send_icy", "%d", (int) glDeviceParam.send_icy);
-	XMLUpdateNode(doc, common, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
-	XMLUpdateNode(doc, common, "media_volume", "%d", (int) glMRConfig.MediaVolume);
-	XMLUpdateNode(doc, common, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
-	XMLUpdateNode(doc, common, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
-	XMLUpdateNode(doc, common, "remove_count", "%d", (u32_t) glMRConfig.RemoveCount);
-	XMLUpdateNode(doc, common, "auto_play", "%d", (int) glMRConfig.AutoPlay);
-	XMLUpdateNode(doc, common, "server", glDeviceParam.server);
+	XMLUpdateNode(doc, common, false, "streambuf_size", "%d", (u32_t) glDeviceParam.stream_buf_size);
+	XMLUpdateNode(doc, common, false, "output_size", "%d", (u32_t) glDeviceParam.output_buf_size);
+	XMLUpdateNode(doc, common, false, "buffer_dir", glDeviceParam.buffer_dir);
+	XMLUpdateNode(doc, common, false, "buffer_limit", "%d", (u32_t) glDeviceParam.buffer_limit);
+	XMLUpdateNode(doc, common, false, "stream_length", "%d", (s32_t) glMRConfig.StreamLength);
+	XMLUpdateNode(doc, common, false, "stream_pacing_size", "%d", (int) glDeviceParam.stream_pacing_size);
+	XMLUpdateNode(doc, common, false, "max_GET_bytes", "%d", (s32_t) glDeviceParam.max_get_bytes);
+	XMLUpdateNode(doc, common, false, "keep_buffer_file", "%d", (int) glDeviceParam.keep_buffer_file);
+	XMLUpdateNode(doc, common, false, "enabled", "%d", (int) glMRConfig.Enabled);
+	XMLUpdateNode(doc, common, false, "roon_mode", "%d", (int) glMRConfig.RoonMode);
+	XMLUpdateNode(doc, common, false, "codecs", glDeviceParam.codecs);
+	XMLUpdateNode(doc, common, false, "sample_rate", "%d", (int) glDeviceParam.sample_rate);
+	XMLUpdateNode(doc, common, false, "flac_header", "%d", (int) glDeviceParam.flac_header);
+	XMLUpdateNode(doc, common, false, "send_icy", "%d", (int) glDeviceParam.send_icy);
+	XMLUpdateNode(doc, common, false, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
+	XMLUpdateNode(doc, common, false, "media_volume", "%d", (int) glMRConfig.MediaVolume);
+	XMLUpdateNode(doc, common, false, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
+	XMLUpdateNode(doc, common, false, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
+	XMLUpdateNode(doc, common, false, "remove_count", "%d", (u32_t) glMRConfig.RemoveCount);
+	XMLUpdateNode(doc, common, false, "auto_play", "%d", (int) glMRConfig.AutoPlay);
+	XMLUpdateNode(doc, common, false, "server", glDeviceParam.server);
 
 	for (i = 0; i < MAX_RENDERERS; i++) {
 		IXML_Node *dev_node;
@@ -531,25 +534,12 @@ void SaveConfig(char *name, void *ref, bool full)
 
 		// existing device, keep param and update "name" if LMS has requested it
 		if (old_doc && ((dev_node = (IXML_Node*) FindMRConfig(old_doc, p->UDN)) != NULL)) {
-			IXML_Node *node;
-
 			ixmlDocument_importNode(doc, dev_node, true, &dev_node);
-
-			// TODO: remove after migration
-			XMLUpdateNode(doc, dev_node, "friendly_name", p->FriendlyName);
-			if (!strstr(p->sq_config.server, "?")) XMLUpdateNode(doc, dev_node, "server", p->sq_config.server);
-
 			ixmlNode_appendChild((IXML_Node*) root, dev_node);
-			node = (IXML_Node*) ixmlDocument_getElementById((IXML_Document*) dev_node, "name");
-			node = ixmlNode_getFirstChild(node);
-			ixmlNode_setNodeValue(node, p->sq_config.name);
 
-			if (!strstr(p->sq_config.server, "?")) {
-				ixmlNode_appendChild((IXML_Node*) root, dev_node);
-				node = (IXML_Node*) ixmlDocument_getElementById((IXML_Document*) dev_node, "server");
-				node = ixmlNode_getFirstChild(node);
-				ixmlNode_setNodeValue(node, p->sq_config.server);
-			}
+			XMLUpdateNode(doc, dev_node, false, "friendly_name", p->FriendlyName);
+			XMLUpdateNode(doc, dev_node, true, "name", p->sq_config.name);
+			if (*p->sq_config.dynamic.server) XMLUpdateNode(doc, dev_node, true, "server", p->sq_config.dynamic.server);
 		}
 		// new device, add nodes
 		else {
@@ -557,7 +547,7 @@ void SaveConfig(char *name, void *ref, bool full)
 			XMLAddNode(doc, dev_node, "udn", p->UDN);
 			XMLAddNode(doc, dev_node, "name", p->FriendlyName);
 			XMLAddNode(doc, dev_node, "friendly_name", p->FriendlyName);
-			if (!strstr(p->sq_config.server, "?")) XMLAddNode(doc, dev_node, "server", p->sq_config.server);
+			if (*p->sq_config.dynamic.server) XMLAddNode(doc, dev_node, "server", p->sq_config.dynamic.server);
 			XMLAddNode(doc, dev_node, "mac", "%02x:%02x:%02x:%02x:%02x:%02x", p->sq_config.mac[0],
 						p->sq_config.mac[1], p->sq_config.mac[2], p->sq_config.mac[3], p->sq_config.mac[4], p->sq_config.mac[5]);
 			XMLAddNode(doc, dev_node, "enabled", "%d", (int) p->Config.Enabled);
