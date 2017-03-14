@@ -30,7 +30,6 @@
 #include "castitf.h"
 
 
-#define BLOCKING_SOCKET
 #define SELECT_SOCKET
 
 /*----------------------------------------------------------------------------*/
@@ -71,7 +70,6 @@ static void set_nonblock(sockfd s) {
 
 
 /*----------------------------------------------------------------------------*/
-#ifdef BLOCKING_SOCKET
 static void set_block(sockfd s) {
 #if WIN
 	u_long iMode = 0;
@@ -81,7 +79,6 @@ static void set_block(sockfd s) {
 	fcntl(s, F_SETFL, flags & (~O_NONBLOCK));
 #endif
 }
-#endif
 
 
 /*----------------------------------------------------------------------------*/
@@ -172,69 +169,32 @@ bool read_bytes(SSL *ssl, void *buffer, u16_t bytes)
 		FD_ZERO(&rfds);
 		FD_SET(sock, &rfds);
 
-		if (select(sock + 1, &rfds, NULL, NULL, &timeout) == -1) {
-			LOG_WARN("[s-%p]: socket closed", ssl);
-			return false;
-		}
-
-		if (!FD_ISSET(sock, &rfds)) continue;
-
-		ERR_clear_error();
-		nb = SSL_read(ssl, (u8_t*) buffer + read, bytes - read);
-		if (nb > 0) read += nb;
-		if (nb < 0) {
-			int err = SSL_get_error(ssl, nb);
-			LOG_WARN("[s-%p]: SSL error code %d (err:%d)", ssl, err, ERR_get_error());
-#ifdef BLOCKING_SOCKET
-			return false;
-#else
-			switch (err) {
-				case SSL_ERROR_ZERO_RETURN:
-				case SSL_ERROR_SSL:
-				case SSL_ERROR_SYSCALL: return false;
-				default: break;
+		if (!SSL_pending(ssl)) {
+			if (select(sock + 1, &rfds, NULL, NULL, &timeout) == -1) {
+				LOG_WARN("[s-%p]: socket closed", ssl);
+				return false;
 			}
-#endif
+
+			if (!FD_ISSET(sock, &rfds)) continue;
 		}
-#else
+#endif
 		ERR_clear_error();
 		nb = SSL_read(ssl, (u8_t*) buffer + read, bytes - read);
-		if (nb < 0) return false;
+		if (nb <= 0) {
+			LOG_WARN("[s-%p]: SSL error code %d (err:%d)", ssl, SSL_get_error(ssl, nb), ERR_get_error());
+			return false;
+		}
 		read += nb;
-#endif
 	}
 
 	return true;
 }
 
+
 /*----------------------------------------------------------------------------*/
 bool write_bytes(SSL *ssl, void *buffer, u16_t bytes)
 {
-#ifdef BLOCKING_SOCKET
 	return SSL_write(ssl, buffer, bytes) > 0;
-#else
-	sockfd sock = SSL_get_fd(ssl);
-
-	while (1) {
-		int nb;
-		fd_set wfds;
-		struct timeval timeout = { 0, 100000 };
-		FD_ZERO(&wfds);
-		FD_SET(sock, &wfds);
-
-		if (select(sock + 1, NULL, &wfds, NULL, &timeout) == -1) return false;
-		if (!FD_ISSET(sock, &wfds)) continue;
-
-		ERR_clear_error();
-		nb = SSL_write(ssl, buffer, bytes);
-		if (nb == bytes) return true;
-		switch (SSL_get_error(ssl, nb)) {
-			case SSL_ERROR_WANT_READ:
-			case SSL_ERROR_WANT_WRITE: continue;
-			default: return false;
-		}
-	}
-#endif
 }
 
 
@@ -394,9 +354,7 @@ bool CastConnect(struct sCastCtx *Ctx)
 		return false;
 	}
 
-#ifdef BLOCKING_SOCKET
 	set_block(Ctx->sock);
-#endif
 	SSL_set_fd(Ctx->ssl, Ctx->sock);
 
 	if (SSL_connect(Ctx->ssl)) {
@@ -553,6 +511,25 @@ void ProcessQueue(tCastCtx *Ctx) {
 
 	if ((item = QueueExtract(&Ctx->reqQueue)) == NULL) return;
 
+
+	if (!strcasecmp(item->Type, "GET_MEDIA_STATUS") && Ctx->mediaSessionId) {
+		Ctx->waitId = Ctx->reqId++;
+
+		LOG_INFO("[%p]: Processing GET_MEDIA_STATUS (id:%u)", Ctx->owner, Ctx->waitId);
+
+		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+			"{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}",
+			Ctx->waitId, Ctx->mediaSessionId);
+	}
+
+	if (!strcasecmp(item->Type, "GET_STATUS")) {
+		Ctx->waitId = Ctx->reqId++;
+
+		LOG_INFO("[%p]: Processing GET_STATUS (id:%u)", Ctx->owner, Ctx->waitId);
+
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->waitId);
+	}
+
 	if (!strcasecmp(item->Type, "SET_VOLUME")) {
 		Ctx->waitId = Ctx->reqId++;
 
@@ -561,12 +538,12 @@ void ProcessQueue(tCastCtx *Ctx) {
 		if (item->data.Volume) {
 			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
 							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%f}}",
-							Ctx->reqId++, (float) item->data.Volume / 100.0);
+							Ctx->waitId, (float) item->data.Volume / 100.0);
 		}
 		else {
 			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
 							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
-							Ctx->reqId++);
+							Ctx->waitId);
 		}
 	}
 
@@ -589,25 +566,20 @@ void ProcessQueue(tCastCtx *Ctx) {
 		json_t *msg = item->data.msg;
 		char *str;
 
-		if (Ctx->Status == CAST_LAUNCHED) {
-			Ctx->waitId = Ctx->reqId++;
-			Ctx->waitMedia = Ctx->waitId;
-			Ctx->mediaSessionId = 0;
+		Ctx->waitId = Ctx->reqId++;
+		Ctx->waitMedia = Ctx->waitId;
+		Ctx->mediaSessionId = 0;
 
-			LOG_INFO("[%p]: Processing LOAD (id:%u)", Ctx->owner, Ctx->waitId);
+		LOG_INFO("[%p]: Processing LOAD (id:%u)", Ctx->owner, Ctx->waitId);
 
-			msg = json_pack("{ss,si,ss,sf,sb,so}", "type", "LOAD",
-							"requestId", Ctx->waitId, "sessionId", Ctx->sessionId,
-							"currentTime", 0.0, "autoplay", 0,
-							"media", msg);
+		msg = json_pack("{ss,si,ss,sf,sb,so}", "type", "LOAD",
+						"requestId", Ctx->waitId, "sessionId", Ctx->sessionId,
+						"currentTime", 0.0, "autoplay", 0,
+						"media", msg);
 
-			str = json_dumps(msg, JSON_ENCODE_ANY | JSON_INDENT(1));
-			SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId, str);
-			NFREE(str);
-		}
-		else {
-			LOG_WARN("[%p]: LOAD un-queued but not connected", Ctx->owner);
-		}
+		str = json_dumps(msg, JSON_ENCODE_ANY | JSON_INDENT(1));
+		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId, str);
+		NFREE(str);
 
 		json_decref(msg);
    }
@@ -727,7 +699,7 @@ static void *CastSocketThread(void *args)
 				forward = false;
 			}
 
-			LOG_SDEBUG("[%p]: recvID %u (waitID %u)", Ctx, Ctx->waitId, requestId);
+			LOG_SDEBUG("[%p]: recvID %u (waitID %u)", Ctx, requestId, Ctx->waitId);
 
 			// expected request acknowledge
 			if (Ctx->waitId && Ctx->waitId <= requestId) {

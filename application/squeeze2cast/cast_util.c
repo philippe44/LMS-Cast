@@ -73,7 +73,18 @@ void CastGetStatus(void *p)
 	if (!p) return;
 
 	pthread_mutex_lock(&Ctx->Mutex);
-	SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->reqId++);
+	if (!Ctx->waitId) {
+		Ctx->waitId = Ctx->reqId++;
+
+		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->waitId);
+	}
+	else {
+		tReqItem *req = malloc(sizeof(tReqItem));
+		strcpy(req->Type, "GET_STATUS");
+		QueueInsert(&Ctx->reqQueue, req);
+		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+	}
+
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
@@ -88,9 +99,19 @@ void CastGetMediaStatus(void *p)
 
 	pthread_mutex_lock(&Ctx->Mutex);
 	if (Ctx->mediaSessionId) {
-		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}",
-						Ctx->reqId++, Ctx->mediaSessionId);
+		if (!Ctx->waitId) {
+			Ctx->waitId = Ctx->reqId++;
+
+			SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+					"{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}",
+					Ctx->waitId, Ctx->mediaSessionId);
+		}
+		else {
+			tReqItem *req = malloc(sizeof(tReqItem));
+			strcpy(req->Type, "GET_MEDIA_STATUS");
+			QueueInsert(&Ctx->reqQueue, req);
+			LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+		}
 	}
 
 	pthread_mutex_unlock(&Ctx->Mutex);
