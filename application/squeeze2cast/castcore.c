@@ -154,7 +154,7 @@ void swap32(u32_t *n)
 
 
 /*----------------------------------------------------------------------------*/
-bool read_bytes(SSL *ssl, void *buffer, u16_t bytes)
+bool read_bytes(pthread_mutex_t *Mutex, SSL *ssl, void *buffer, u16_t bytes)
 {
 	u16_t read = 0;
 	sockfd sock = SSL_get_fd(ssl);
@@ -179,7 +179,9 @@ bool read_bytes(SSL *ssl, void *buffer, u16_t bytes)
 		}
 #endif
 		ERR_clear_error();
+		pthread_mutex_lock(Mutex);
 		nb = SSL_read(ssl, (u8_t*) buffer + read, bytes - read);
+		pthread_mutex_unlock(Mutex);
 		if (nb <= 0) {
 			LOG_WARN("[s-%p]: SSL error code %d (err:%d)", ssl, SSL_get_error(ssl, nb), ERR_get_error());
 			return false;
@@ -192,14 +194,20 @@ bool read_bytes(SSL *ssl, void *buffer, u16_t bytes)
 
 
 /*----------------------------------------------------------------------------*/
-bool write_bytes(SSL *ssl, void *buffer, u16_t bytes)
+bool write_bytes(pthread_mutex_t *Mutex, SSL *ssl, void *buffer, u16_t bytes)
 {
-	return SSL_write(ssl, buffer, bytes) > 0;
+	bool ret;
+
+	pthread_mutex_lock(Mutex);
+	ret = SSL_write(ssl, buffer, bytes) > 0;
+	pthread_mutex_unlock(Mutex);
+
+	return ret;
 }
 
 
 /*----------------------------------------------------------------------------*/
-bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...)
+bool SendCastMessage(struct sCastCtx *Ctx, char *ns, char *dest, char *payload, ...)
 {
 	CastMessage message = CastMessage_init_default;
 	pb_ostream_t stream;
@@ -209,7 +217,7 @@ bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...)
 	u32_t len;
 	va_list args;
 
-	if (!ssl) return false;
+	if (!Ctx->ssl) return false;
 
 	va_start(args, payload);
 
@@ -223,13 +231,13 @@ bool SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...)
 	len = stream.bytes_written;
 	swap32(&len);
 
-	status &= write_bytes(ssl, &len, 4);
-	status &= write_bytes(ssl, buffer, stream.bytes_written);
+	status &= write_bytes(&Ctx->sslMutex, Ctx->ssl, &len, 4);
+	status &= write_bytes(&Ctx->sslMutex, Ctx->ssl, buffer, stream.bytes_written);
 
 	free(buffer);
 
 	if (!stristr(message.payload_utf8, "PING")) {
-		LOG_DEBUG("[%p]: Cast sending: %s", ssl, message.payload_utf8);
+		LOG_DEBUG("[%p]: Cast sending: %s", Ctx->ssl, message.payload_utf8);
 	}
 
 	return status;
@@ -250,18 +258,18 @@ bool DecodeCastMessage(u8_t *buffer, u16_t len, CastMessage *msg)
 
 
 /*----------------------------------------------------------------------------*/
-bool GetNextMessage(SSL *ssl, CastMessage *message)
+bool GetNextMessage(pthread_mutex_t *Mutex, SSL *ssl, CastMessage *message)
 {
 	bool status;
 	u32_t len;
 	u8_t *buf;
 
 	// the SSL might just have been closed by another thread
-	if (!ssl || !read_bytes(ssl, &len, 4)) return false;
+	if (!ssl || !read_bytes(Mutex, ssl, &len, 4)) return false;
 
 	swap32(&len);
 	if ((buf = malloc(len))== NULL) return false;
-	status = read_bytes(ssl, buf, len);
+	status = read_bytes(Mutex, ssl, buf, len);
 	status &= DecodeCastMessage(buf, len, message);
 	free(buf);
 	return status;
@@ -303,7 +311,7 @@ bool LaunchReceiver(tCastCtx *Ctx)
 		case CAST_CONNECTED:
 			Ctx->Status = CAST_LAUNCHING;
 			Ctx->waitId = Ctx->reqId++;
-			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
 
 			LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
 			break;
@@ -375,7 +383,7 @@ bool CastConnect(struct sCastCtx *Ctx)
 
 	Ctx->Status = CAST_CONNECTING;
 	Ctx->lastPong = gettime_ms();
-	SendCastMessage(Ctx->ssl, CAST_CONNECTION, NULL, "{\"type\":\"CONNECT\"}");
+	SendCastMessage(Ctx, CAST_CONNECTION, NULL, "{\"type\":\"CONNECT\"}");
 	pthread_mutex_unlock(&Ctx->Mutex);
 
 	return true;
@@ -420,7 +428,7 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 {
 	if (Volume > 100) Volume = 100;
 
-	SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+	SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
 						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
 						Ctx->reqId++, Ctx->mediaSessionId, (double) Volume / 100.0);
 }
@@ -450,6 +458,7 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 	pthread_mutex_init(&Ctx->Mutex, &mutexAttr);
 	pthread_mutexattr_destroy(&mutexAttr);
 	pthread_mutex_init(&Ctx->eventMutex, 0);
+	pthread_mutex_init(&Ctx->sslMutex, 0);
 	pthread_cond_init(&Ctx->eventCond, 0);
 
 	pthread_create(&Ctx->Thread, NULL, &CastSocketThread, Ctx);
@@ -460,10 +469,8 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 
 
 /*----------------------------------------------------------------------------*/
-void UpdateCastDevice(void *p, struct in_addr ip, u16_t port)
+void UpdateCastDevice(struct sCastCtx *Ctx, struct in_addr ip, u16_t port)
 {
-	tCastCtx *Ctx = p;
-
 	if (Ctx->port != port || Ctx->ip.s_addr != ip.s_addr) {
 		LOG_INFO("[%p]: changed ip:port %s:%d", Ctx, inet_ntoa(ip), port);
 		pthread_mutex_lock(&Ctx->Mutex);
@@ -476,10 +483,8 @@ void UpdateCastDevice(void *p, struct in_addr ip, u16_t port)
 
 
 /*----------------------------------------------------------------------------*/
-void DeleteCastDevice(void *p)
+void DeleteCastDevice(struct sCastCtx *Ctx)
 {
-	tCastCtx *Ctx = p;
-
 	pthread_mutex_lock(&Ctx->Mutex);
 	Ctx->running = false;
 	CastDisconnect(Ctx);
@@ -488,6 +493,7 @@ void DeleteCastDevice(void *p)
 	pthread_join(Ctx->Thread, NULL);
 	pthread_cond_destroy(&Ctx->eventCond);
 	pthread_mutex_destroy(&Ctx->eventMutex);
+	pthread_mutex_destroy(&Ctx->sslMutex);
 	LOG_INFO("[%p]: Cast device stopped", Ctx->owner);
 	free(Ctx);
 }
@@ -517,7 +523,7 @@ void ProcessQueue(tCastCtx *Ctx) {
 
 		LOG_INFO("[%p]: Processing GET_MEDIA_STATUS (id:%u)", Ctx->owner, Ctx->waitId);
 
-		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
 			"{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}",
 			Ctx->waitId, Ctx->mediaSessionId);
 	}
@@ -527,7 +533,7 @@ void ProcessQueue(tCastCtx *Ctx) {
 
 		LOG_INFO("[%p]: Processing GET_STATUS (id:%u)", Ctx->owner, Ctx->waitId);
 
-		SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->waitId);
+		SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->waitId);
 	}
 
 	if (!strcasecmp(item->Type, "SET_VOLUME")) {
@@ -536,12 +542,12 @@ void ProcessQueue(tCastCtx *Ctx) {
 		LOG_INFO("[%p]: Processing VOLUME (id:%u)", Ctx->owner, Ctx->waitId);
 
 		if (item->data.Volume) {
-			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
 							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%f}}",
 							Ctx->waitId, (float) item->data.Volume / 100.0);
 		}
 		else {
-			SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL,
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
 							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
 							Ctx->waitId);
 		}
@@ -553,7 +559,7 @@ void ProcessQueue(tCastCtx *Ctx) {
 
 			LOG_INFO("[%p]: Processing %s (id:%u)", Ctx->owner, item->Type, Ctx->waitId);
 
-			SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId,
+			SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
 							"{\"type\":\"%s\",\"requestId\":%d,\"mediaSessionId\":%d}",
 							item->Type, Ctx->waitId, Ctx->mediaSessionId);
 		}
@@ -578,7 +584,7 @@ void ProcessQueue(tCastCtx *Ctx) {
 						"media", msg);
 
 		str = json_dumps(msg, JSON_ENCODE_ANY | JSON_INDENT(1));
-		SendCastMessage(Ctx->ssl, CAST_MEDIA, Ctx->transportId, str);
+		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId, str);
 		NFREE(str);
 
 		json_decref(msg);
@@ -604,7 +610,7 @@ static void *CastPingThread(void *args)
 
 			// ping SSL connection
 			if (Ctx->ssl) {
-				SendCastMessage(Ctx->ssl, CAST_BEAT, NULL, "{\"type\":\"PING\"}");
+				SendCastMessage(Ctx, CAST_BEAT, NULL, "{\"type\":\"PING\"}");
 				if (now - Ctx->lastPong > 15000) {
 					LOG_INFO("[%p]: No response to ping", Ctx);
 					CastDisconnect(Ctx);
@@ -612,7 +618,7 @@ static void *CastPingThread(void *args)
 			}
 
 			// then ping RECEIVER connection
-			if (Ctx->Status == CAST_LAUNCHED) SendCastMessage(Ctx->ssl, CAST_BEAT, Ctx->transportId, "{\"type\":\"PING\"}");
+			if (Ctx->Status == CAST_LAUNCHED) SendCastMessage(Ctx, CAST_BEAT, Ctx->transportId, "{\"type\":\"PING\"}");
 
 			pthread_mutex_unlock(&Ctx->Mutex);
 			last = now;
@@ -647,7 +653,7 @@ static void *CastSocketThread(void *args)
 		}
 
 		// this SSL access is not mutex protected, but it should be fine
-		if (!GetNextMessage(Ctx->ssl, &Message)) {
+		if (!GetNextMessage(&Ctx->sslMutex, Ctx->ssl, &Message)) {
 			LOG_WARN("[%p]: SSL connection closed", Ctx);
 			CastDisconnect(Ctx);
 			continue;
@@ -679,7 +685,7 @@ static void *CastSocketThread(void *args)
 
 			// respond to device ping
 			if (!strcasecmp(str,"PING")) {
-				SendCastMessage(Ctx->ssl, CAST_BEAT, Message.source_id, "{\"type\":\"PONG\"}");
+				SendCastMessage(Ctx, CAST_BEAT, Message.source_id, "{\"type\":\"PONG\"}");
 				json_decref(root);
 				forward = false;
 			}
@@ -691,7 +697,7 @@ static void *CastSocketThread(void *args)
 				if (Ctx->Status == CAST_AUTOLAUNCH) {
 					Ctx->Status = CAST_LAUNCHING;
 					Ctx->waitId = Ctx->reqId++;
-					SendCastMessage(Ctx->ssl, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
+					SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
 					LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
 				} else if (Ctx->Status == CAST_CONNECTING) Ctx->Status = CAST_CONNECTED;
 
@@ -702,7 +708,7 @@ static void *CastSocketThread(void *args)
 			LOG_SDEBUG("[%p]: recvID %u (waitID %u)", Ctx, requestId, Ctx->waitId);
 
 			// expected request acknowledge
-			if (Ctx->waitId && Ctx->waitId <= requestId) {
+			if (Ctx->waitId && Ctx->waitId == requestId) {
 
 				// receiver status before connection is fully established
 				if (!strcasecmp(str,"RECEIVER_STATUS") && Ctx->Status == CAST_LAUNCHING) {
@@ -718,7 +724,7 @@ static void *CastSocketThread(void *args)
 					if (Ctx->sessionId && Ctx->transportId) {
 						Ctx->Status = CAST_LAUNCHED;
 						LOG_INFO("[%p]: Receiver launched", Ctx->owner);
-						SendCastMessage(Ctx->ssl, CAST_CONNECTION, Ctx->transportId,
+						SendCastMessage(Ctx, CAST_CONNECTION, Ctx->transportId,
 									"{\"type\":\"CONNECT\",\"origin\":{}}");
 					}
 

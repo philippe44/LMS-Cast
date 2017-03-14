@@ -1,6 +1,10 @@
 0.2.6.4
  - Queue everything, including media status requests
- - SSL and select() usage was broken, use SSL_pending instead
+ - SSL and select() usage was broken, use SSL_pending instead ==> makes the playe much more snappy
+ - (dev-2) clean some code in cast_util.c and castcore.c
+ - (dev-2) do not queue status request
+ - (dev-2) wait for exact waitId 
+
 
 0.2.6.3
  - do not remove missing player when remove_count is set to 0

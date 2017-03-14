@@ -59,7 +59,7 @@ typedef struct sCastCtx {
 	sockfd 			sock;
 	int				reqId, waitId, waitMedia;
 	pthread_t 		Thread, PingThread;
-	pthread_mutex_t	Mutex, eventMutex;
+	pthread_mutex_t	Mutex, eventMutex, sslMutex;
 	pthread_cond_t	eventCond;
 	char 			*sessionId, *transportId;
 	int				mediaSessionId;
@@ -80,7 +80,7 @@ typedef struct {
 	} data;
 } tReqItem;
 
-bool 	SendCastMessage(SSL *ssl, char *ns, char *dest, char *payload, ...);
+bool 	SendCastMessage(struct sCastCtx *Ctx, char *ns, char *dest, char *payload, ...);
 bool 	LaunchReceiver(tCastCtx *Ctx);
 void 	SetVolume(tCastCtx *Ctx, u8_t Volume);
 void 	CastQueueFlush(tQueue *Queue);

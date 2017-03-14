@@ -71,7 +71,18 @@ void CastGetStatus(struct sCastCtx *Ctx)
 	if (!Ctx) return;
 
 	pthread_mutex_lock(&Ctx->Mutex);
-	SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->waitId);
+	if (!Ctx->waitId) {
+		Ctx->waitId = Ctx->reqId++;
+
+		SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->waitId);
+	}
+	else {
+		tReqItem *req = malloc(sizeof(tReqItem));
+		strcpy(req->Type, "GET_STATUS");
+		QueueInsert(&Ctx->reqQueue, req);
+		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+	}
+
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
@@ -83,11 +94,25 @@ void CastGetMediaStatus(struct sCastCtx *Ctx)
 	if (!Ctx) return;
 
 	pthread_mutex_lock(&Ctx->Mutex);
-	SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
+	if (Ctx->mediaSessionId) {
+		if (!Ctx->waitId) {
+			Ctx->waitId = Ctx->reqId++;
+
+			SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
 					"{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}",
 					Ctx->waitId, Ctx->mediaSessionId);
+		}
+		else {
+			tReqItem *req = malloc(sizeof(tReqItem));
+			strcpy(req->Type, "GET_MEDIA_STATUS");
+			QueueInsert(&Ctx->reqQueue, req);
+			LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+		}
+	}
+
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
+
 
 
 /*----------------------------------------------------------------------------*/
