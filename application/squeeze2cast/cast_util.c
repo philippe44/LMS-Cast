@@ -71,7 +71,7 @@ void CastGetStatus(struct sCastCtx *Ctx)
 	if (!Ctx) return;
 
 	pthread_mutex_lock(&Ctx->Mutex);
-	SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->waitId);
+	SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"GET_STATUS\",\"requestId\":%d}", Ctx->reqId++);
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
@@ -83,9 +83,11 @@ void CastGetMediaStatus(struct sCastCtx *Ctx)
 	if (!Ctx) return;
 
 	pthread_mutex_lock(&Ctx->Mutex);
-	SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
-					"{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}",
-					Ctx->waitId, Ctx->mediaSessionId);
+	if (Ctx->mediaSessionId) {
+		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
+						"{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}",
+						Ctx->reqId++, Ctx->mediaSessionId);
+    }
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
