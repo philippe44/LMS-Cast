@@ -1,3 +1,7 @@
+0.2.6.5
+ - When using LMS as image proxy, artwork_url must be prefixed with http://<server>:<port>
+ - When killed by signal, CastStop was given the wrong argument
+
 0.2.6.4
  - Queue everything, including media status requests
  - SSL and select() usage was broken, use SSL_pending instead ==> makes the playe much more snappy

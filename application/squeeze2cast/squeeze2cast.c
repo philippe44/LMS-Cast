@@ -998,7 +998,7 @@ static void sighandler(int signum) {
 	if (!glGracefullShutdown) {
 		for (i = 0; i < MAX_RENDERERS; i++) {
 			struct sMR *p = &glMRDevices[i];
-			if (p->InUse && p->sqState == SQ_PLAY) CastStop(p);
+			if (p->InUse && p->sqState == SQ_PLAY) CastStop(p->CastCtx);
 		}
 		LOG_INFO("forced exit", NULL);
 		exit(EXIT_SUCCESS);
