@@ -584,7 +584,7 @@ void ProcessQueue(tCastCtx *Ctx) {
 						"media", msg);
 
 		str = json_dumps(msg, JSON_ENCODE_ANY | JSON_INDENT(1));
-		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId, str);
+		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId, "%s", str);
 		NFREE(str);
 
 		json_decref(msg);

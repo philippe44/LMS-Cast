@@ -1,3 +1,6 @@
+0.2.6.6
+ - When payload for device (name or metadata) was containing %s, incorrect string was sent
+ 
 0.2.6.5
  - When using LMS as image proxy, artwork_url must be prefixed with http://<server>:<port>
  - When killed by signal, CastStop was given the wrong argument
