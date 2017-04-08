@@ -1,6 +1,7 @@
-0.2.6.7
+0.2.6.7.1
  - backport some UPnP compatibility for HTTP transfer (no impact as casting using -2 for transfer mode)
  - on Windows, retry sending on CLI command socket as it fails with ENOTCONN sometimes at first send after opening ...
+ - development versions now have an extra digit to enable auto-update
  
 0.2.6.6
  - when payload for device (name or metadata) was containing %s, incorrect string was sent
