@@ -1,3 +1,6 @@
+0.2.7.0.1
+ - big fat cleanup of all old useless squeezelite items (RESAMPLE, DSD, PROCESS, decoder, mode, codecs)
+
 0.2.6.7.1
  - backport some UPnP compatibility for HTTP transfer (no impact as casting using -2 for transfer mode)
  - on Windows, retry sending on CLI command socket as it fails with ENOTCONN sometimes at first send after opening ...

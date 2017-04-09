@@ -75,7 +75,6 @@ log_level	cast_loglevel = lINFO;
 
 tMRConfig			glMRConfig = {
 							-2L,
-							SQ_STREAM,
 							true,
 							false,
 							"",
@@ -105,11 +104,6 @@ sq_dev_param_t glDeviceParam = {
 					 // both are multiple of 3*4(2) for buffer alignement on sample
 					(200 * 1024 * (4*3)),
 					(200 * 1024 * (4*3)),
-					SQ_STREAM,
-					{ 	SQ_RATE_384000, SQ_RATE_352000, SQ_RATE_192000, SQ_RATE_176400,
-						SQ_RATE_96000, SQ_RATE_48000, SQ_RATE_44100,
-						SQ_RATE_32000, SQ_RATE_24000, SQ_RATE_22500, SQ_RATE_16000,
-						SQ_RATE_12000, SQ_RATE_11025, SQ_RATE_8000, 0 },
 					-1,
 					"pcm,aif,flc,mp3",
 					"?",
@@ -207,10 +201,6 @@ static char license[] =
 		   "GNU General Public License for more details.\n\n"
 		   "You should have received a copy of the GNU General Public License\n"
 		   "along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\n"
-#if DSD
-		   "Contains dsd2pcm library Copyright 2009, 2011 Sebastian Gesemann which\n"
-		   "is subject to its own license.\n\n"
-#endif
 	;
 
 /*----------------------------------------------------------------------------*/
@@ -1029,14 +1019,7 @@ bool ParseArgs(int argc, char **argv) {
 		if (strstr("stxdfpib", opt) && optind < argc - 1) {
 			optarg = argv[optind + 1];
 			optind += 2;
-		} else if (strstr("tzZIk"
-#if RESAMPLE
-						  "uR"
-#endif
-#if DSD
-						  "D"
-#endif
-		  , opt)) {
+		} else if (strstr("tzZIk", opt)) {
 			optarg = NULL;
 			optind += 1;
 		}
@@ -1052,16 +1035,6 @@ bool ParseArgs(int argc, char **argv) {
 		case 'b':
 			strcpy(glUPnPSocket, optarg);
 			break;
-#if RESAMPLE
-		case 'u':
-		case 'R':
-			if (optind < argc && argv[optind] && argv[optind][0] != '-') {
-				gl_resample = argv[optind++];
-			} else {
-				gl_resample = "";
-			}
-			break;
-#endif
 		case 'f':
 			glLogFile = optarg;
 			break;
@@ -1084,14 +1057,6 @@ bool ParseArgs(int argc, char **argv) {
 #if LINUX || FREEBSD
 		case 'z':
 			glDaemonize = true;
-			break;
-#endif
-#if DSD
-		case 'D':
-			gl_dop = true;
-			if (optind < argc && argv[optind] && argv[optind][0] != '-') {
-				gl_dop_delay = atoi(argv[optind++]);
-			}
 			break;
 #endif
 		case 'd':

@@ -9,7 +9,7 @@ MDNSSD		= $(BASE)/mdnssd
 VALGRIND	= $(BASE)/valgrind
 UPNP 		= $(BASE)/libupnp/1.6.19
 
-DEFINES 	= -DNO_CODEC -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H
+DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H
 
 vpath %.c $(TOOLS):$(SRC):$(SQUEEZETINY):$(JANSSON)/src:$(NANOPB):$(MDNSSD)
 
@@ -25,7 +25,7 @@ INCLUDE = -I. \
 		  		  
 DEPS	= $(SQUEEZETINY)/squeezedefs.h
 				  
-SOURCES = slimproto.c buffer.c stream.c utils.c output_mr.c decode.c main.c \
+SOURCES = slimproto.c buffer.c stream.c utils.c output_mr.c main.c \
 		  util_common.c cast_util.c util.c webserver.c log_util.c \
 		  castcore.c castmessage.pb.c squeeze2cast.c \
 		  pb_common.c pb_decode.c pb_encode.c dump.c error.c hashtable.c strconv.c \

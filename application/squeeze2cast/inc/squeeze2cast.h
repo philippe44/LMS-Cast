@@ -51,7 +51,6 @@ enum 	eMRstate { STOPPED, PLAYING, PAUSED };
 typedef struct sMRConfig
 {
 	int			StreamLength;		// length of the "fake" file
-	sq_mode_t	ProcessMode;   		// DIRECT, STREAM, FULL
 	bool		Enabled;
 	bool		RoonMode;
 	char		Name[SQ_STR_LENGTH];
