@@ -640,7 +640,7 @@ void *sq_get_info(const char *urn, s32_t *size, char **content_type, char **dlna
 	getinfo from it once the full content has been set, until the player has
 	requested the next file
 	*/
-	if (out->completed) {
+	if (out->read_complete) {
 		*content_type = strdup("audio/unknown");
 		LOG_INFO("[%p]: full file already send, can't re-open", out->owner);
 		return NULL;
@@ -735,18 +735,12 @@ void *sq_open(const char *urn)
 		if (!thread_ctx[i].in_use) continue;
 		if (strstr(urn, thread_ctx[i].out_ctx[0].buf_name)) {
 			out = &thread_ctx[i].out_ctx[0];
-			thread_ctx[i].out_ctx[1].completed = false;
+			thread_ctx[i].out_ctx[1].read_complete = false;
 		}
 		else if (strstr(urn, thread_ctx[i].out_ctx[1].buf_name)) {
 			out = &thread_ctx[i].out_ctx[1];
-			thread_ctx[i].out_ctx[0].completed = false;
+			thread_ctx[i].out_ctx[0].read_complete = false;
 		}
-	}
-
-	// see getinfo comment - but this should not happen
-	if (out && out->completed) {
-		LOG_WARN("[%p]: trying to re-open a completed file (should not be here)", out->owner);
-		out = NULL;
 	}
 
 	if (out) {
@@ -838,7 +832,15 @@ bool sq_close(void *desc)
 		struct thread_ctx_s *ctx = p->owner; 		// for the macro to work ... ugh
 		LOCK_S;LOCK_O;
 		if (p->read_file) fclose(p->read_file);
-		p->read_file = NULL;
+#ifdef EARLY_STMD
+		if (!ctx->out_ctx[(p->idx + 1) & 0x01].write_file && p->read_complete) {
+			ctx->ready_buffering = true;
+			wake_controller(ctx);
+		} else {
+			LOG_INFO("[%p]: Still writing, must wait ctx %d", ctx, (p->idx + 1) & 0x01);
+		}
+#endif
+    	p->read_file = NULL;
 		LOG_INFO("[%p]: read total:%Ld", p->owner, p->read_count_t);
 		p->close_count = p->read_count;
 		p->read_count_t -= p->read_count;
@@ -978,10 +980,13 @@ int sq_read(void *desc, void *dst, unsigned bytes)
 	the connection
 	*/
 	if ((!read_b || ((p->file_size > 0 ) && (p->read_count_t >= p->file_size))) && wait && !p->write_file) {
-		ctx->read_ended = true;
-		// see getinfo comment about lockign context after full read
-		p->completed = true;
+
+		// see getinfo comment about locking context after full read
+		p->read_complete = true;
+#ifndef EARLY_STMD
+		ctx->ready_buffering = true;
 		wake_controller(ctx);
+#endif
 		LOG_INFO("[%p]: read (end of track) w:%d", ctx, wait);
 	}
 
@@ -1175,7 +1180,7 @@ bool sq_run_device(sq_dev_handle_t handle, sq_dev_param_t *param)
 		mutex_create(ctx->out_ctx[i].mutex);
 		ctx->out_ctx[i].owner = ctx;
 		ctx->out_ctx[i].idx = i;
-		ctx->out_ctx[i].completed = false;
+		ctx->out_ctx[i].read_complete = false;
 		strcpy(ctx->out_ctx[i].content_type, "audio/unknown");
 	}
 

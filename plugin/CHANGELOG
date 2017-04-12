@@ -1,3 +1,6 @@
+0.2.7.0.2
+ - improve track transition speed by requesting next track from LMS earlier
+  
 0.2.7.0.1
  - big fat cleanup of all old useless squeezelite items (RESAMPLE, DSD, PROCESS, decoder, mode, codecs)
 

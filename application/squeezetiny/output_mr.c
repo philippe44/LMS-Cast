@@ -789,6 +789,15 @@ static void output_thru_thread(struct thread_ctx_s *ctx) {
 			if (out->file_size == HTTP_BUFFERED) out->file_size = out->write_count_t;
 			out->write_file = NULL;
 
+#ifdef EARLY_STMD
+			if (!ctx->out_ctx[(out->idx + 1) & 0x01].read_file) {
+				ctx->ready_buffering = true;
+				wake_controller(ctx);
+			} else {
+				LOG_INFO("[%p]: Still reading, must wait ctx %d", ctx, (out->idx + 1) & 0x01);
+			}
+#endif
+
 			UNLOCK_S;
 			buf_flush(ctx->streambuf);
 		}
@@ -857,7 +866,7 @@ void output_flush(struct thread_ctx_s *ctx) {
 			remove(buf);
 		}
 
-		ctx->out_ctx[i].completed = false;
+		ctx->out_ctx[i].read_complete = false;
 
 	}
 	UNLOCK_S;UNLOCK_O;
