@@ -1,3 +1,6 @@
+0.2.7.0.3
+ - set UPnP max HTTP/SOAP content *after* stack initialization
+ 
 0.2.7.0.2
  - improve track transition speed by requesting next track from LMS earlier
   
