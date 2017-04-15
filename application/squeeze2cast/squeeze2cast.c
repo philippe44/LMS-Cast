@@ -781,7 +781,6 @@ int Initialize(void)
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 
 	UpnpSetLogLevel(UPNP_ALL);
-	UpnpSetMaxContentLength(60000);
 
 	if (!strstr(glUPnPSocket, "?")) sscanf(glUPnPSocket, "%[^:]:%u", glIPaddress, &glPort);
 
@@ -793,6 +792,8 @@ int Initialize(void)
 		UpnpFinish();
 		return false;
 	}
+
+	UpnpSetMaxContentLength(60000);
 
 	if (!*glIPaddress) strcpy(glIPaddress, UpnpGetServerIpAddress());
 	if (!glPort) glPort = UpnpGetServerPort();
