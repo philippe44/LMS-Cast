@@ -47,26 +47,6 @@ extern log_level	cast_loglevel;
 extern log_level 	util_loglevel;
 static log_level 	*loglevel = &util_loglevel;
 
-/*----------------------------------------------------------------------------*/
-void ExtractIP(const char *URL, in_addr_t *IP)
-{
-	int i;
-	char*p1 = malloc(strlen(URL) + 1);
-	char *p2;
-
-	strcpy(p1, URL);
-	p2 = strtok(p1,"/");
-	p2 = strtok(NULL,"/");
-	strtok(p2, ".");
-	for (i = 0; i < 3; i++) {
-		*((u8_t*) IP + i) = p2 ? atoi(p2) : 0;
-		p2 = strtok(NULL, ".");
-	}
-	strtok(p2, ":");
-	*((u8_t*) IP + 3) = p2 ? atoi(p2) : 0;
-	free(p1);
-}
-
 
 /*----------------------------------------------------------------------------*/
 int pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_t msWait)

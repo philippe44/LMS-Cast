@@ -859,7 +859,7 @@ int Terminate(void)
 /*----------------------------------------------------------------------------*/
 static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group, struct in_addr ip, u16_t port)
 {
-	u32_t mac_size = 6;
+	unsigned long mac_size = 6;
 	pthread_attr_t attr;
 
 	// read parameters from default then config file
@@ -890,7 +890,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
 
 	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size)) {
-		if (group || SendARP(*((in_addr_t*) &ip), INADDR_ANY, Device->sq_config.mac, &mac_size)) {
+		if (group || SendARP(ip.s_addr, INADDR_ANY, Device->sq_config.mac, &mac_size)) {
 			u32_t hash = hash32(UDN);
 
 			LOG_ERROR("[%p]: creating MAC %x", Device, Device->FriendlyName, hash);
