@@ -1,3 +1,7 @@
+0.2.7.2
+ - correct some strings
+ - merge EARLY_STMD and pacing_size modifications 
+
 0.2.7.1
  - clean SendARP
  
