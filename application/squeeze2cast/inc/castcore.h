@@ -1,8 +1,7 @@
 /*
  *  Squeeze2cast - LMS to Cast gateway
  *
- *  Squeezelite : (c) Adrian Smith 2012-2014, triode1@btinternet.com
- *  Additions & gateway : (c) Philippe 2014, philippe_44@outlook.com
+ *  (c) Philippe 2016-2017, philippe_44@outlook.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
