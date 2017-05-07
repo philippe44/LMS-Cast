@@ -102,23 +102,24 @@ static u8_t LMSVolumeMap[101] = {
 
 sq_dev_param_t glDeviceParam = {
 					 // both are multiple of 3*4(2) for buffer alignement on sample
-					(200 * 1024 * (4*3)),
-					(200 * 1024 * (4*3)),
-					-1,
-					"pcm,aif,flc,mp3",
-					"?",
-					SQ_RATE_96000,
-					L24_PACKED_LPCM,
-					FLAC_NORMAL_HEADER,
-					"?",
-					"",
-					-1L,
-					1024*1024L,
-					0,
+					(200 * 1024 * (4*3)),	// stream_buffer_size
+					(200 * 1024 * (4*3)),   // output_buffer_size
+					-1,                     // max_GET_bytes
+					"pcm,aif,flc,mp3",		// codecs
+					"?",                    // server
+					SQ_RATE_96000,          // sample_rate
+					L24_PACKED_LPCM,		// L24_format
+					FLAC_NORMAL_HEADER,     // flac_header
+					"?",        // buffer_dir
+					"",			// name
+					-1L,		// buffer_limit
+					1024*1024L,	// pacing_size
+					false,		// keep_buffer_file
 					{ 0x00,0x00,0x00,0x00,0x00,0x00 },
-					false,
-					true,
-					{ "" },
+					false,		// send_icy
+					false,		// early_STMd
+					{ 	true,	// use_cli
+						"" },   // server
 				} ;
 
 /*----------------------------------------------------------------------------*/
@@ -883,7 +884,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->VolumeStamp = 0;
 	if (Device->Config.RoonMode) {
 		Device->on = true;
-		Device->sq_config.use_cli = false;
+		Device->sq_config.dynamic.use_cli = false;
 	}
 	strcpy(Device->FriendlyName, Name);
 
