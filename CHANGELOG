@@ -1,3 +1,6 @@
+0.2.7.4
+ - Initial server detection should be in slimproto thread, otherwise sq_run_device can block 
+
 0.2.7.3
  - merge early_STMd modifications 
  - Update file headers
