@@ -138,7 +138,7 @@ bool CastLoad(struct sCastCtx *Ctx, char *URI, char *ContentType, struct sq_meta
 						"media", msg);
 
 		str = json_dumps(msg, JSON_ENCODE_ANY | JSON_INDENT(1));
-		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId, str);
+		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId, "%s", str);
 		json_decref(msg);
 		NFREE(str);
 	}
@@ -196,12 +196,17 @@ void CastStop(struct sCastCtx *Ctx)
 	if (Ctx->Status == CAST_LAUNCHED && Ctx->mediaSessionId) {
 		Ctx->waitId = Ctx->reqId++;
 
+#ifndef __VERSION_1_24__
 		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
 						"{\"type\":\"STOP\",\"requestId\":%d,\"mediaSessionId\":%d}",
 						Ctx->waitId, Ctx->mediaSessionId);
+#else
+		SendCastMessage(Ctx, CAST_RECEIVER, NULL,
+						"{\"type\":\"STOP\",\"requestId\":%d,\"sessionId\":%d}", Ctx->waitId, Ctx->mediaSessionId);
+		Ctx->Status = CAST_CONNECTED;
+#endif
 
 		Ctx->mediaSessionId = 0;
-
 	}
 	else {
 		if (Ctx->Status == CAST_LAUNCHING) {

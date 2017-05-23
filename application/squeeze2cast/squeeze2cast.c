@@ -389,7 +389,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 		Event = SQ_STOP;
 	}
 
-	if (!strcasecmp(State, "STOPPED")) {
+	if (!strcasecmp(State, "STOPPED")) {
 		if (Device->State != STOPPED) {
 			LOG_INFO("[%p]: Cast stop", Device);
 			if (Device->NextURI && !Device->Config.AcceptNextURI) {

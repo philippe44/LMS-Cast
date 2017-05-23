@@ -308,11 +308,17 @@ bool LaunchReceiver(tCastCtx *Ctx)
 			Ctx->Status = CAST_AUTOLAUNCH;
 			break;
 		case CAST_CONNECTED:
-			Ctx->Status = CAST_LAUNCHING;
-			Ctx->waitId = Ctx->reqId++;
-			SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
-
-			LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
+			if (!Ctx->waitId) {
+				Ctx->Status = CAST_LAUNCHING;
+				Ctx->waitId = Ctx->reqId++;
+				SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
+				LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
+			} else {
+				tReqItem *req = malloc(sizeof(tReqItem));
+				strcpy(req->Type, "LAUNCH");
+				QueueInsert(&Ctx->reqQueue, req);
+				LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+			 }
 			break;
 		default:
 			LOG_INFO("[%p]: unhandled state %d", Ctx->owner);
@@ -427,9 +433,11 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 {
 	if (Volume > 100) Volume = 100;
 
+	Ctx->waitId = Ctx->reqId++;
+
 	SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
 						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
-						Ctx->reqId++, Ctx->mediaSessionId, (double) Volume / 100.0);
+						Ctx->waitId, Ctx->mediaSessionId, (double) Volume / 100.0);
 }
 
 
@@ -516,6 +524,14 @@ void ProcessQueue(tCastCtx *Ctx) {
 
 	if ((item = QueueExtract(&Ctx->reqQueue)) == NULL) return;
 
+	if (!strcasecmp(item->Type, "LAUNCH")) {
+		Ctx->waitId = Ctx->reqId++;
+		Ctx->Status = CAST_LAUNCHING;
+
+		LOG_INFO("[%p]: Launching receiver %d", Ctx->owner, Ctx->waitId);
+
+		SendCastMessage(Ctx, CAST_RECEIVER, NULL, "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}", Ctx->waitId, DEFAULT_RECEIVER);
+	}
 
 	if (!strcasecmp(item->Type, "GET_MEDIA_STATUS") && Ctx->mediaSessionId) {
 		Ctx->waitId = Ctx->reqId++;
@@ -659,9 +675,11 @@ static void *CastSocketThread(void *args)
 		}
 
 		root = json_loads(Message.payload_utf8, 0, &error);
-		val = json_object_get(root, "requestId");
+		LOG_SDEBUG("[%p]: %s", Ctx->owner, json_dumps(root, JSON_ENCODE_ANY | JSON_INDENT(1)));
 
+		val = json_object_get(root, "requestId");
 		if (json_is_integer(val)) requestId = json_integer_value(val);
+
 		val = json_object_get(root, "type");
 
 		if (json_is_string(val)) {
@@ -678,8 +696,13 @@ static void *CastSocketThread(void *args)
 			LOG_SDEBUG("(s:%s) (d:%s)\n%s", Message.source_id, Message.destination_id, Message.payload_utf8);
 
 			// Connection closed by peer
-			if (!strcasecmp(str,"CLOSE")) {
-				CastDisconnect(Ctx);
+			if (!strcasecmp(str, "CLOSE")) {
+				Ctx->Status = CAST_CONNECTED;
+				Ctx->waitId = 0;
+				ProcessQueue(Ctx);
+#ifdef __VERSION_1_24__
+				forward = false;
+#endif
 			}
 
 			// respond to device ping
@@ -708,6 +731,9 @@ static void *CastSocketThread(void *args)
 
 			// expected request acknowledge
 			if (Ctx->waitId && Ctx->waitId == requestId) {
+
+				// reset waitId, might be set below
+				Ctx->waitId = 0;
 
 				// receiver status before connection is fully established
 				if (!strcasecmp(str,"RECEIVER_STATUS") && Ctx->Status == CAST_LAUNCHING) {
@@ -746,9 +772,7 @@ static void *CastSocketThread(void *args)
 				}
 
 				// must be done at the end, once all parameters have been acquired
-				Ctx->waitId = 0;
-				if (Ctx->Status == CAST_LAUNCHED) ProcessQueue(Ctx);
-
+				if (!Ctx->waitId && Ctx->Status == CAST_LAUNCHED) ProcessQueue(Ctx);
 			}
 
 			pthread_mutex_unlock(&Ctx->Mutex);
