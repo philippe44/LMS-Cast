@@ -1,7 +1,11 @@
+0.2.8.0
+ - Fix for FW 1.24.88047 to stop recever when user stops
+ 
 0.2.7.4
  - Initial server detection should be in slimproto thread, otherwise sq_run_device can block 
  - When receiving media session, the setmediavolume should cause a wait
  - Workaround for FW 1.24.x problem (stop does not stop media session)
+ - ActiveRemote bound to 0.0.0.0
 
 0.2.7.3
  - merge early_STMd modifications 
