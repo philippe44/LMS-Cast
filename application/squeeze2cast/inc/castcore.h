@@ -48,8 +48,6 @@
 #define CAST_CONNECTION "urn:x-cast:com.google.cast.tp.connection"
 #define CAST_MEDIA "urn:x-cast:com.google.cast.media"
 
-#define __VERSION_1_24__
-
 typedef int sockfd;
 
 typedef struct sCastCtx {
@@ -71,6 +69,7 @@ typedef struct sCastCtx {
 	u8_t 			MediaVolume;
 	u32_t			lastPong;
 	bool			group;
+	bool			stopReceiver;
 } tCastCtx;
 
 typedef struct {

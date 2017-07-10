@@ -52,6 +52,7 @@ typedef struct sMRConfig
 	int			StreamLength;		// length of the "fake" file
 	bool		Enabled;
 	bool		RoonMode;
+	bool		StopReceiver;
 	char		Name[SQ_STR_LENGTH];
 	int 		VolumeOnPlay;		// change only volume when playing has started or disable volume commands
 	bool		AcceptNextURI;

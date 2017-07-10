@@ -15,7 +15,7 @@ use Slim::Utils::Log;
 my $prefs = preferences('plugin.castbridge');
 my $log   = logger('plugin.castbridge');
 my @xmlmain = qw(upnp_socket scan_interval scan_timeout log_limit);
-my @xmldevice = qw(name mac buffer_dir buffer_limit sample_rate codecs flac_header enabled remove_count send_metadata volume_on_play send_coverart send_icy stream_pacing_size media_volume server);
+my @xmldevice = qw(name mac buffer_dir buffer_limit sample_rate codecs flac_header enabled remove_count send_metadata volume_on_play send_coverart send_icy stream_pacing_size media_volume server stop_receiver);
 
 sub name { 'PLUGIN_CASTBRIDGE' }
 
@@ -23,88 +23,62 @@ sub page { 'plugins/CastBridge/settings/basic.html' }
 	
 sub handler {
 	my ($class, $client, $params, $callback, @args) = @_;
-
-	my $update;
+	my $process;
 	
 	require Plugins::CastBridge::Squeeze2cast;
 	require Plugins::CastBridge::Plugin;
 			
 	if ($params->{ 'delconfig' }) {
-				
 		my $conf = Plugins::CastBridge::Squeeze2cast->configFile($class);
 		unlink $conf;							
 		$log->info("deleting configuration $conf");
-		
-		#okay, this is hacky, will change in the future, just don't want another indent layer :-(
-		$params->{'saveSettings'} = 0;
-		
-		$update = 1;
-	}
-		
-	if ($params->{ 'genconfig' }) {
-	
-		Plugins::CastBridge::Squeeze2cast->stop;
-		waitEndHandler(\&genConfig, $class, $client, $params, $callback, 30, @args);
-	
-		return undef;
-	}
-	
-	if ($params->{ 'cleanlog' }) {
-				
+	} elsif ($params->{ 'genconfig' }) {
+		$log->info("generating configuration ", Plugins::CastBridge::Squeeze2cast->configFile($class));
+		$process = { cb => \&genConfig };	
+	} elsif ($params->{ 'cleanlog' }) {
 		my $logfile = Plugins::CastBridge::Squeeze2cast->logFile($class);
 		open my $fh, ">", $logfile;
 		print $fh;
 		close $fh;
-		
-		#okay, this is hacky, will change in the future, just don't want another indent layer :-(
-		$params->{'saveSettings'} = 0;
-	}
-	
-	if ($params->{'saveSettings'}) {
-
-		$log->debug("save settings required");
-		
+	} elsif ($params->{'saveSettings'}) {
 		my @bool  = qw(autorun logging autosave eraselog useLMSsocket);
 		my @other = qw(output bin debugs opts);
-		my $skipxml;
+		my $update;
+		
+		$log->debug("save settings required");
 				
 		for my $param (@bool) {
-			
 			my $val = $params->{ $param } ? 1 : 0;
 			
 			if ($val != $prefs->get($param)) {
 					
 				$prefs->set($param, $val);
 				$update = 1;
-					
 			}
 		}
 		
 		# check that the config file name has not changed first
 		for my $param (@other) {
-		
 			if ($params->{ $param } ne $prefs->get($param)) {
-			
 				$prefs->set($param, $params->{ $param });
 				$update = 1;
 			}
 		}
 		
-		if ($params->{ 'configfile' } ne $prefs->get('configfile')) {
+		my $xmlconfig = readconfig($class, KeyAttr => 'device');
 		
+		if ($params->{ 'configfile' } ne $prefs->get('configfile')) {
 			$prefs->set('configfile', $params->{ 'configfile' });
-			$update = 1;
-			$skipxml = 1;
+			if (-e Plugins::CastBridge::Squeeze2cast->configFile($class)) {
+				$update = 0;
+				undef $xmlconfig;
+			} 
 		}	
 		
-		my $xmlconfig = readconfig($class, KeyAttr => 'device');
-				
 		# get XML player configuration if current device has changed in the list
-		if ($xmlconfig and !$skipxml and ($params->{'seldevice'} eq $params->{'prevseldevice'})) {
-		
-			$log->info('Writing XML:', $params->{'seldevice'});
+		if ($xmlconfig && ($params->{'seldevice'} eq $params->{'prevseldevice'})) {
+
 			for my $p (@xmlmain) {
-				
 				next if !defined $params->{ $p };
 				
 				if ($params->{ $p } eq '') {
@@ -118,7 +92,6 @@ sub handler {
 			
 			#save common parameters
 			if ($params->{'seldevice'} eq '.common.') {
-			
 				for my $p (@xmldevice) {
 					if ($params->{ $p } eq '') {
 						delete $xmlconfig->{ common }->{ $p };
@@ -128,13 +101,11 @@ sub handler {
 				}	
 				
 			} else {
-			
 				if ($params->{'deldevice'}) {
 					#delete current device	
 					$log->info(@{$xmlconfig->{'device'}});
 					@{$xmlconfig->{'device'}} = grep $_->{'udn'} ne $params->{'seldevice'}, @{$xmlconfig->{'device'}};
 					$params->{'seldevice'} = '.common.';
-					
 				} else {
 					# save player specific parameters
 					$params->{'devices'} = \@{$xmlconfig->{'device'}};
@@ -147,7 +118,6 @@ sub handler {
 							$device->{ $p } = $params->{ $p };
 						}
 					}	
-					
 				}			
 			}	
 			
@@ -161,24 +131,29 @@ sub handler {
 			
 			$log->info("writing XML config");
 			$log->debug(Dumper($xmlconfig));
-			Plugins::CastBridge::Squeeze2cast->stop;
-			waitEndHandler( sub { XMLout($xmlconfig, RootName => "squeeze2cast", NoSort => 1, NoAttr => 1, OutputFile => Plugins::CastBridge::Squeeze2cast->configFile($class)); }, 
-							$class, $client, $params, $callback, 30, @args);
+			
 			$update = 1;
+		}	
+		
+		if ($update) {
+			my $writeXML = sub {
+				my $conf = Plugins::CastBridge::Squeeze2cast->configFile($class);
+				
+				$log->debug("write file now");
+				XMLout(	$xmlconfig, RootName => "squeeze2cast", NoSort => 1, NoAttr => 1, OutputFile => $conf );
+			};
+			
+			$process = { cb => $writeXML, handler => 1 };
 		}	
 	}
 
 	# something has been updated, XML array is up-to-date anyway, but need to write it
-	if ($update) {
-
-		$log->debug("updating");
-				
+	if ($process) {
+		$log->debug("full processing");
 		Plugins::CastBridge::Squeeze2cast->stop;
-		waitEndHandler(undef, $class, $client, $params, $callback, 30, @args);
-		
-	#no update detected or first time looping
+		waitEndHandler($process, $class, $client, $params, $callback, 30, @args);
 	} else {
-
+		# just re-read config file and update page
 		$log->debug("not updating");
 		$class->handler2($client, $params, $callback, @args);		  
 	}
@@ -187,36 +162,38 @@ sub handler {
 }
 
 sub waitEndHandler	{
-	my ($func, $class, $client, $params, $callback, $wait, @args) = @_;
+	my ($process, $class, $client, $params, $callback, $wait, @args) = @_;
+	my $page;
 	
-	if (Plugins::CastBridge::Squeeze2cast->alive()) {
+	if ( Plugins::CastBridge::Squeeze2cast->alive() ) {
 		$log->debug('Waiting for squeeze2cast to end');
 		$wait--;
 		if ($wait) {
 			Slim::Utils::Timers::setTimer($class, Time::HiRes::time() + 1, sub {
-				waitEndHandler($func, $class, $client, $params, $callback, $wait, @args); });
+				waitEndHandler($process, $class, $client, $params, $callback, $wait, @args); });
 		}		
-
+	} elsif ( defined $process->{cb} ) {
+		$log->debug("helper stopped, processing with callback");
+		$process->{cb}->($class, $client, $params, $callback, @args);
+		$page = $process->{handler};
 	} else {
-		if (defined $func) {
-			$func->($class, $client, $params, $callback, @args);
-		}
-		else {
-			if ($prefs->get('autorun')) {
-				Plugins::CastBridge::Squeeze2cast->start
-			}
+		$page = 1;
+	}
 	
-			$class->handler2($client, $params, $callback, @args);		  
-		}	
+	if ( $page ) {
+		$log->debug("updating page");
+		Plugins::CastBridge::Squeeze2cast->start if $prefs->get('autorun');
+		$class->handler2($client, $params, $callback, @args);		  
 	}
 }
 
 sub genConfig {
 	my ($class, $client, $params, $callback, @args) = @_;
-	
 	my $conf = Plugins::CastBridge::Squeeze2cast->configFile($class);
+	
+	$log->debug("lauching helper to build $conf");
 	Plugins::CastBridge::Squeeze2cast->start( "-i", $conf );
-	waitEndHandler(undef, $class, $client, $params, $callback, 120, @args);
+	waitEndHandler({ cb => undef}, $class, $client, $params, $callback, 120, @args);
 }	
 
 sub handler2 {

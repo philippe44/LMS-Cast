@@ -442,7 +442,7 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 
 
 /*----------------------------------------------------------------------------*/
-void *CreateCastDevice(void *owner, bool group, struct in_addr ip, u16_t port, u8_t MediaVolume)
+void *CreateCastDevice(void *owner, bool group, bool stopReceiver, struct in_addr ip, u16_t port, u8_t MediaVolume)
 {
 	tCastCtx *Ctx = malloc(sizeof(tCastCtx));
 	pthread_mutexattr_t mutexAttr;
@@ -457,6 +457,7 @@ void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
 	Ctx->port		= port;
 	Ctx->MediaVolume  = MediaVolume;
 	Ctx->group 		= group;
+	Ctx->stopReceiver = stopReceiver;
 
 	QueueInit(&Ctx->eventQueue);
 	QueueInit(&Ctx->reqQueue);
@@ -700,9 +701,8 @@ static void *CastSocketThread(void *args)
 				Ctx->Status = CAST_CONNECTED;
 				Ctx->waitId = 0;
 				ProcessQueue(Ctx);
-#ifdef __VERSION_1_24__
-				forward = false;
-#endif
+				// VERSION_1_24
+				if (Ctx->stopReceiver) forward = false;
 			}
 
 			// respond to device ping

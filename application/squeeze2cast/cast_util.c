@@ -196,15 +196,18 @@ void CastStop(struct sCastCtx *Ctx)
 	if (Ctx->Status == CAST_LAUNCHED && Ctx->mediaSessionId) {
 		Ctx->waitId = Ctx->reqId++;
 
-#ifndef __VERSION_1_24__
-		SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"STOP\",\"requestId\":%d,\"mediaSessionId\":%d}",
-						Ctx->waitId, Ctx->mediaSessionId);
-#else
-		SendCastMessage(Ctx, CAST_RECEIVER, NULL,
+		// VERSION_1_24
+		if (Ctx->stopReceiver) {
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
 						"{\"type\":\"STOP\",\"requestId\":%d,\"sessionId\":%d}", Ctx->waitId, Ctx->mediaSessionId);
-		Ctx->Status = CAST_CONNECTED;
-#endif
+			Ctx->Status = CAST_CONNECTED;
+
+		}
+		else {
+			SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
+							"{\"type\":\"STOP\",\"requestId\":%d,\"mediaSessionId\":%d}",
+							Ctx->waitId, Ctx->mediaSessionId);
+		}
 
 		Ctx->mediaSessionId = 0;
 	}

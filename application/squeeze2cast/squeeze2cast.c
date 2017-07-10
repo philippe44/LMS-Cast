@@ -73,9 +73,10 @@ log_level	util_loglevel = lWARN;
 log_level	cast_loglevel = lINFO;
 
 tMRConfig			glMRConfig = {
-							-2L,
-							true,
-							false,
+							-2L,  	// stream_length
+							true,	// enabled
+							false,  // roon_mode
+							false,	// stop_receiver
 							"",
 							1,
 							false,
@@ -352,7 +353,7 @@ static int  Initialize(void);
 			device->Volume = i;
 			LOG_INFO("Volume %d", i);
 
-			if ((now > device->VolumeStamp + 1000 || now < device->VolumeStamp) &&
+			if (((u64_t) now > (u64_t) device->VolumeStamp + 1000) &&
 				(!device->Config.VolumeOnPlay || (device->Config.VolumeOnPlay == 1 && device->sqState == SQ_PLAY)))
 				CastSetDeviceVolume(device->CastCtx, device->Volume);
 
@@ -450,7 +451,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 		*/
 		if (Device->State == PLAYING) {
 			// detect unsollicited pause, but do not confuse it with a fast pause/play
-			if (Device->sqState != SQ_PAUSE && now > Device->sqStamp + 2000) {
+			if (Device->sqState != SQ_PAUSE && (u64_t) now > (u64_t) Device->sqStamp + 2000) {
 				Event = SQ_PAUSE;
 				Param = true;
 			}
@@ -902,7 +903,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	// virtual players duplicate mac address
 	MakeMacUnique(Device);
 
-	Device->CastCtx = CreateCastDevice(Device, Device->Group, ip, port, Device->Config.MediaVolume);
+	Device->CastCtx = CreateCastDevice(Device, Device->Group, Device->Config.StopReceiver, ip, port, Device->Config.MediaVolume);
 
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);

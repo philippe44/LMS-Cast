@@ -271,6 +271,14 @@ PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC
 	EN	This section also controls how LMS volume commands are sent to player. It is possible to apply a scaling factor (0..100)
 	EN	if default is too loud. It is also possible to prevent LMS from sending volume commands when nothing is being played
 
+PLUGIN_CASTBRIDGE_STOPRECEIVER
+	EN	Always unload CC application 
+	
+PLUGIN_CASTBRIDGE_STOPRECEIVER_DESC
+	EN	Chromecast has a bug in FW version 1.24 (corrected starting with 1.25 ) which makes it hang when LMS sends a stop command
+	EN	This is a workaround to stop the application running in the CC device and reload it at every STOP, but it slows down a lot
+	EN	track transition
+	
 PLUGIN_CASTBRIDGE_VOLUMEONPLAY
 	EN	LMS volume changes
 
