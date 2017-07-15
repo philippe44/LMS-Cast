@@ -1,4 +1,4 @@
-0.2.9.0.1
+0.2.9.0
  - Make the 1.24 FW workaround a runtime parameter (corrected in FW 1.25+)
  - Better 32 bits rollover correction
 
