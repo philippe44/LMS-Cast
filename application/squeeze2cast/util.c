@@ -80,82 +80,6 @@ int pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_
 }
 
 
-
-/*----------------------------------------------------------------------------*/
-const char *GetAppIdItem(json_t *root, char* appId, char *item)
-{
-	json_t *elm;
-	int i;
-
-	if ((elm = json_object_get(root, "status")) == NULL) return NULL;
-	if ((elm = json_object_get(elm, "applications")) == NULL) return NULL;
-	for (i = 0; i < json_array_size(elm); i++) {
-		json_t *id, *data = json_array_get(elm, i);
-		id = json_object_get(data, "appId");
-		if (strcasecmp(json_string_value(id), appId)) continue;
-		id = json_object_get(data, item);
-		return json_string_value(id);
-	}
-
-	return NULL;
-}
-
-
-/*----------------------------------------------------------------------------*/
-int GetMediaItem_I(json_t *root, int n, char *item)
-{
-	json_t *elm;
-
-	if ((elm = json_object_get(root, "status")) == NULL) return 0;
-	if ((elm = json_array_get(elm, n)) == NULL) return 0;
-	if ((elm = json_object_get(elm, item)) == NULL) return 0;
-	return json_integer_value(elm);
-}
-
-
-/*----------------------------------------------------------------------------*/
-double GetMediaItem_F(json_t *root, int n, char *item)
-{
-	json_t *elm;
-
-	if ((elm = json_object_get(root, "status")) == NULL) return 0;
-	if ((elm = json_array_get(elm, n)) == NULL) return 0;
-	if ((elm = json_object_get(elm, item)) == NULL) return 0;
-	return json_number_value(elm);
-}
-
-
-/*----------------------------------------------------------------------------*/
-bool GetMediaVolume(json_t *root, int n, double *volume, bool *muted)
-{
-	json_t *elm, *data;
-	*volume = -1;
-	*muted = false;
-
-	if ((elm = json_object_get(root, "status")) == NULL) return false;
-	if ((elm = json_object_get(elm, "volume")) == NULL) return false;
-
-	if ((data = json_object_get(elm, "level")) != NULL) *volume = json_number_value(data);
-	if ((data = json_object_get(elm, "muted")) != NULL) *muted = json_boolean_value(data);
-
-	return true;
-}
-
-
-/*----------------------------------------------------------------------------*/
-const char *GetMediaItem_S(json_t *root, int n, char *item)
-{
-	json_t *elm;
-	const char *str;
-
-	if ((elm = json_object_get(root, "status")) == NULL) return NULL;
-	elm = json_array_get(elm, n);
-	elm = json_object_get(elm, item);
-	str = json_string_value(elm);
-	return str;
-}
-
-
 /*----------------------------------------------------------------------------*/
 void QueueInit(tQueue *queue)
 {
@@ -499,7 +423,7 @@ void SaveConfig(char *name, void *ref, bool full)
 	XMLUpdateNode(doc, common, false, "flac_header", "%d", (int) glDeviceParam.flac_header);
 	XMLUpdateNode(doc, common, false, "send_icy", "%d", (int) glDeviceParam.send_icy);
 	XMLUpdateNode(doc, common, false, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
-	XMLUpdateNode(doc, common, false, "media_volume", "%d", (int) glMRConfig.MediaVolume);
+	XMLUpdateNode(doc, common, false, "media_volume", "%d", (int) (glMRConfig.MediaVolume * 100));
 	XMLUpdateNode(doc, common, false, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
 	XMLUpdateNode(doc, common, false, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
 	XMLUpdateNode(doc, common, false, "remove_count", "%d", (u32_t) glMRConfig.RemoveCount);
@@ -581,7 +505,7 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "keep_buffer_file"))sq_conf->keep_buffer_file = atol(val);
 	if (!strcmp(name, "remove_count"))Conf->RemoveCount = atol(val);
 	if (!strcmp(name, "volume_on_play")) Conf->VolumeOnPlay = atol(val);
-	if (!strcmp(name, "media_volume")) Conf->MediaVolume = atol(val);
+	if (!strcmp(name, "media_volume")) Conf->MediaVolume = atof(val) / 100;
 	if (!strcmp(name, "auto_play")) Conf->AutoPlay = atol(val);
 	if (!strcmp(name, "send_metadata")) Conf->SendMetaData = atol(val);
 	if (!strcmp(name, "send_coverart")) Conf->SendCoverArt = atol(val);

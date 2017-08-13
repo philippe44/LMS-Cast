@@ -1,5 +1,5 @@
 /*
- *  Squeeze2cast - LMS to Cast gateway
+ *  Chromecast protocol handler
  *
  *  (c) Philippe 2016-2017, philippe_44@outlook.com
  *
@@ -25,9 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "squeezedefs.h"
 #include "squeeze2cast.h"
-#include "util_common.h"
 #include "castcore.h"
 
 #include "openssl/crypto.h"
@@ -66,7 +64,7 @@ typedef struct sCastCtx {
 	struct in_addr	ip;
 	u16_t			port;
 	tQueue			eventQueue, reqQueue;
-	u8_t 			MediaVolume;
+	double 			MediaVolume;
 	u32_t			lastPong;
 	bool			group;
 	bool			stopReceiver;
@@ -76,13 +74,13 @@ typedef struct {
 	char Type[32] ;
 	union {
 		json_t *msg;
-		u8_t Volume;
+		double Volume;
 	} data;
 } tReqItem;
 
 bool 	SendCastMessage(struct sCastCtx *Ctx, char *ns, char *dest, char *payload, ...);
 bool 	LaunchReceiver(tCastCtx *Ctx);
-void 	SetVolume(tCastCtx *Ctx, u8_t Volume);
+void 	SetVolume(tCastCtx *Ctx, double Volume);
 void 	CastQueueFlush(tQueue *Queue);
 bool	CastConnect(struct sCastCtx *Ctx);
 void 	CastDisconnect(struct sCastCtx *Ctx);

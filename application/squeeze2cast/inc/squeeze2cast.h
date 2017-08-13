@@ -60,7 +60,7 @@ typedef struct sMRConfig
 	bool		SendCoverArt;
 	int			RemoveCount;
 	bool		AutoPlay;
-	int			MediaVolume;
+	double		MediaVolume;
 } tMRConfig;
 
 
@@ -77,7 +77,7 @@ struct sMR {
 	char			*CurrentURI;
 	char			*NextURI;
 	char			ContentType[SQ_STR_LENGTH];		// a bit patchy ... to buffer next URI
-	sq_metadata_t	MetaData;
+	metadata_t	MetaData;
 	sq_action_t		sqState;
 	u32_t			sqStamp;
 	u32_t			Elapsed;
@@ -90,7 +90,7 @@ struct sMR {
 	void			*CastCtx;
 	ithread_mutex_t Mutex;
 	ithread_t 		Thread;
-	u8_t			Volume;
+	double			Volume;
 	u32_t			VolumeStamp;
 	bool			Group;
 	int				MissingCount;

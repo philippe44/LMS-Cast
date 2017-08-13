@@ -1,5 +1,5 @@
 /*
- *  Squeeze2cast - LMS to Cast gateway
+ * Chromecast protocol handler
  *
  *  (c) Philippe 2016-2017, philippe_44@outlook.com
  *
@@ -20,11 +20,10 @@
 
 #include <stdarg.h>
 
-#include "squeezedefs.h"
-#include "squeeze2cast.h"
-#include "util_common.h"
+
 #include "log_util.h"
 #include "util.h"
+#include "cast_parse.h"
 #include "castcore.h"
 #include "castitf.h"
 
@@ -351,11 +350,7 @@ bool CastConnect(struct sCastCtx *Ctx)
 	set_nosigpipe(Ctx->sock);
 
 	addr.sin_family = AF_INET;
-#if WIN
-	addr.sin_addr.s_addr = Ctx->ip.S_un.S_addr;
-#else
-	addr.sin_addr.s_addr = Ctx->ip.s_addr;
-#endif
+	addr.sin_addr.s_addr = S_ADDR(Ctx->ip);
 	addr.sin_port = htons(Ctx->port);
 
 	err = connect_timeout(Ctx->sock, (struct sockaddr *) &addr, sizeof(addr), 2);
@@ -429,20 +424,20 @@ void CastDisconnect(struct sCastCtx *Ctx)
 
 
 /*----------------------------------------------------------------------------*/
-void SetMediaVolume(tCastCtx *Ctx, u8_t Volume)
+void SetMediaVolume(tCastCtx *Ctx, double Volume)
 {
-	if (Volume > 100) Volume = 100;
+	if (Volume > 1.0) Volume = 1.0;
 
 	Ctx->waitId = Ctx->reqId++;
 
 	SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%lf,\"muted\":false}}",
-						Ctx->waitId, Ctx->mediaSessionId, (double) Volume / 100.0);
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"mediaSessionId\":%d,\"volume\":{\"level\":%0.4lf,\"muted\":false}}",
+						Ctx->waitId, Ctx->mediaSessionId, Volume);
 }
 
 
 /*----------------------------------------------------------------------------*/
-void *CreateCastDevice(void *owner, bool group, bool stopReceiver, struct in_addr ip, u16_t port, u8_t MediaVolume)
+void *CreateCastDevice(void *owner, bool group, bool stopReceiver, struct in_addr ip, u16_t port, double MediaVolume)
 {
 	tCastCtx *Ctx = malloc(sizeof(tCastCtx));
 	pthread_mutexattr_t mutexAttr;
@@ -559,8 +554,14 @@ void ProcessQueue(tCastCtx *Ctx) {
 
 		if (item->data.Volume) {
 			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
-							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%f}}",
-							Ctx->waitId, (float) item->data.Volume / 100.0);
+							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%0.4lf}}",
+							Ctx->waitId, item->data.Volume);
+
+			Ctx->waitId = Ctx->reqId++;
+
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
+							"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":false}}",
+							Ctx->waitId);
 		}
 		else {
 			SendCastMessage(Ctx, CAST_RECEIVER, NULL,

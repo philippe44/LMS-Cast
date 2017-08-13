@@ -63,6 +63,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <memcheck.h>
+#include <strings.h>
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #define max(a,b) (((a) > (b)) ? (a) : (b))
@@ -83,6 +84,7 @@ int SendARP(in_addr_t src, in_addr_t dst, u8_t mac[], unsigned long *size);
 char *strlwr(char *str);
 #define _random(x) random()
 char *GetTempPath(u16_t size, char *path);
+#define S_ADDR(X) X.s_addr
 
 #endif
 
@@ -117,6 +119,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 #define strcasecmp stricmp
 #define _random(x) random(x)
 #define VALGRIND_MAKE_MEM_DEFINED(x,y)
+#define S_ADDR(X) X.S_un.S_addr
 
 #define in_addr_t u32_t
 #define socklen_t int

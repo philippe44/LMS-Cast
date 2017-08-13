@@ -1,5 +1,5 @@
 /*
- *  Squeeze2cast - LMS to Cast gateway
+ *  Chromecast control utils
  *
  *  (c) Philippe 2016-2017, philippe_44@outlook.com
  *
@@ -22,17 +22,14 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "squeezedefs.h"
+#include "platform.h"
 #include "log_util.h"
-#include "util_common.h"
 #include "util.h"
 #include "castcore.h"
 #include "cast_util.h"
-#include "squeeze2cast.h"
 
 extern log_level cast_loglevel;
 static log_level *loglevel = &cast_loglevel;
-
 
 /*----------------------------------------------------------------------------*/
 bool CastIsConnected(void *p)
@@ -92,7 +89,7 @@ void CastGetMediaStatus(struct sCastCtx *Ctx)
 
 
 /*----------------------------------------------------------------------------*/
-bool CastLoad(struct sCastCtx *Ctx, char *URI, char *ContentType, struct sq_metadata_s *MetaData)
+bool CastLoad(struct sCastCtx *Ctx, char *URI, char *ContentType, struct metadata_s *MetaData)
 {
 	json_t *msg;
 	char* str;
@@ -239,18 +236,60 @@ void CastPowerOn(struct sCastCtx *Ctx)
 
 
 /*----------------------------------------------------------------------------*/
-void CastSetDeviceVolume(struct sCastCtx *Ctx, u8_t Volume)
+#if 1
+void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue)
 {
-	if (Ctx->group) Volume = ((u32_t) Volume * Ctx->MediaVolume) / 100;
+	if (Ctx->group) Volume = Volume * Ctx->MediaVolume;
 
-	if (Volume > 100) Volume = 100;
+	if (Volume > 1.0) Volume = 1.0;
+
+	pthread_mutex_lock(&Ctx->Mutex);
+
+	if (Ctx->Status == CAST_LAUNCHED && (!Ctx->waitId || !Queue)) {
+		Ctx->waitId = Ctx->reqId++;
+
+		if (Volume) {
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%0.4lf}}",
+						Ctx->waitId, Volume);
+
+			Ctx->waitId = Ctx->reqId++;
+
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":false}}",
+						Ctx->waitId);
+		} else {
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
+						Ctx->waitId);
+	  }
+
+	}
+	// otherwise queue it for later
+	else {
+		tReqItem *req = malloc(sizeof(tReqItem));
+		strcpy(req->Type, "SET_VOLUME");
+		req->data.Volume = Volume;
+		QueueInsert(&Ctx->reqQueue, req);
+		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+	}
+
+	pthread_mutex_unlock(&Ctx->Mutex);
+}
+/*----------------------------------------------------------------------------*/
+#else
+void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue)
+{
+	if (Ctx->group) Volume = Volume * Ctx->MediaVolume;
+
+	if (Volume > 1.0) Volume = 1.0;
 
 	pthread_mutex_lock(&Ctx->Mutex);
 
 	if (Volume) {
 		SendCastMessage(Ctx, CAST_RECEIVER, NULL,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%f}}",
-						Ctx->reqId++, (float) Volume / 100.0);
+						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%ff}}",
+						Ctx->reqId++, Volume);
 
 		SendCastMessage(Ctx, CAST_RECEIVER, NULL,
 						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":false}}",
@@ -264,6 +303,7 @@ void CastSetDeviceVolume(struct sCastCtx *Ctx, u8_t Volume)
 
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
+#endif
 
 
 /*----------------------------------------------------------------------------*/

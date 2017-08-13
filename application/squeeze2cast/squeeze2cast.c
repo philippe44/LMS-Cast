@@ -82,9 +82,9 @@ tMRConfig			glMRConfig = {
 							false,
 							true,
 							true,
-							3,
-							false,
-							50,
+							3,		// remove_count
+							false,	// autoplay
+							0.5,	// media_volume
 					};
 
 static u8_t LMSVolumeMap[101] = {
@@ -307,7 +307,7 @@ static int  Initialize(void);
 		case SQ_UNPAUSE:
 			if (device->CurrentURI) {
 				if (device->Config.VolumeOnPlay == 1)
-					CastSetDeviceVolume(device->CastCtx, device->Volume);
+					CastSetDeviceVolume(device->CastCtx, device->Volume, false);
 
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
@@ -320,7 +320,7 @@ static int  Initialize(void);
 				device->LocalStartTime = gettime_ms();
 #endif
 				if (device->Config.VolumeOnPlay == 1)
-					CastSetDeviceVolume(device->CastCtx, device->Volume);
+					CastSetDeviceVolume(device->CastCtx, device->Volume, false);
 
 				CastPlay(device->CastCtx);
 				device->sqState = SQ_PLAY;
@@ -344,18 +344,18 @@ static int  Initialize(void);
 		case SQ_SEEK:
 			break;
 		case SQ_VOLUME: {
-			u32_t Volume = *(u16_t*)p;
+			u16_t Volume = *(u16_t*)p;
 			u32_t now = gettime_ms();
 			int i;
 
 			for (i = 100; Volume < LMSVolumeMap[i] && i; i--);
 
-			device->Volume = i;
+			device->Volume = i / 100;
 			LOG_INFO("Volume %d", i);
 
-			if (((u64_t) now > (u64_t) device->VolumeStamp + 1000) &&
+			if ((device->VolumeStamp + 1000 - now > 0x7fffffff) &&
 				(!device->Config.VolumeOnPlay || (device->Config.VolumeOnPlay == 1 && device->sqState == SQ_PLAY)))
-				CastSetDeviceVolume(device->CastCtx, device->Volume);
+				CastSetDeviceVolume(device->CastCtx, device->Volume, false);
 
 			break;
 		}
@@ -451,7 +451,7 @@ void SyncNotifState(const char *State, struct sMR* Device)
 		*/
 		if (Device->State == PLAYING) {
 			// detect unsollicited pause, but do not confuse it with a fast pause/play
-			if (Device->sqState != SQ_PAUSE && (u64_t) now > (u64_t) Device->sqStamp + 2000) {
+			if (Device->sqState != SQ_PAUSE && (Device->sqStamp + 2000 - now > 0x7fffffff)) {
 				Event = SQ_PAUSE;
 				Param = true;
 			}
@@ -481,7 +481,7 @@ static void *MRThread(void *args)
 	unsigned last;
 	struct sMR *p = (struct sMR*) args;
 	json_t *data;
-	u16_t Volume = 0xff;
+	double Volume = -1;
 
 	last = gettime_ms();
 
@@ -530,7 +530,7 @@ static void *MRThread(void *args)
 					u32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
 #if !defined(REPOS_TIME)
 					// LMS reposition time can be a bit BEFORE seek time ...
-					if (elapsed > gettime_ms() - p->LocalStartTime + 5000) {
+					if (gettime_ms() - p->LocalStartTime + 5000 - elapsed > 0x7fffffff) {
 						if (elapsed > p->StartTime)	elapsed -= p->StartTime;
 						else elapsed = 0;
 					}
@@ -540,24 +540,23 @@ static void *MRThread(void *args)
 
 			}
 
-			// check for volume at the receiver level, but only record the change
+    		// check for volume at the receiver level, but only record the change
 			if (type && !strcasecmp(type, "RECEIVER_STATUS")) {
 				double volume;
 				bool muted;
 
 				if (!p->Group && GetMediaVolume(data, 0, &volume, &muted)) {
-					u16_t vol = volume * 100 + 0.5;
-					if (volume != -1 && !muted && vol != p->Volume) Volume = vol;
+					if (volume != -1 && !muted && volume != p->Volume) Volume = volume;
 				}
 			}
 
-			// now apply the volume change if any and if "filtering" has been made
-			if (Volume != 0xff && Volume != p->Volume)
+			// now apply the volume change if any
+			if (Volume != -1 && fabs(Volume - p->Volume) >= 0.01)
 			{
 				p->VolumeStamp = gettime_ms();
-				LOG_INFO("[%p]: Volume local change %d", p, Volume);
+				LOG_INFO("[%p]: Volume local change %0.4lf", p, Volume);
 				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
-				Volume = 0xff;
+				Volume = -1;
 			}
 
 			// Cast devices has closed the connection

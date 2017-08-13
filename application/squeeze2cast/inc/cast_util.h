@@ -1,5 +1,5 @@
 /*
- *  Squeeze2upnp - LMS to uPNP gateway
+ *  Chromecast control utils
  *
  *  (c) Philippe 2016-2017, philippe_44@outlook.com
  *
@@ -21,8 +21,6 @@
 #ifndef __CAST_UTIL_H
 #define __CAST_UTIL_H
 
-#include "util_common.h"
-
 typedef enum { CAST_PLAY, CAST_PAUSE, CAST_STOP } tCastAction;
 
 struct sq_metadata_s;
@@ -39,8 +37,8 @@ void 	CastStop(struct sCastCtx *Ctx);
 #define CastPlay(Ctx)	CastSimple(Ctx, "PLAY")
 #define CastPause(Ctx)	CastSimple(Ctx, "PAUSE")
 void 	CastSimple(struct sCastCtx *Ctx, char *Type);
-bool	CastLoad(struct sCastCtx *Ctx, char *URI, char *ContentType, struct sq_metadata_s *MetaData);
-void 	CastSetDeviceVolume(struct sCastCtx *p, u8_t Volume);
+bool	CastLoad(struct sCastCtx *Ctx, char *URI, char *ContentType, struct metadata_s *MetaData);
+void 	CastSetDeviceVolume(struct sCastCtx *p, double Volume, bool Queue);
 
 #endif
 

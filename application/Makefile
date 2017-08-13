@@ -27,7 +27,7 @@ DEPS	= $(SQUEEZETINY)/squeezedefs.h
 				  
 SOURCES = slimproto.c buffer.c stream.c utils.c output_mr.c main.c \
 		  util_common.c cast_util.c util.c webserver.c log_util.c \
-		  castcore.c castmessage.pb.c squeeze2cast.c \
+		  castcore.c cast_parse.c castmessage.pb.c squeeze2cast.c \
 		  pb_common.c pb_decode.c pb_encode.c dump.c error.c hashtable.c strconv.c \
 		  hashtable_seed.c load.c memory.c pack_unpack.c strbuffer.c utf.c value.c \
 	  	  mdnssd-min.c
