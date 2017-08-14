@@ -135,10 +135,11 @@ sub handler {
 			$update = 1;
 		}	
 		
-		if ($xmlconfig && $update) {
+		if ($update) {
 			my $writeXML = sub {
 				my $conf = Plugins::CastBridge::Squeeze2cast->configFile($class);
 				
+				return if !$xmlconfig;
 				$log->debug("write file now");
 				XMLout(	$xmlconfig, RootName => "squeeze2cast", NoSort => 1, NoAttr => 1, OutputFile => $conf );
 			};
