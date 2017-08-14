@@ -1,5 +1,6 @@
 0.2.10.0.1 
  - Volume can be queued
+ - Volume is double
  - Reorganize code for AirConnect compatibility
  
 0.2.9.1.1

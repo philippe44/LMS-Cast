@@ -350,7 +350,7 @@ static int  Initialize(void);
 
 			for (i = 100; Volume < LMSVolumeMap[i] && i; i--);
 
-			device->Volume = i / 100;
+			device->Volume = (double) i / 100;
 			LOG_INFO("Volume %d", i);
 
 			if ((device->VolumeStamp + 1000 - now > 0x7fffffff) &&
