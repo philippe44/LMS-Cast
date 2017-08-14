@@ -239,7 +239,6 @@ void CastPowerOn(struct sCastCtx *Ctx)
 #if 1
 void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue)
 {
-//	return;
 	if (Ctx->group) Volume = Volume * Ctx->MediaVolume;
 
 	if (Volume > 1.0) Volume = 1.0;

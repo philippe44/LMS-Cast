@@ -579,6 +579,9 @@ void ProcessQueue(tCastCtx *Ctx) {
 							"{\"type\":\"%s\",\"requestId\":%d,\"mediaSessionId\":%d}",
 							item->Type, Ctx->waitId, Ctx->mediaSessionId);
 		}
+		else {
+			LOG_WARN("[%p]: PLAY un-queued but no media session", Ctx->owner);
+		}
 	}
 
 	if (!strcasecmp(item->Type, "LOAD")) {
@@ -763,9 +766,8 @@ static void *CastSocketThread(void *args)
 						LOG_INFO("[%p]: Media session id %d", Ctx->owner, Ctx->mediaSessionId);
 						// set media volume when session is re-connected
 						SetMediaVolume(Ctx, Ctx->MediaVolume);
-					} else {
-						printf ("WTF");
 					}
+
 					// Don't need to forward this, no valuable info
 					forward = false;
 				}
