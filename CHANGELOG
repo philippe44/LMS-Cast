@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 0.2.10.0.1 
  - Volume can be queued
  - Volume is double
@@ -6,6 +7,8 @@
 0.2.9.1.1
  - another silly mistake in 32 bits timer comparison :-(
 
+=======
+>>>>>>> parent of 024b749... 0.2.10.0.1
 0.2.9.0
  - Make the 1.24 FW workaround a runtime parameter (corrected in FW 1.25+)
  - Better 32 bits rollover correction

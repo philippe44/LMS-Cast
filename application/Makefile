@@ -1,4 +1,5 @@
 BASE		= ..
+OS 			:= $(shell uname)
 
 TOOLS		= ./tools
 SRC			= ./squeeze2cast
@@ -10,6 +11,14 @@ VALGRIND	= $(BASE)/valgrind
 UPNP 		= $(BASE)/libupnp/1.6.19
 
 DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H
+
+CFLAGS 		+= -fdata-sections -ffunction-sections 
+
+ifeq ($(OS),Darwin)
+LDFLAGS 	+= -Wl,-dead_strip
+else
+LDFLAGS 	+= -Wl,--gc-sections
+endif
 
 vpath %.c $(TOOLS):$(SRC):$(SQUEEZETINY):$(JANSSON)/src:$(NANOPB):$(MDNSSD)
 
