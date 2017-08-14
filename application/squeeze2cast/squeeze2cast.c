@@ -555,7 +555,7 @@ static void *MRThread(void *args)
 			{
 				u16_t VolFix = Volume * 100 + 0.5;
 				p->VolumeStamp = gettime_ms();
-				LOG_INFO("[%p]: Volume local change %0.4lf (%u)", p, Volume, VolFix);
+				LOG_INFO("[%p]: Volume local change %u (%0.4lf)", p, VolFix, Volume);
 				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &VolFix);
 				Volume = -1;
 			}
