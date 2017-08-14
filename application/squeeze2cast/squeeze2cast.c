@@ -540,7 +540,7 @@ static void *MRThread(void *args)
 
 			}
 
-    		// check for volume at the receiver level, but only record the change
+			// check for volume at the receiver level, but only record the change
 			if (type && !strcasecmp(type, "RECEIVER_STATUS")) {
 				double volume;
 				bool muted;
@@ -553,9 +553,10 @@ static void *MRThread(void *args)
 			// now apply the volume change if any
 			if (Volume != -1 && fabs(Volume - p->Volume) >= 0.01)
 			{
+				u16_t VolFix = Volume * 100 + 0.5;
 				p->VolumeStamp = gettime_ms();
-				LOG_INFO("[%p]: Volume local change %0.4lf", p, Volume);
-				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &Volume);
+				LOG_INFO("[%p]: Volume local change %0.4lf (%u)", p, Volume, VolFix);
+				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &VolFix);
 				Volume = -1;
 			}
 
