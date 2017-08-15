@@ -606,6 +606,26 @@ void ProcessQueue(tCastCtx *Ctx) {
 		json_decref(msg);
    }
 
+	if (!strcasecmp(item->Type, "STOP")) {
+
+		Ctx->waitId = Ctx->reqId++;
+
+		// version 1.24
+		if (Ctx->stopReceiver) {
+			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
+						"{\"type\":\"STOP\",\"requestId\":%d,\"sessionId\":%d}", Ctx->waitId, Ctx->mediaSessionId);
+			Ctx->Status = CAST_CONNECTED;
+
+		}
+		else {
+			SendCastMessage(Ctx, CAST_MEDIA, Ctx->transportId,
+							"{\"type\":\"STOP\",\"requestId\":%d,\"mediaSessionId\":%d}",
+							Ctx->waitId, Ctx->mediaSessionId);
+		}
+
+		Ctx->mediaSessionId = 0;
+	}
+
    free(item);
 }
 

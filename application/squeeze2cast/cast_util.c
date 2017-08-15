@@ -189,11 +189,15 @@ void CastStop(struct sCastCtx *Ctx)
 {
 	// lock on wait for a Cast response
 	pthread_mutex_lock(&Ctx->Mutex);
+
 	CastQueueFlush(&Ctx->reqQueue);
-	if (Ctx->Status == CAST_LAUNCHED && Ctx->mediaSessionId) {
+
+	// if a session is active, stop can be sent-immediately
+	if (Ctx->mediaSessionId) {
+
 		Ctx->waitId = Ctx->reqId++;
 
-		// VERSION_1_24
+		// version 1.24
 		if (Ctx->stopReceiver) {
 			SendCastMessage(Ctx, CAST_RECEIVER, NULL,
 						"{\"type\":\"STOP\",\"requestId\":%d,\"sessionId\":%d}", Ctx->waitId, Ctx->mediaSessionId);
@@ -207,14 +211,22 @@ void CastStop(struct sCastCtx *Ctx)
 		}
 
 		Ctx->mediaSessionId = 0;
-	}
-	else {
-		if (Ctx->Status == CAST_LAUNCHING) {
+
+	// waiting for a session, need to queue the stop
+	} else if (Ctx->waitMedia) {
+
+		tReqItem *req = malloc(sizeof(tReqItem));
+		strcpy(req->Type, "STOP");
+		QueueInsert(&Ctx->reqQueue, req);
+		LOG_INFO("[%p]: Queuing %s", Ctx->owner, req->Type);
+
+	// launching happening, just go back to CONNECT mode
+	} else if (Ctx->Status == CAST_LAUNCHING) {
 			Ctx->Status = CAST_CONNECTED;
 			LOG_WARN("[%p]: Stop while still launching receiver", Ctx->owner);
-		} else {
-			LOG_WARN("[%p]: Stop w/o session or connect", Ctx->owner);
-		}
+	// a random stop
+	} else {
+		LOG_WARN("[%p]: Stop w/o session or connect", Ctx->owner);
 	}
 
 	pthread_mutex_unlock(&Ctx->Mutex);
@@ -236,7 +248,6 @@ void CastPowerOn(struct sCastCtx *Ctx)
 
 
 /*----------------------------------------------------------------------------*/
-#if 1
 void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue)
 {
 	if (Ctx->group) Volume = Volume * Ctx->MediaVolume;
@@ -279,34 +290,6 @@ void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue)
 
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
-/*----------------------------------------------------------------------------*/
-#else
-void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue)
-{
-	if (Ctx->group) Volume = Volume * Ctx->MediaVolume;
-
-	if (Volume > 1.0) Volume = 1.0;
-
-	pthread_mutex_lock(&Ctx->Mutex);
-
-	if (Volume) {
-		SendCastMessage(Ctx, CAST_RECEIVER, NULL,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%ff}}",
-						Ctx->reqId++, Volume);
-
-		SendCastMessage(Ctx, CAST_RECEIVER, NULL,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":false}}",
-						Ctx->reqId++);
-	}
-	else {
-		SendCastMessage(Ctx, CAST_RECEIVER, NULL,
-						"{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"muted\":true}}",
-						Ctx->reqId++);
-	}
-
-	pthread_mutex_unlock(&Ctx->Mutex);
-}
-#endif
 
 
 /*----------------------------------------------------------------------------*/

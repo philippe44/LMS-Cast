@@ -1,4 +1,9 @@
+0.2.10.0.3
+ - remove earlySTMD option
+ - read_file needed to declare ready_buffering
+ 
 0.2.10.0.2
+ - Send stop when waiting for media session (a LOAD has been sent)
  - (P) do not save config file if it does not already exist
  
 0.2.10.0.1 
