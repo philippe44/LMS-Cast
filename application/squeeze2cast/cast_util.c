@@ -89,7 +89,7 @@ void CastGetMediaStatus(struct sCastCtx *Ctx)
 
 
 /*----------------------------------------------------------------------------*/
-//#define LOAD_FLUSH
+#define LOAD_FLUSH
 bool CastLoad(struct sCastCtx *Ctx, char *URI, char *ContentType, struct metadata_s *MetaData)
 {
 	json_t *msg;
@@ -279,7 +279,7 @@ void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue)
 	if (Ctx->group) Volume = Volume * Ctx->MediaVolume;
 
 	if (Volume > 1.0) Volume = 1.0;
-
+
 	pthread_mutex_lock(&Ctx->Mutex);
 
 	if (Ctx->Status == CAST_LAUNCHED && (!Ctx->waitId || !Queue)) {
@@ -318,8 +318,7 @@ void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue)
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
-
-/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 int CastSeek(char *ControlURL, unsigned Interval)
 {
 	int rc = 0;
