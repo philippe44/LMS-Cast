@@ -1,3 +1,6 @@
+0.2.10.0.4
+- LOAD over LOAD flushed the queue
+
 0.2.10.0.3
  - remove earlySTMD option
  - read_file needed to declare ready_buffering
