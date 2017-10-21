@@ -1,3 +1,7 @@
+0.2.10.1
+ - properly stop scan thread
+ - various fixes 
+ 
 0.2.10.0
  - LOAD over LOAD flushed the queue
  - remove earlySTMD option
