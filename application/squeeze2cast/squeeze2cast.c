@@ -61,6 +61,7 @@ static char			*glSaveConfigFile = NULL;
 bool				glAutoSaveConfigFile = false;
 bool				glGracefullShutdown = true;
 int					gl_mDNSId;
+bool				gl_mDNSQuery;
 
 log_level	slimproto_loglevel = lINFO;
 log_level	stream_loglevel = lWARN;
@@ -124,13 +125,11 @@ sq_dev_param_t glDeviceParam = {
 /*----------------------------------------------------------------------------*/
 /* globals */
 /*----------------------------------------------------------------------------*/
-static ithread_t 	glMainThread;
 char				glUPnPSocket[128] = "?";
 unsigned int 		glPort = 0;
 char 				glIPaddress[128] = "";
 void				*glConfigID = NULL;
 char				glConfigName[SQ_STR_LENGTH] = "./config.xml";
-static bool			glDiscovery = false;
 u32_t				glScanInterval = SCAN_INTERVAL;
 u32_t				glScanTimeout = SCAN_TIMEOUT;
 struct sMR			glMRDevices[MAX_RENDERERS];
@@ -144,8 +143,10 @@ struct sMR			glMRDevices[MAX_RENDERERS];
 /*----------------------------------------------------------------------------*/
 
 static log_level 	*loglevel = &main_loglevel;
-ithread_t			glUpdateMRThread;
+pthread_t			glUpdateMRThread;
 static bool			glMainRunning = true;
+static bool			glDiscoveryRunning = false;
+static pthread_t 	glMainThread;
 
 static char usage[] =
 			VERSION "\n"
@@ -157,7 +158,7 @@ static char usage[] =
 		   "  -i <config file>\tdiscover players, save <config file> and exit\n"
 		   "  -I \t\t\tauto save config at every network scan\n"
 		   "  -f <logfile>\t\tWrite debug to logfile\n"
-  		   "  -p <pid file>\t\twrite PID in file\n"
+		   "  -p <pid file>\t\twrite PID in file\n"
 		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|stream|decode|output|web|main|util|cast, level: error|warn|info|debug|sdebug\n"
 #if LINUX || FREEBSD
 		   "  -z \t\t\tDaemonize\n"
@@ -622,12 +623,13 @@ static void *UpdateMRThread(void *args)
 
 	if (!glMainRunning) {
 		LOG_DEBUG("Aborting ...", NULL);
+		glDiscoveryRunning = false;
 		return NULL;
 	}
 
-	query_mDNS(gl_mDNSId, "_googlecast._tcp.local", &DiscDevices, glScanTimeout);
+	query_mDNS(gl_mDNSId, &gl_mDNSQuery, "_googlecast._tcp.local", &DiscDevices, glScanTimeout);
 
-	for (i = 0; i < DiscDevices.count; i++) {
+	for (i = 0; i < DiscDevices.count && glMainRunning; i++) {
 		char *UDN = NULL, *Name = NULL;
 		int j;
 		struct mDNSItem_s *p = &DiscDevices.items[i];
@@ -696,14 +698,15 @@ static void *UpdateMRThread(void *args)
 		RemoveCastDevice(Device);
 	}
 
-	glDiscovery = true;
-
 	if (glAutoSaveConfigFile && !glSaveConfigFile) {
 		LOG_DEBUG("Updating configuration %s", glConfigName);
 		SaveConfig(glConfigName, glConfigID, false);
 	}
 
 	LOG_DEBUG("End Cast devices update %d", gettime_ms() - TimeStamp);
+
+	glDiscoveryRunning = false;
+
 	return NULL;
 }
 
@@ -723,10 +726,8 @@ static void *MainThread(void *args)
 			pthread_attr_t attr;
 			ScanPoll = 0;
 
-			for (i = 0; i < MAX_RENDERERS; i++) {
-				glMRDevices[i].TimeOut = true;
-				glDiscovery = false;
-			}
+			glDiscoveryRunning = true;
+			for (i = 0; i < MAX_RENDERERS; i++) glMRDevices[i].TimeOut = true;
 
 			pthread_attr_init(&attr);
 			pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 32*1024);
@@ -965,10 +966,10 @@ static bool Start(void)
 static bool Stop(void)
 {
 	// this forces an ongoing search to end
-	close_mDNS(gl_mDNSId);
+	close_mDNS(gl_mDNSId, &gl_mDNSQuery);
 
 	LOG_DEBUG("terminate update thread ...", NULL);
-	pthread_join(glUpdateMRThread, NULL);
+	while (glDiscoveryRunning) usleep(50000);
 
 	LOG_DEBUG("flush renderers ...", NULL);
 	FlushCastDevices();
@@ -1179,7 +1180,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (glSaveConfigFile) {
-		while (!glDiscovery) sleep(1);
+		while (glDiscoveryRunning) sleep(1);
 		SaveConfig(glSaveConfigFile, glConfigID, true);
 	}
 

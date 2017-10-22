@@ -1,3 +1,6 @@
+0.2.10.1.2
+- update renderer thread cleaned for better exit
+
 0.2.10.1.1
  - properly stop scan thread
  - various fixes 
