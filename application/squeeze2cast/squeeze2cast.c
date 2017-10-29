@@ -61,7 +61,6 @@ static char			*glSaveConfigFile = NULL;
 bool				glAutoSaveConfigFile = false;
 bool				glGracefullShutdown = true;
 int					gl_mDNSId;
-bool				gl_mDNSQuery;
 
 log_level	slimproto_loglevel = lINFO;
 log_level	stream_loglevel = lWARN;
@@ -147,6 +146,7 @@ pthread_t			glUpdateMRThread;
 static bool			glMainRunning = true;
 static bool			glDiscoveryRunning = false;
 static pthread_t 	glMainThread;
+static bool			gl_mDNSQuery;
 
 static char usage[] =
 			VERSION "\n"
