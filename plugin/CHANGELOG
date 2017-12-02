@@ -1,3 +1,6 @@
+0.2.11.0 
+ - HasDigitalOut =1 so that volume can be fix
+ 
 0.2.10.1
  - update renderer thread cleaned for better exit
  - properly stop scan thread
