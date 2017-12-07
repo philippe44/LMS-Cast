@@ -1174,7 +1174,8 @@ int main(int argc, char *argv[])
 	}
 
 	if (glSaveConfigFile) {
-		while (glDiscoveryRunning) sleep(1);
+		// sleep first to make sure main thread has started
+		do { sleep(1); } while (glDiscoveryRunning) ;
 		SaveConfig(glSaveConfigFile, glConfigID, true);
 	}
 
