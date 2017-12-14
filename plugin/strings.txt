@@ -27,6 +27,9 @@ PLUGIN_CASTBRIDGE_USERGUIDELINK
 	
 PLUGIN_CASTBRIDGE_BINARIES
 	EN	Select Binary
+	
+PLUGIN_CASTBRIDGE_RESTART
+	EN	Restart
 
 PLUGIN_CASTBRIDGE_BINARIES_DESC
 	EN	Select the squeeze2cast binary which best matches your machine's architecture. 
