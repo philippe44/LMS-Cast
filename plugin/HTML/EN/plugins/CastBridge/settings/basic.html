@@ -5,7 +5,6 @@
 		
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_AUTORUN" desc="PLUGIN_CASTBRIDGE_AUTORUN_DESC" %]
 		<input name="autorun" type="checkbox" [% IF autorun %] checked [% END %]> [% "PLUGIN_CASTBRIDGE_RUNNING_$running" | string %] [% IF binary %] ([% binary %]) [% END %]
-		"PLUGIN_UPNPBRIDGE_RUNNING_$running" | string %] [% IF binary %] ([% binary %]) [% END %]
 		[%IF running %] &nbsp<input name="restart" type="submit" value=[% "PLUGIN_CASTBRIDGE_RESTART" | string %]> [% END %]
 		&nbsp&nbsp<b><a href="[% webroot %]castbridge-guide.htm" target="user guide">[% "PLUGIN_CASTBRIDGE_USERGUIDELINK" | string %]</a></b>
 		[%IF running %] <b><font color="red">&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_WARNING" | string %]</font></b> [% END %]
