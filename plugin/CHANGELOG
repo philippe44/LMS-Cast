@@ -1,5 +1,5 @@
 0.2.12.0
-- (1) add a "restart" button
+ - add a "restart" button
 
 0.2.11.1
  - Discovery and exit (-i) could abort without searching
