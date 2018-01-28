@@ -33,17 +33,32 @@
 #include "util_common.h"
 #include "jansson.h"
 
-typedef struct sQueue {
-	struct sQueue *next;
-	void *item;
+typedef struct {
+	pthread_mutex_t	*mutex;
+	void (*cleanup)(void*);
+	struct sQueue_e {
+		struct sQueue_e *next;
+		void 			*item;
+	} list;
 } tQueue;
 
-void 		QueueInit(tQueue *queue);
+typedef struct list_s {
+	struct list_s *next;
+} list_t;
+
+list_t*		push_item(list_t *item, list_t **list);
+list_t*		add_tail_item(list_t *item, list_t **list);
+list_t*		add_ordered_item(list_t *item, list_t **list, int (*compare)(void *a, void *b));
+list_t*		pop_item(list_t **list);
+list_t*   	remove_item(list_t *item, list_t **list);
+void 		clear_list(list_t **list, void (*free_func)(void *));
+
+void 		QueueInit(tQueue *queue, bool mutex, void (*f)(void*));
 void 		QueueInsert(tQueue *queue, void *item);
 void 		*QueueExtract(tQueue *queue);
 void 		QueueFlush(tQueue *queue);
 
-char 		*uPNPEvent2String(Upnp_EventType S);
+char 		*uPNPEvent2String(Upnp_EventType S);
 void 		MakeMacUnique(struct sMR *Device);
 unsigned 	Time2Int(char *Time);
 int			pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_t msWait);
@@ -69,5 +84,10 @@ void	   	*LoadConfig(char *name, tMRConfig *Conf, sq_dev_param_t *sq_conf);
 void	  	*FindMRConfig(void *ref, char *UDN);
 void 	  	*LoadMRConfig(void *ref, char *UDN, tMRConfig *Conf, sq_dev_param_t *sq_conf);
 u8_t 	  	ext2format(char *ext);
+
+#if WIN
+void  		winsock_init(void);
+void		winsock_close(void);
+#endif
 
 #endif

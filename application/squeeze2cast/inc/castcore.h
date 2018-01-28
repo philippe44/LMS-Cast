@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "squeeze2cast.h"
+
 #include "castcore.h"
 
 #include "openssl/crypto.h"

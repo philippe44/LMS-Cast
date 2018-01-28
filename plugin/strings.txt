@@ -128,7 +128,7 @@ PLUGIN_CASTBRIDGE_CONFIG
 PLUGIN_CASTBRIDGE_CONFIG_DESC
 	EN	<i>Generate</i> re-scans the network and builds a configuration file including all discovered players while retaining
 	EN	existing parameters and players (this will stop the bridge for ~30s)
-	EN	<br>When autosave is checked, the configuration file will be automatically updated at every network scan (see mDNS scanning options)
+	EN	<br>When autosave is checked, the configuration file will be automatically updated every time a player connects or disconnects
 
 PLUGIN_CASTBRIDGE_CONFLINK
 	EN	View
@@ -142,12 +142,6 @@ PLUGIN_CASTBRIDGE_AUTOSAVECONFIG
 PLUGIN_CASTBRIDGE_DELCONFIG
 	EN	Erase
 	
-PLUGIN_CASTBRIDGE_SCAN
-	EN	Chromecast device scanning options
-
-PLUGIN_CASTBRIDGE_SCAN_DESC
-	EN	How often and for how long the network is scanned for added/removed Chromecast players on your network
-
 PLUGIN_CASTBRIDGE_UPNPSOCKET
 	EN	Network socket to use
 	
@@ -158,12 +152,6 @@ PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC
 	EN	The socket (IP:port) used by the bridge. This is especially useful if you have a computer with multiple network interfaces.
 	EN	Use "?" (without ") to let the bridge decide or check "use LMS' network interface" to make sure the Bridge uses the same
 	EN	network as LMS
-	
-PLUGIN_CASTBRIDGE_SCANINTERVAL
-	EN	Scan for Chromecast devices every
-	
-PLUGIN_CASTBRIDGE_SCANTIMEOUT
-	EN	during 	
 	
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
@@ -241,18 +229,11 @@ PLUGIN_CASTBRIDGE_MDNSMGMT_DESC
 	EN	Misc options
 	EN	<br>- For the default list newly discovered players can be automatically added to LMS 
 	EN	<br>– For individual players a player can be enabled or disabled
-	EN	<br>- Number of mDNS scan cycles a player can be found missing before being removed
 	EN	<br>- Force LMS server (? for auto-discovery)
 
 PLUGIN_CASTBRIDGE_ENABLEDEFS
 	EN	Player is enabled
 
-PLUGIN_CASTBRIDGE_REMOVECOUNT_1
-	EN	but removed after  
-	
-PLUGIN_CASTBRIDGE_REMOVECOUNT_2
-	EN	failed scans
-	
 PLUGIN_CASTBRIDGE_SENDMETADATA
 	EN	Send LMS metadata to player
 	

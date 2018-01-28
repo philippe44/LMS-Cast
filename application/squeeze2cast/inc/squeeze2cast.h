@@ -58,7 +58,6 @@ typedef struct sMRConfig
 	bool		AcceptNextURI;
 	bool		SendMetaData;
 	bool		SendCoverArt;
-	int			RemoveCount;
 	bool		AutoPlay;
 	double		MediaVolume;
 } tMRConfig;
@@ -66,18 +65,17 @@ typedef struct sMRConfig
 
 struct sMR {
 	u32_t Magic;
-	bool  InUse;
+	bool  Running;
 	tMRConfig Config;
 	sq_dev_param_t	sq_config;
 	bool on;
 	char UDN			[RESOURCE_LENGTH];
 	char FriendlyName	[RESOURCE_LENGTH];
-	struct in_addr 		ip;
 	enum eMRstate 	State;
 	char			*CurrentURI;
 	char			*NextURI;
 	char			ContentType[SQ_STR_LENGTH];		// a bit patchy ... to buffer next URI
-	metadata_t	MetaData;
+	metadata_t		MetaData;
 	sq_action_t		sqState;
 	u32_t			sqStamp;
 	u32_t			Elapsed;
@@ -88,24 +86,22 @@ struct sMR {
 	bool			TimeOut;
 	int	 			SqueezeHandle;
 	void			*CastCtx;
-	ithread_mutex_t Mutex;
-	ithread_t 		Thread;
+	pthread_mutex_t Mutex;
+	pthread_t 		Thread;
 	double			Volume;
 	u32_t			VolumeStamp;
 	bool			Group;
-	int				MissingCount;
-	bool			Running;
+	struct sGroupMember {
+		struct sGroupMember	*Next;
+		struct in_addr		Host;
+		u16_t				Port;
+   } *GroupMaster;
 };
 
-extern unsigned int 		glPort;
-extern char 				glIPaddress[];
 extern char 				glUPnPSocket[];
-extern u8_t		   			glMac[6];
 extern s32_t				glLogLimit;
 extern tMRConfig			glMRConfig;
 extern sq_dev_param_t		glDeviceParam;
-extern u32_t				glScanInterval;
-extern u32_t				glScanTimeout;
 extern struct sMR			glMRDevices[MAX_RENDERERS];
 
 #endif

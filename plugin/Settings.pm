@@ -14,8 +14,8 @@ use Slim::Utils::Log;
 
 my $prefs = preferences('plugin.castbridge');
 my $log   = logger('plugin.castbridge');
-my @xmlmain = qw(upnp_socket scan_interval scan_timeout log_limit);
-my @xmldevice = qw(name mac buffer_dir buffer_limit sample_rate codecs flac_header enabled remove_count send_metadata volume_on_play send_coverart send_icy stream_pacing_size media_volume server stop_receiver);
+my @xmlmain = qw(upnp_socket log_limit);
+my @xmldevice = qw(name mac buffer_dir buffer_limit sample_rate codecs flac_header enabled send_metadata volume_on_play send_coverart send_icy stream_pacing_size media_volume server stop_receiver);
 
 sub name { 'PLUGIN_CASTBRIDGE' }
 

@@ -46,8 +46,27 @@ extern log_level	cast_loglevel;
 extern log_level 	util_loglevel;
 static log_level 	*loglevel = &util_loglevel;
 
+#if WIN
+/*----------------------------------------------------------------------------*/
+void winsock_init(void) {
+	WSADATA wsaData;
+	WORD wVersionRequested = MAKEWORD(2, 2);
+	int WSerr = WSAStartup(wVersionRequested, &wsaData);
+	if (WSerr != 0) {
+		LOG_ERROR("Bad winsock version", NULL);
+		exit(1);
+	}
+}
+
 
 /*----------------------------------------------------------------------------*/
+void winsock_close(void) {
+	WSACleanup();
+}
+#endif
+
+
+/*----------------------------------------------------------------------------*/
 int pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_t msWait)
 {
 	struct timespec ts;
@@ -79,52 +98,173 @@ int pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_
 	return pthread_cond_timedwait(cond, mutex, &ts);
 }
 
+/*----------------------------------------------------------------------------*/
+/* 																			  */
+/* QUEUE management															  */
+/* 																			  */
+/*----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-void QueueInit(tQueue *queue)
+void QueueInit(tQueue *queue, bool mutex, void (*cleanup)(void*))
 {
-	queue->item = NULL;
+	queue->cleanup = cleanup;
+	queue->list.item = NULL;
+	if (mutex) {
+		queue->mutex = malloc(sizeof(pthread_mutex_t));
+		pthread_mutex_init(queue->mutex, NULL);
+	}
+	else queue->mutex = NULL;
 }
 
 /*----------------------------------------------------------------------------*/
 void QueueInsert(tQueue *queue, void *item)
 {
-	while (queue->item)	queue = queue->next;
-	queue->item = item;
-	queue->next = malloc(sizeof(tQueue));
-	queue->next->item = NULL;
+	struct sQueue_e *list;
+
+	if (queue->mutex) pthread_mutex_lock(queue->mutex);
+	list = &queue->list;
+
+	while (list->item) list = list->next;
+	list->item = item;
+	list->next = malloc(sizeof(struct sQueue_e));
+	list->next->item = NULL;
+
+	if (queue->mutex) pthread_mutex_unlock(queue->mutex);
 }
 
 
 /*----------------------------------------------------------------------------*/
 void *QueueExtract(tQueue *queue)
 {
-	void *item = queue->item;
-	tQueue *next = queue->next;
+	void *item;
+	struct sQueue_e *list;
+
+	if (queue->mutex) pthread_mutex_lock(queue->mutex);
+
+	list = &queue->list;
+	item = list->item;
 
 	if (item) {
-		queue->item = next->item;
-		if (next->item) queue->next = next->next;
+		struct sQueue_e *next = list->next;
+		if (next->item) {
+			list->item = next->item;
+			list->next = next->next;
+		} else list->item = NULL;
 		NFREE(next);
 	}
+
+	if (queue->mutex) pthread_mutex_unlock(queue->mutex);
 
 	return item;
 }
 
+
 /*----------------------------------------------------------------------------*/
 void QueueFlush(tQueue *queue)
 {
-	void *item = queue->item;
-	tQueue *next = queue->next;
+	struct sQueue_e *list;
 
-	queue->item = NULL;
+	if (queue->mutex) pthread_mutex_lock(queue->mutex);
 
-	while (item) {
-		next = queue->next;
-		item = next->item;
-		if (next->item) queue->next = next->next;
+	list = &queue->list;
+
+	while (list->item) {
+		struct sQueue_e *next = list->next;
+		if (queue->cleanup)	(*(queue->cleanup))(list->item);
+		list = list->next;
 		NFREE(next);
 	}
+
+	if (queue->mutex) {
+		pthread_mutex_unlock(queue->mutex);
+		pthread_mutex_destroy(queue->mutex);
+		free(queue->mutex);
+	}
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* 																			  */
+/* LIST management															  */
+/* 																			  */
+/*----------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+list_t *push_item(list_t *item, list_t **list) {
+  if (*list) item->next = *list;
+  else item->next = NULL;
+
+  *list = item;
+
+  return item;
+}
+
+
+/*---------------------------------------------------------------------------*/
+list_t *add_tail_item(list_t *item, list_t **list) {
+  if (*list) {
+	struct list_s *p = *list;
+	while (p->next) p = p->next;
+	item->next = p->next;
+	p->next = item;
+  } else {
+	item->next = NULL;
+	*list = item;
+  }
+
+  return item;
+}
+
+
+/*---------------------------------------------------------------------------*/
+list_t *add_ordered_item(list_t *item, list_t **list, int (*compare)(void *a, void *b)) {
+  if (*list) {
+	struct list_s *p = *list;
+	while (p->next && compare(p->next, item) <= 0) p = p->next;
+	item->next = p->next;
+	p->next = item;
+  } else {
+	item->next = NULL;
+	*list = item;
+  }
+
+  return item;
+}
+
+
+/*---------------------------------------------------------------------------*/
+list_t *pop_item(list_t **list) {
+  if (*list) {
+	list_t *item = *list;
+	*list = item->next;
+	return item;
+  } else return NULL;
+}
+
+
+/*---------------------------------------------------------------------------*/
+list_t *remove_item(list_t *item, list_t **list) {
+  if (item != *list) {
+	struct list_s *p = *list;
+	while (p && p->next != item) p = p->next;
+	if (p) p->next = item->next;
+	item->next = NULL;
+  } else *list = (*list)->next;
+
+  return item;
+}
+
+
+/*---------------------------------------------------------------------------*/
+void clear_list(list_t **list, void (*free_func)(void *)) {
+  if (!*list) return;
+  while (*list) {
+	struct list_s *next = (*list)->next;
+	if (free_func) (*free_func)(*list);
+	else free(*list);
+	*list = next;
+  }
+  *list = NULL;
 }
 
 
@@ -346,7 +486,7 @@ void MakeMacUnique(struct sMR *Device)
 	int i;
 
 	for (i = 0; i < MAX_RENDERERS; i++) {
-		if (!glMRDevices[i].InUse || Device == &glMRDevices[i]) continue;
+		if (!glMRDevices[i].Running || Device == &glMRDevices[i]) continue;
 		if (!memcmp(&glMRDevices[i].sq_config.mac, &Device->sq_config.mac, 6)) {
 			u32_t hash = hash32(Device->UDN);
 
@@ -403,8 +543,6 @@ void SaveConfig(char *name, void *ref, bool full)
 	XMLUpdateNode(doc, root, false, "slimmain_log", level2debug(slimmain_loglevel));
 	XMLUpdateNode(doc, root, false, "cast_log",level2debug(cast_loglevel));
 	XMLUpdateNode(doc, root, false, "util_log",level2debug(util_loglevel));
-	XMLUpdateNode(doc, root, false, "scan_interval", "%d", (u32_t) glScanInterval);
-	XMLUpdateNode(doc, root, false, "scan_timeout", "%d", (u32_t) glScanTimeout);
 	XMLUpdateNode(doc, root, false, "log_limit", "%d", (s32_t) glLogLimit);
 
 	XMLUpdateNode(doc, common, false, "streambuf_size", "%d", (u32_t) glDeviceParam.stream_buf_size);
@@ -426,14 +564,13 @@ void SaveConfig(char *name, void *ref, bool full)
 	XMLUpdateNode(doc, common, false, "media_volume", "%d", (int) (glMRConfig.MediaVolume * 100));
 	XMLUpdateNode(doc, common, false, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
 	XMLUpdateNode(doc, common, false, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
-	XMLUpdateNode(doc, common, false, "remove_count", "%d", (u32_t) glMRConfig.RemoveCount);
 	XMLUpdateNode(doc, common, false, "auto_play", "%d", (int) glMRConfig.AutoPlay);
 	XMLUpdateNode(doc, common, false, "server", glDeviceParam.server);
 
 	for (i = 0; i < MAX_RENDERERS; i++) {
 		IXML_Node *dev_node;
 
-		if (!glMRDevices[i].InUse) continue;
+		if (!glMRDevices[i].Running) continue;
 		else p = &glMRDevices[i];
 
 		// existing device, keep param and update "name" if LMS has requested it
@@ -503,7 +640,6 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "sample_rate"))sq_conf->sample_rate = atol(val);
 	if (!strcmp(name, "flac_header"))sq_conf->flac_header = atol(val);
 	if (!strcmp(name, "keep_buffer_file"))sq_conf->keep_buffer_file = atol(val);
-	if (!strcmp(name, "remove_count"))Conf->RemoveCount = atol(val);
 	if (!strcmp(name, "volume_on_play")) Conf->VolumeOnPlay = atol(val);
 	if (!strcmp(name, "media_volume")) Conf->MediaVolume = atof(val) / 100;
 	if (!strcmp(name, "auto_play")) Conf->AutoPlay = atol(val);
@@ -539,8 +675,6 @@ static void LoadGlobalItem(char *name, char *val)
 	if (!strcmp(name, "slimmain_log")) slimmain_loglevel = debug2level(val);
 	if (!strcmp(name, "cast_log")) cast_loglevel = debug2level(val);
 	if (!strcmp(name, "util_log")) util_loglevel = debug2level(val);
-	if (!strcmp(name, "scan_interval")) glScanInterval = atol(val);
-	if (!strcmp(name, "scan_timeout")) glScanTimeout = atol(val);
 	if (!strcmp(name, "log_limit")) glLogLimit = atol(val);
  }
 
