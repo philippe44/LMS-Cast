@@ -1302,8 +1302,9 @@ int main(int argc, char *argv[])
 
 				if (!Locked) pthread_mutex_unlock(&p->Mutex);
 				if (!p->Running && !all) continue;
-				printf("%20.20s [r:%u] [l:%u] [s:%u]\n",
-						p->Config.Name, p->Running, Locked, p->State);
+				printf("%20.20s [r:%u] [l:%u] [s:%u] [%p::%p]\n",
+						p->Config.Name, p->Running, Locked, p->State,
+						p, sq_get_ptr(p->SqueezeHandle));
 			}
 		}
 	}

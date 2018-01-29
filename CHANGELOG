@@ -1,10 +1,11 @@
 0.3.0.0
- - new handling of discovery (mDNS-SD and UPnP) for on-the-fly player addition / removal (no more discovery time and removal counts)
+ - new handling of mDNS discovery for on-the-fly player addition / removal (no more discovery time and removal counts)
  - Review of all mutex-related issue and various risk of unprotected code
  - review of memory leaks (only the SSL remains, which is the same all over execution)
  - add possibility to dump players ('dump' & 'dumpall' commmands)
  - SSL context is not deleted at every disconnect to avoid memory leaks
  - wrong volume local change when mute was set
+ - (2) cli_send_comment uses timeout in connect (for freebsd)
   
 0.2.12.1
  - build system problem ==> LOAD_FLUSH inconsistency
