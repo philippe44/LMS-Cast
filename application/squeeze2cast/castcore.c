@@ -352,7 +352,7 @@ bool CastConnect(struct sCastCtx *Ctx)
 	addr.sin_addr.s_addr = S_ADDR(Ctx->ip);
 	addr.sin_port = htons(Ctx->port);
 
-	err = connect_timeout(Ctx->sock, (struct sockaddr *) &addr, sizeof(addr), 2);
+	err = connect_timeout(Ctx->sock, (struct sockaddr *) &addr, sizeof(addr), 2*1000);
 
 	if (err) {
 		closesocket(Ctx->sock);
