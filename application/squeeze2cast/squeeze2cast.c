@@ -626,16 +626,15 @@ bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		bool Group;
 		int j;
 
-		// is the mDNS record usable
-		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL) continue;
+		// is the mDNS record usable announce made on behalf
+		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL || s->host.s_addr != s->addr.s_addr) continue;
 
 		// is that device already here
 		if ((Device = SearchUDN(UDN)) != NULL) {
 			// a service is being removed
-			if (!s->port && !s->addr.s_addr) {
+			if (s->expired) {
 				bool Remove = true;
 				// groups need to find if the removed service is the master
-				// TODO: test GroupMaster, but if not this is an error
 				if (Device->Group) {
 					// there are some other master candidates
 					if (Device->GroupMaster->Next) {
@@ -658,14 +657,15 @@ bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 					RemoveCastDevice(Device);
 				}
 			// device update - when playing ChromeCast update their TXT records
-			} else if (!Device->Group || (Device->GroupMaster->Host.s_addr != s->addr.s_addr && s->host.s_addr == s->addr.s_addr)) {
-				UpdateCastDevice(Device->CastCtx, s->addr, s->port);
-				if (Device->Group) {
+			} else {
+				// new master in election, update and put it in the queue
+				if (Device->Group && Device->GroupMaster->Host.s_addr != s->addr.s_addr) {
 					struct sGroupMember *Member = calloc(1, sizeof(struct sGroupMember));
 					Member->Host = s->host;
 					Member->Port = s->port;
 					push_item((list_t*) Member, (list_t**) &Device->GroupMaster);
 				}
+				UpdateCastDevice(Device->CastCtx, s->addr, s->port);
 			}
 			NFREE(UDN);
 			continue;
