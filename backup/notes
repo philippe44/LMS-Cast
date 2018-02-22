@@ -1,0 +1,13 @@
+1
+- ouput in thread but still an OUTPUT_WAITING state
+2
+- simplifed with no OUTPUT_WAITING 
+- but track-to-track not working, think
+- think that the end if track detection in the output threa dis not necessary
+3
+- simplifed core that works for all cases
+- now moving to more cosmetic changes
+4
+- need to change chunking mechansim due to blocking case when pausing player
+5
+- fully working (started to change codec_thru though ...)

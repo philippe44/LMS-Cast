@@ -28,7 +28,7 @@
 	[% END %]
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_DEBUG" desc="PLUGIN_CASTBRIDGE_DEBUG_DESC" %]
 		<select class="stdedit" name="debugs" id="debugs">
-		[% FOREACH entry IN [ '', 'all', 'output', 'stream', 'slimproto', 'decode', 'slimmain', 'cast', 'util', 'web', 'main'] %]
+		[% FOREACH entry IN [ '', 'all', 'output', 'stream', 'slimproto', 'slimmain', 'decode', 'slimmain', 'cast', 'util', 'web', 'main'] %]
 			<option [% IF entry == debugs %]selected[% END %] value="[% entry %]">[% "PLUGIN_CASTBRIDGE_$entry" | string %]</option>
 		[% END %]
 		</select>
@@ -88,22 +88,11 @@
 		[% END %]
 	[% END %]		
 
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_BUFFERS" desc="PLUGIN_CASTBRIDGE_BUFFERS_DESC" %]
-		[% "PLUGIN_CASTBRIDGE_BUFFERDIR" | string %]&nbsp<input type="text" class="stdedit" name="buffer_dir" id="buffer_dir" value="[% buffer_dir %]" size="20">
-		[% "PLUGIN_CASTBRIDGE_BUFFERLIMIT" | string %]&nbsp<input type="text" class="stdedit" name="buffer_limit" id="buffer_limit" value="[% buffer_limit %]" size="7">
-		[% "PLUGIN_CASTBRIDGE_STREAMPACINGSIZE" | string %]&nbsp<input type="text" class="stdedit" name="stream_pacing_size" id="stream_pacing_size" value="[% stream_pacing_size %]" size="4">
-	[% END %]
-	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CODECSPARAM" desc="PLUGIN_CASTBRIDGE_CODECSPARAM_DESC" %]
 		[% "PLUGIN_CASTBRIDGE_CODECS" | string %]&nbsp<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="10">
 		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]&nbsp<select class="stdedit" name="sample_rate" id="sample_rate">
-		[% FOREACH entry IN [ '', '44100', '48000', '96000', '192000' ] %]
+		[% FOREACH entry IN [ '', '44100', '48000', '96000' ] %]
 			<option [% IF entry == sample_rate %]selected[% END %] value="[% entry %]">[% entry %]</option>
-		[% END %]
-		</select>
-		&nbsp[% "PLUGIN_CASTBRIDGE_FLACHEADER" | string %]&nbsp<select class="stdedit" name="flac_header" id="flac_header">
-		[% FOREACH entry IN [ ['',''], ['none','0'], ['normal','1'], ['fixed size','2'] ] %]
-			<option [% IF entry.1 == flac_header %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]
 		</select>
 	[% END %]
@@ -138,20 +127,6 @@
 		<select class="stdedit" name="send_coverart" id="send_coverart">
 		[% FOREACH entry IN YESNOBOX %] 
 			<option [% IF entry.1 == send_coverart %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
-		[% END %]
-		</select>
-		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SENDICY" | string %]&nbsp
-		<select class="stdedit" name="send_icy" id="send_icy">
-		[% FOREACH entry IN YESNOBOX %] 
-			<option [% IF entry.1 == send_icy %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
-		[% END %]
-		</select>
-	[% END %]
-	
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_STOPRECEIVER" desc="PLUGIN_CASTBRIDGE_STOPRECEIVER_DESC" %]
-		<select class="stdedit" name="stop_receiver" id="stop_receiver">
-		[% FOREACH entry IN YESNOBOX %] 
-			<option [% IF entry.1 == stop_receiver %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]
 		</select>
 	[% END %]

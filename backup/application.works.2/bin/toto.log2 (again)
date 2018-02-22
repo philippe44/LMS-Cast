@@ -1,0 +1,374 @@
+
+[22:30:37.974] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1666) PLAYING
+[22:30:38.974] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1667,"mediaSessionId":10}
+[22:30:39.022] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1667) PLAYING
+[22:30:40.022] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1668,"mediaSessionId":10}
+[22:30:40.074] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1668) PLAYING
+[22:30:41.074] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1669,"mediaSessionId":10}
+[22:30:41.124] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1669) PLAYING
+[22:30:42.125] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1670,"mediaSessionId":10}
+[22:30:42.128] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:0) IDLE
+[22:30:42.128] _SyncNotifyState:354 [00496980]: Cast stop
+[22:30:42.128] SendCastMessage:238 [020AE4A0]: Cast sending: {
+ "type": "LOAD",
+ "requestId": 1671,
+ "sessionId": "99b97671-616b-4b36-b951-6706b5dd5a75",
+ "currentTime": 0.0,
+ "autoplay": false,
+ "media": {
+  "metadata": {
+   "metadataType": 3,
+   "images": [
+    {
+     "url": "http://192.168.2.10:9000/music/2845bc14/cover.jpg"
+    }
+   ],
+   "albumName": "Honky Tonk",
+   "artist": "Sanseverino",
+   "title": "Nathalie",
+   "albumArtist": "Sanseverino",
+   "trackNumber": 11
+  },
+  "streamType": "BUFFERED",
+  "contentId": "http://192.168.2.10:49153/bridge-11.wav",
+  "contentType": "audio/wav"
+ }
+}
+[22:30:42.128] CastLoad:156 [00496980]: Immediate LOAD (id:1671)
+[22:30:42.128] CastSimple:205 [00496980]: Queuing PLAY
+[22:30:42.128] _SyncNotifyState:363 [00496980]: no gapless http://192.168.2.10:49153/bridge-11.wav
+[22:30:42.144] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1670) (null)
+[22:30:42.160] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:0) IDLE
+[22:30:42.167] output_thread:72 [004ADEF0]: got HTTP connection 1308
+[22:30:42.170] handle_http:288 [004ADEF0]: received GET /bridge-11.wav HTTP/1.1
+[22:30:42.170] handle_http:324 [004ADEF0]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+
+
+[22:30:42.318] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:0) PAUSED
+[22:30:42.908] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:0)
+[22:30:42.908] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:0)
+[22:30:42.909] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1671) PAUSED
+[22:30:42.909] CastSocketThread:785 [00496980]: Media session id 11
+[22:30:42.909] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"SET_VOLUME","requestId":1672,"mediaSessionId":11,"volume":{"level":0.5000,"muted":false}}
+[22:30:42.988] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1672) PAUSED
+[22:30:42.989] ProcessQueue:569 [00496980]: Processing PLAY (id:1673)
+[22:30:42.989] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"PLAY","requestId":1673,"mediaSessionId":11}
+[22:30:43.104] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1673) BUFFERING
+[22:30:43.104] _SyncNotifyState:380 [00496980]: Cast playing
+[22:30:43.104] sq_notify:620 [004ADEF0] playing notif
+[22:30:43.104] sendSTAT:157 [004ADEF0]: STAT:[STMs] msplayed 0
+[22:30:43.604] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1674,"mediaSessionId":11}
+[22:30:43.707] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1674) BUFFERING
+[22:30:44.707] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1675,"mediaSessionId":11}
+[22:30:44.711] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:0) PLAYING
+[22:30:44.733] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1675) PLAYING
+[22:30:45.734] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1676,"mediaSessionId":11}
+[22:30:45.782] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1676) PLAYING
+[22:30:46.782] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1677,"mediaSessionId":11}
+[22:30:46.832] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1677) PLAYING
+[22:30:47.833] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1678,"mediaSessionId":11}
+[22:30:47.842] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1678) PLAYING
+[22:30:48.843] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1679,"mediaSessionId":11}
+[22:30:48.894] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1679) PLAYING
+[22:30:49.895] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1680,"mediaSessionId":11}
+[22:30:49.943] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1680) PLAYING
+[22:30:50.943] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1681,"mediaSessionId":11}
+[22:30:50.992] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1681) PLAYING
+[22:30:51.992] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1682,"mediaSessionId":11}
+[22:30:52.052] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1682) PLAYING
+[22:30:53.052] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1683,"mediaSessionId":11}
+[22:30:53.103] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1683) PLAYING
+[22:30:54.104] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1684,"mediaSessionId":11}
+[22:30:54.156] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1684) PLAYING
+[22:30:55.157] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1685,"mediaSessionId":11}
+[22:30:55.216] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1685) PLAYING
+[22:30:56.217] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1686,"mediaSessionId":11}
+[22:30:56.274] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1686) PLAYING
+[22:30:57.275] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1687,"mediaSessionId":11}
+[22:30:57.324] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1687) PLAYING
+[22:30:58.324] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1688,"mediaSessionId":11}
+[22:30:58.374] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1688) PLAYING
+[22:30:59.374] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1689,"mediaSessionId":11}
+[22:30:59.422] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1689) PLAYING
+[22:31:00.422] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1690,"mediaSessionId":11}
+[22:31:00.472] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1690) PLAYING
+[22:31:01.472] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1691,"mediaSessionId":11}
+[22:31:01.524] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1691) PLAYING
+[22:31:02.524] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1692,"mediaSessionId":11}
+[22:31:02.574] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1692) PLAYING
+[22:31:03.574] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1693,"mediaSessionId":11}
+[22:31:03.623] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1693) PLAYING
+[22:31:04.623] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1694,"mediaSessionId":11}
+[22:31:04.674] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1694) PLAYING
+[22:31:05.675] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1695,"mediaSessionId":11}
+[22:31:05.723] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1695) PLAYING
+[22:31:06.723] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1696,"mediaSessionId":11}
+[22:31:06.773] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1696) PLAYING
+[22:31:07.773] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1697,"mediaSessionId":11}
+[22:31:07.824] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1697) PLAYING
+[22:31:08.824] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1698,"mediaSessionId":11}
+[22:31:08.872] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1698) PLAYING
+[22:31:09.873] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1699,"mediaSessionId":11}
+[22:31:09.938] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1699) PLAYING
+[22:31:10.939] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1700,"mediaSessionId":11}
+[22:31:10.985] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1700) PLAYING
+[22:31:11.985] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1701,"mediaSessionId":11}
+[22:31:12.032] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1701) PLAYING
+[22:31:13.033] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1702,"mediaSessionId":11}
+[22:31:13.084] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1702) PLAYING
+[22:31:14.084] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1703,"mediaSessionId":11}
+[22:31:14.136] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1703) PLAYING
+[22:31:15.136] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1704,"mediaSessionId":11}
+[22:31:15.191] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1704) PLAYING
+[22:31:16.191] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1705,"mediaSessionId":11}
+[22:31:16.232] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1705) PLAYING
+[22:31:17.233] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1706,"mediaSessionId":11}
+[22:31:17.284] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1706) PLAYING
+[22:31:18.284] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1707,"mediaSessionId":11}
+[22:31:18.333] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1707) PLAYING
+[22:31:19.333] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1708,"mediaSessionId":11}
+[22:31:19.391] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1708) PLAYING
+[22:31:20.391] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1709,"mediaSessionId":11}
+[22:31:20.465] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1709) PLAYING
+[22:31:21.465] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1710,"mediaSessionId":11}
+[22:31:21.513] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1710) PLAYING
+[22:31:22.513] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1711,"mediaSessionId":11}
+[22:31:22.568] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1711) PLAYING
+[22:31:23.568] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1712,"mediaSessionId":11}
+[22:31:23.617] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1712) PLAYING
+[22:31:24.618] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1713,"mediaSessionId":11}
+[22:31:24.662] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1713) PLAYING
+[22:31:25.662] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1714,"mediaSessionId":11}
+[22:31:25.714] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1714) PLAYING
+[22:31:26.714] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1715,"mediaSessionId":11}
+[22:31:26.789] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1715) PLAYING
+[22:31:27.789] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1716,"mediaSessionId":11}
+[22:31:27.833] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1716) PLAYING
+[22:31:28.834] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1717,"mediaSessionId":11}
+[22:31:28.884] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1717) PLAYING
+[22:31:29.885] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1718,"mediaSessionId":11}
+[22:31:29.934] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1718) PLAYING
+[22:31:30.934] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1719,"mediaSessionId":11}
+[22:31:30.984] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1719) PLAYING
+[22:31:31.984] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1720,"mediaSessionId":11}
+[22:31:32.032] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1720) PLAYING
+[22:31:33.032] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1721,"mediaSessionId":11}
+[22:31:33.078] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1721) PLAYING
+[22:31:34.079] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1722,"mediaSessionId":11}
+[22:31:34.122] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1722) PLAYING
+[22:31:35.122] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1723,"mediaSessionId":11}
+[22:31:35.173] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1723) PLAYING
+[22:31:36.174] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1724,"mediaSessionId":11}
+[22:31:36.223] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1724) PLAYING
+[22:31:37.224] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1725,"mediaSessionId":11}
+[22:31:37.288] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1725) PLAYING
+[22:31:38.288] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1726,"mediaSessionId":11}
+[22:31:38.344] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1726) PLAYING
+[22:31:39.344] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1727,"mediaSessionId":11}
+[22:31:39.393] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1727) PLAYING
+[22:31:40.394] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1728,"mediaSessionId":11}
+[22:31:40.448] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1728) PLAYING
+[22:31:41.448] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1729,"mediaSessionId":11}
+[22:31:41.493] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1729) PLAYING
+[22:31:42.493] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1730,"mediaSessionId":11}
+[22:31:42.548] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1730) PLAYING
+[22:31:43.548] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1731,"mediaSessionId":11}
+[22:31:43.596] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1731) PLAYING
+[22:31:44.596] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1732,"mediaSessionId":11}
+[22:31:44.663] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1732) PLAYING
+[22:31:45.663] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1733,"mediaSessionId":11}
+[22:31:45.718] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1733) PLAYING
+[22:31:46.718] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1734,"mediaSessionId":11}
+[22:31:46.766] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1734) PLAYING
+[22:31:47.766] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1735,"mediaSessionId":11}
+[22:31:47.815] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1735) PLAYING
+[22:31:48.816] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1736,"mediaSessionId":11}
+[22:31:48.865] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1736) PLAYING
+[22:31:49.865] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1737,"mediaSessionId":11}
+[22:31:49.917] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1737) PLAYING
+[22:31:50.917] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1738,"mediaSessionId":11}
+[22:31:50.964] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1738) PLAYING
+[22:31:51.964] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1739,"mediaSessionId":11}
+[22:31:52.015] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1739) PLAYING
+[22:31:53.015] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1740,"mediaSessionId":11}
+[22:31:53.064] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1740) PLAYING
+[22:31:54.064] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1741,"mediaSessionId":11}
+[22:31:54.115] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1741) PLAYING
+[22:31:55.115] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1742,"mediaSessionId":11}
+[22:31:55.171] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1742) PLAYING
+[22:31:56.172] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1743,"mediaSessionId":11}
+[22:31:56.223] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1743) PLAYING
+[22:31:57.223] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1744,"mediaSessionId":11}
+[22:31:57.274] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1744) PLAYING
+[22:31:58.274] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1745,"mediaSessionId":11}
+[22:31:58.337] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1745) PLAYING
+[22:31:59.337] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1746,"mediaSessionId":11}
+[22:31:59.387] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1746) PLAYING
+[22:32:00.387] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1747,"mediaSessionId":11}
+[22:32:00.437] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1747) PLAYING
+[22:32:01.437] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1748,"mediaSessionId":11}
+[22:32:01.486] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1748) PLAYING
+[22:32:02.487] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1749,"mediaSessionId":11}
+[22:32:02.540] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1749) PLAYING
+[22:32:03.541] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1750,"mediaSessionId":11}
+[22:32:03.587] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1750) PLAYING
+[22:32:04.587] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1751,"mediaSessionId":11}
+[22:32:04.634] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1751) PLAYING
+[22:32:05.634] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1752,"mediaSessionId":11}
+[22:32:05.697] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1752) PLAYING
+[22:32:06.697] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1753,"mediaSessionId":11}
+[22:32:06.777] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1753) PLAYING
+[22:32:07.777] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1754,"mediaSessionId":11}
+[22:32:07.790] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:0) BUFFERING
+[22:32:07.806] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1754) BUFFERING
+[22:32:08.807] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1755,"mediaSessionId":11}
+[22:32:08.853] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1755) BUFFERING
+[22:32:09.853] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1756,"mediaSessionId":11}
+[22:32:09.909] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1756) BUFFERING
+[22:32:10.909] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1757,"mediaSessionId":11}
+[22:32:10.953] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1757) BUFFERING
+[22:32:11.954] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1758,"mediaSessionId":11}
+[22:32:12.003] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1758) BUFFERING
+[22:32:13.003] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1759,"mediaSessionId":11}
+[22:32:13.027] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1759) BUFFERING
+[22:32:14.027] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1760,"mediaSessionId":11}
+[22:32:14.073] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1760) BUFFERING
+[22:32:15.073] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1761,"mediaSessionId":11}
+[22:32:15.124] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1761) BUFFERING
+[22:32:16.124] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1762,"mediaSessionId":11}
+[22:32:16.184] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1762) BUFFERING
+[22:32:16.957] decode_thread:96 decode complete
+[22:32:17.018] output_thread:121 [004ADEF0]: self-exit 
+[22:32:17.018] output_thread:195 [004ADEF0]: completed: 46533164 bytes (gap 0)
+[22:32:17.184] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1763,"mediaSessionId":11}
+[22:32:17.233] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1763) BUFFERING
+[22:32:18.000] sendSTAT:157 [004ADEF0]: STAT:[STMd] msplayed 0
+[22:32:18.009] process_strm:229 [004ADEF0] strm command s
+[22:32:18.009] process_strm:296 [004ADEF0], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[22:32:18.009] sendSTAT:157 [004ADEF0]: STAT:[STMf] msplayed 0
+[22:32:18.010] cli_open_socket:179 [004ADEF0]: opened CLI socket 1312
+[22:32:18.021] sq_get_metadata:485 [004ADEF0]: idx 11
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Tout est dans mon sac
+	genre:Variété française
+	duration:213.453
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[22:32:18.021] sq_callback:257 [00496980]: next URI http://192.168.2.10:49153/bridge-12.wav
+[22:32:18.035] pcm_open:161 [004ADEF0]: estimated size 40983020
+[22:32:18.035] process_strm:351 [004ADEF0]: codec:p, ch:2, s:16, r:48000
+[22:32:18.035] output_thread:72 [004ADEF0]: got HTTP connection 528
+[22:32:18.036] sendSTAT:157 [004ADEF0]: STAT:[STMc] msplayed 0
+[22:32:18.036] sq_callback:312 Volume 11
+[22:32:18.036] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"SET_VOLUME","requestId":1764,"volume":{"level":0.1100}}
+[22:32:18.036] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"SET_VOLUME","requestId":1765,"volume":{"muted":false}}
+[22:32:18.036] CastSetDeviceVolume:305 [00496980]: Immediate VOLUME (id:1765)
+[22:32:18.037] handle_http:288 [004ADEF0]: received GET /bridge-11.wav HTTP/1.1
+[22:32:18.037] handle_http:296 wrong file requested, refusing 11 12
+[22:32:18.037] handle_http:324 [004ADEF0]: responding:
+HTTP/1.0 410 Gone
+Server: squeezebox-bridge
+Connection: close
+
+
+[22:32:18.037] output_thread:100 HTTP close 528
+[22:32:18.157] pcm_decode:91 [004ADEF0]: setting track_start
+[22:32:18.233] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1766,"mediaSessionId":11}
+[22:32:18.256] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1766) PAUSED
+[22:32:18.256] _SyncNotifyState:413 ChromecastAudio0185: Cast pause
+[22:32:18.256] sq_notify:627 [004ADEF0] unsollicited pause
+[22:32:18.260] sq_callback:312 Volume 0
+[22:32:18.261] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"SET_VOLUME","requestId":1767,"volume":{"muted":true}}
+[22:32:18.261] CastSetDeviceVolume:305 [00496980]: Immediate VOLUME (id:1767)
+[22:32:18.261] process_strm:229 [004ADEF0] strm command p
+[22:32:18.261] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"PAUSE","requestId":1768,"mediaSessionId":11}
+[22:32:18.261] CastSimple:193 [00496980]: Immediate PAUSE (id:1768)
+[22:32:18.261] sendSTAT:157 [004ADEF0]: STAT:[STMp] msplayed 0
+[22:32:18.261] process_strm:263 [004ADEF0] pause (interval:0)
+[22:32:18.311] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:1765)
+[22:32:18.313] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:1767)
+[22:32:18.313] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:1764)
+[22:32:18.315] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1768) PAUSED
+[22:32:19.315] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1769,"mediaSessionId":11}
+[22:32:19.369] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1769) IDLE
+[22:32:19.369] _SyncNotifyState:354 [00496980]: Cast stop
+[22:32:19.369] SendCastMessage:238 [020AE4A0]: Cast sending: {
+ "type": "LOAD",
+ "requestId": 1770,
+ "sessionId": "99b97671-616b-4b36-b951-6706b5dd5a75",
+ "currentTime": 0.0,
+ "autoplay": false,
+ "media": {
+  "metadata": {
+   "metadataType": 3,
+   "images": [
+    {
+     "url": "http://192.168.2.10:9000/music/2845bc14/cover.jpg"
+    }
+   ],
+   "albumName": "Honky Tonk",
+   "artist": "Sanseverino",
+   "title": "Tout est dans mon sac",
+   "albumArtist": "Sanseverino",
+   "trackNumber": 12
+  },
+  "streamType": "BUFFERED",
+  "contentId": "http://192.168.2.10:49153/bridge-12.wav",
+  "contentType": "audio/wav"
+ }
+}
+[22:32:19.369] CastLoad:156 [00496980]: Immediate LOAD (id:1770)
+[22:32:19.369] CastSimple:205 [00496980]: Queuing PLAY
+[22:32:19.369] _SyncNotifyState:363 [00496980]: no gapless http://192.168.2.10:49153/bridge-12.wav
+[22:32:19.421] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:0) IDLE
+[22:32:19.429] output_thread:72 [004ADEF0]: got HTTP connection 528
+[22:32:19.432] handle_http:288 [004ADEF0]: received GET /bridge-12.wav HTTP/1.1
+[22:32:19.432] handle_http:324 [004ADEF0]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+
+
+[22:32:19.589] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:0) PAUSED
+[22:32:19.616] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:0)
+[22:32:19.621] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:0)
+[22:32:19.625] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1770) PAUSED
+[22:32:19.625] CastSocketThread:785 [00496980]: Media session id 12
+[22:32:19.625] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"SET_VOLUME","requestId":1771,"mediaSessionId":12,"volume":{"level":0.5000,"muted":false}}
+[22:32:19.684] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1771) PAUSED
+[22:32:19.684] ProcessQueue:569 [00496980]: Processing PLAY (id:1772)
+[22:32:19.684] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"PLAY","requestId":1772,"mediaSessionId":12}
+[22:32:19.771] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1772) BUFFERING
+[22:32:19.771] _SyncNotifyState:380 [00496980]: Cast playing
+[22:32:19.771] sq_notify:607 [004ADEF0] unsollicited play
+[22:32:19.775] sq_callback:312 Volume 0
+[22:32:19.775] process_strm:229 [004ADEF0] strm command u
+[22:32:19.775] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"SET_VOLUME","requestId":1773,"volume":{"muted":true}}
+[22:32:19.775] CastSetDeviceVolume:305 [00496980]: Immediate VOLUME (id:1773)
+[22:32:19.775] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"PLAY","requestId":1774,"mediaSessionId":12}
+[22:32:19.775] CastSimple:193 [00496980]: Immediate PLAY (id:1774)
+[22:32:19.775] process_strm:280 [004ADEF0] unpause at: 0 now: 805320732
+[22:32:19.775] sendSTAT:157 [004ADEF0]: STAT:[STMr] msplayed 0
+[22:32:19.775] sq_callback:312 Volume 11
+[22:32:19.775] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"SET_VOLUME","requestId":1775,"volume":{"level":0.1100}}
+[22:32:19.776] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"SET_VOLUME","requestId":1776,"volume":{"muted":false}}
+[22:32:19.776] CastSetDeviceVolume:305 [00496980]: Immediate VOLUME (id:1776)
+[22:32:19.845] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:1775)
+[22:32:19.846] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:1776)
+[22:32:19.848] CastSocketThread:710 [00496980]: type:RECEIVER_STATUS (id:1773)
+[22:32:19.852] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1774) BUFFERING
+[22:32:20.352] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1777,"mediaSessionId":12}
+[22:32:20.412] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1777) BUFFERING
+[22:32:21.412] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1778,"mediaSessionId":12}
+[22:32:21.421] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:0) PLAYING
+[22:32:21.434] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1778) PLAYING
+[22:32:22.434] SendCastMessage:238 [020AE4A0]: Cast sending: {"type":"GET_STATUS","requestId":1779,"mediaSessionId":12}
+[22:32:22.486] CastSocketThread:707 [00496980]: type:MEDIA_STATUS (id:1779) PLAYING

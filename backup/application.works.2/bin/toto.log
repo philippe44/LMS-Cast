@@ -1,0 +1,8 @@
+[18:25:42.398] main:1205 stopping squeelite devices ...
+[18:25:42.398] slimproto_close:918 [004ADEF0] slimproto stop for ChromecastAudio0185
+[18:25:42.398] output_close:175 [004ADEF0] close media renderer
+[18:25:42.517] main:1207 stopping Cast devices ...
+[18:25:42.948] read_bytes:184 [s-0082EAB8]: SSL error code 5 (err:0)
+[18:25:42.948] CastSocketThread:689 [024FC5B0]: SSL connection closed
+[18:25:42.955] DeleteCastDevice:492 [00496980]: Cast device stopped
+[18:25:42.956] main:1209 all done

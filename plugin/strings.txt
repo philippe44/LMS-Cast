@@ -45,12 +45,6 @@ PLUGIN_CASTBRIDGE_PARAMINFO
 PLUGIN_CASTBRIDGE_COMMONPARAMINFO
 	EN	These parameters set the defaults for all players (EMPTY value means use built-in default)
 
-PLUGIN_CASTBRIDGE_OUTPUT
-	EN	N/A
-
-PLUGIN_CASTBRIDGE_OUTPUT_DESC
-	EN	N/A
-
 PLUGIN_CASTBRIDGE_OPTIONS
 	EN	Extra command line options
 
@@ -156,38 +150,14 @@ PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
 
-PLUGIN_CASTBRIDGE_BUFFERS
-	EN	Audio file buffers
-
-PLUGIN_CASTBRIDGE_BUFFERS_DESC
-	EN	Audio streams are buffered locally while sending to the Chromecast player. 
-	EN	<br>- Enter ? to let the system decide which directory to use
-	EN	<br>- "Max Size" defines the largest size a single file can take before it is shrunk. Set to -1 for unlimited
-	EN	<br>- "Pacing Size" set size of write ahead to prevent buffering spike for remote streams. Set to -1 for 
-	EN	unlimited (see user guide)
-
-PLUGIN_CASTBRIDGE_BUFFERDIR
-	EN	Directory
-
-PLUGIN_CASTBRIDGE_BUFFERLIMIT
-	EN	Max Size
-	
-PLUGIN_CASTBRIDGE_STREAMPACINGSIZE
-	EN	Pacing size
-
 PLUGIN_CASTBRIDGE_CODECSPARAM
 	EN	Audio codec parameters
 
 PLUGIN_CASTBRIDGE_CODECSPARAM_DESC
 	EN	Several codecs are supported by the Chromecast player. They will be reported to LMS to decide when to do transcoding. 
-	EN	<i>- Supported Codecs</i> is an ordered, comma-separated, list made of mp3, flc, aif, pcm, aac and alc
-	EN	For example, to only support (in order of preference) PCM then FLAC and then MP3 , enter "pcm,flc,mp3" (without "")
-	EN	(<b>aac and alc are untested</b>. 
-	EN	<br><b>NB: if a codec listed here is NOT supported by the player, it will be removed from the list sent to LMS</b>
-	EN	<br>- <i> FLAC header:</i> a FLAC header is required by some players.
-	EN	<br>- <i>Uncompressed format:</i> comma-separated list (<b>ordered</b>) of supported uncompressed audio formats (amongst wav, aiff, raw)
-	EN	<br>- <i>Match byte order:</i> let the bridge choose which supported uncompressed format avoids byte re-ordering (so as to reduces CPU) 
-	EN	<br>- <i>24 bits PCM:</i> 24 bits sample tweaking, including possibility to shrink them to 16 bits
+	EN	<br><i>- Supported Codecs</i> is an ordered, comma-separated, list made of mp3, flc, aif, pcm
+	EN	For example, to only support (in order of preference) FLAC and MP3 , enter "flc,mp3" (without ""). Chromecast devices 
+	EN	do not support other codecs
 	
 PLUGIN_CASTBRIDGE_SAMPLERATE
 	EN	Max Sample Rate
@@ -195,12 +165,6 @@ PLUGIN_CASTBRIDGE_SAMPLERATE
 PLUGIN_CASTBRIDGE_CODECS
 	EN	Supported codecs
 
-PLUGIN_CASTBRIDGE_FLACHEADER
-	EN	FLAC header
-
-PLUGIN_CASTBRIDGE_L24FORMAT
-	EN	24 bits PCM
-	
 PLUGIN_CASTBRIDGE_SERVER
 	EN	LMS Server
 	
@@ -240,12 +204,9 @@ PLUGIN_CASTBRIDGE_SENDMETADATA
 PLUGIN_CASTBRIDGE_SEND_COVERART
 	EN	Include cover art
 
-PLUGIN_CASTBRIDGE_SENDICY
-	EN	Send ICY metadata
-
 PLUGIN_CASTBRIDGE_SENDMETADATA_DESC
-	EN	When using a Chromecast Video, LMS can send metadata (title, artist, album) to it. ICY metadata is an option to send live
-	EN	title when playing webradio. This <b>DOES NOT</b> work if you have set a password for LMS command access
+	EN	When using a Chromecast Video, LMS can send metadata (title, artist, album) to it. This <b>DOES NOT</b> work if you 
+	EN	have set a password for LMS command access
 	
 PLUGIN_CASTBRIDGE_VOLUMEMGMT
 	EN	Player volume management
@@ -255,14 +216,6 @@ PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC
 	EN	This section also controls how LMS volume commands are sent to player. It is possible to apply a scaling factor (0..100)
 	EN	if default is too loud. It is also possible to prevent LMS from sending volume commands when nothing is being played
 
-PLUGIN_CASTBRIDGE_STOPRECEIVER
-	EN	Always unload CC application 
-	
-PLUGIN_CASTBRIDGE_STOPRECEIVER_DESC
-	EN	Chromecast has a bug in FW version 1.24 (corrected starting with 1.25 ) which makes it hang when LMS sends a stop command
-	EN	This is a workaround to stop the application running in the CC device and reload it at every STOP, but it slows down a lot
-	EN	track transition
-	
 PLUGIN_CASTBRIDGE_VOLUMEONPLAY
 	EN	LMS volume changes
 

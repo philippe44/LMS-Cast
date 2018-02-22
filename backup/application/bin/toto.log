@@ -1,0 +1,150 @@
+[00:19:19.951] main:1138 Starting squeeze2cast version: v0.3.0.0.3 (Feb  2 2018 @ 22:12:29)
+[00:19:20.211] Initialize:803 UPnP init success - 192.168.2.10:49152
+[00:19:20.303] AddCastDevice:869 [004925D4]: adding renderer (ChromecastAudio0185)
+[00:19:20.373] slimproto:851 squeezelite [004A8F08] <=> player [004925D4]
+[00:19:20.373] slimproto:852 [004A8F08] connecting to 192.168.2.10:3483
+[00:19:20.374] slimproto:883 [004A8F08] connected
+[00:19:20.374] sendHELO:112 [004A8F08] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,pcm,aif,flc,mp3
+[00:19:20.375] sq_callback:220 [004925D4]: device set ON
+[00:19:20.461] CastConnect:368 [004925D4]: SSL connection opened [0219E4A8]
+[00:19:20.461] sq_callback:348 Volume 30
+[00:19:49.315] CastStop:255 [004925D4]: Stop w/o session or connect
+[00:19:49.322] sq_callback:348 Volume 30
+[00:19:49.323] process_strm:218 [004A8F08] strm command s
+[00:19:49.323] process_strm:287 [004A8F08], strm s autostart: 1 transition period: 10 transition type: 0 codec: m
+[00:19:49.323] sendSTAT:145 [004A8F08]: STAT:[STMf] msplayed 0
+[00:19:49.347] sq_callback:248 [004925D4]: codec:m, ch:255, s:255, r:255
+[00:19:49.357] cli_open_socket:189 [004A8F08]: opened CLI socket 756
+[00:19:49.363] sq_get_metadata:495 [004A8F08]: idx 0
+	artist:Bee Gees
+	album:The Very Best of the Bee Gees
+	title:Night fever
+	genre:Soul
+	duration:211.591
+	size:0
+	cover:http://192.168.2.10:9000/music/5b762453/cover.jpg
+[00:19:49.364] LaunchReceiver:315 [004925D4]: Launching receiver 1
+[00:19:49.364] CastLoad:169 [004925D4]: Queuing LOAD
+[00:19:49.364] sq_callback:293 [004925D4]: current URI set http://192.168.2.10:17011/bridge-0.mp3
+[00:19:49.364] sendSTAT:145 [004A8F08]: STAT:[STMc] msplayed 0
+[00:19:49.364] sq_callback:348 Volume 30
+[00:19:50.060] CastSocketThread:770 [004925D4]: Receiver launched
+[00:19:50.060] ProcessQueue:588 [004925D4]: Processing LOAD (id:2)
+[00:19:50.142] output_thread:78 [004A8F08]: got HTTP connection 448
+[00:19:50.143] handle_http:228 [004A8F08]: received GET /bridge-0.mp3 HTTP/1.1
+[00:19:50.143] handle_http:246 [004A8F08]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Content-Type: audio/mp3
+Connection: close
+
+
+[00:19:50.964] CastSocketThread:785 [004925D4]: Media session id 1
+[00:19:51.117] process_strm:218 [004A8F08] strm command u
+[00:19:51.117] CastSetDeviceVolume:305 [004925D4]: Immediate VOLUME (id:5)
+[00:19:51.117] CastSimple:193 [004925D4]: Immediate PLAY (id:6)
+[00:19:51.117] process_strm:269 [004A8F08] unpause at: 0 now: 379779114
+[00:19:51.117] sendSTAT:145 [004A8F08]: STAT:[STMr] msplayed 0
+[00:19:51.195] _SyncNotifyState:419 [004925D4]: Cast playing
+[00:19:51.195] sq_notify:681 [004A8F08] playing notif
+[00:19:51.195] sendSTAT:145 [004A8F08]: STAT:[STMs] msplayed 0
+[00:19:52.695] sendSTAT:145 [004A8F08]: STAT:[STMd] msplayed 915
+[00:19:52.701] process_strm:218 [004A8F08] strm command s
+[00:19:52.701] process_strm:287 [004A8F08], strm s autostart: 1 transition period: 10 transition type: 0 codec: m
+[00:19:52.701] sendSTAT:145 [004A8F08]: STAT:[STMf] msplayed 915
+[00:19:52.746] output_thread:140 [004A8F08]: self-exit 
+[00:19:52.746] output_thread:151 [004A8F08]: completed: 3385469 bytes 
+[00:19:52.782] sq_callback:248 [004925D4]: codec:m, ch:255, s:255, r:255
+[00:19:52.788] sq_get_metadata:495 [004A8F08]: idx 1
+	artist:Bee Gees
+	album:The Very Best of the Bee Gees
+	title:You should be dancing
+	genre:Soul
+	duration:286.824
+	size:0
+	cover:http://192.168.2.10:9000/music/5b762453/cover.jpg
+[00:19:52.788] sq_callback:279 [004925D4]: next URI set http://192.168.2.10:17011/bridge-1.mp3
+[00:19:52.788] sendSTAT:145 [004A8F08]: STAT:[STMc] msplayed 915
+[00:19:52.788] sq_callback:348 Volume 30
+[00:19:52.789] CastSetDeviceVolume:305 [004925D4]: Immediate VOLUME (id:9)
+[00:19:53.822] output_thread:151 [004A8F08]: completed: 0 bytes 
+[00:19:53.832] output_flush:202 [004A8F08]: terminating output thread
+[00:19:53.833] sendSTAT:145 [004A8F08]: STAT:[STMf] msplayed 1928
+[00:19:53.833] CastStop:239 [004925D4]: Immediate STOP (id:11)
+[00:19:53.833] sq_callback:348 Volume 30
+[00:19:53.833] process_strm:218 [004A8F08] strm command s
+[00:19:53.833] process_strm:287 [004A8F08], strm s autostart: 1 transition period: 10 transition type: 0 codec: m
+[00:19:53.833] sendSTAT:145 [004A8F08]: STAT:[STMf] msplayed 0
+[00:19:53.833] sq_callback:248 [004925D4]: codec:m, ch:255, s:255, r:255
+[00:19:53.859] sq_get_metadata:495 [004A8F08]: idx 0
+	artist:Bee Gees
+	album:The Very Best of the Bee Gees
+	title:Night fever
+	genre:Soul
+	duration:43.349
+	size:0
+	cover:http://192.168.2.10:9000/music/5b762453/cover.jpg
+[00:19:53.859] CastLoad:169 [004925D4]: Queuing LOAD
+[00:19:53.859] sq_callback:293 [004925D4]: current URI set http://192.168.2.10:17045/bridge-2.mp3
+[00:19:53.859] sendSTAT:145 [004A8F08]: STAT:[STMc] msplayed 0
+[00:19:53.859] sq_callback:348 Volume 30
+[00:19:54.264] process_strm:218 [004A8F08] strm command u
+[00:19:54.264] CastSetDeviceVolume:305 [004925D4]: Immediate VOLUME (id:13)
+[00:19:54.264] CastSimple:205 [004925D4]: Queuing PLAY
+[00:19:54.265] process_strm:269 [004A8F08] unpause at: 0 now: 379782250
+[00:19:54.265] sendSTAT:145 [004A8F08]: STAT:[STMr] msplayed 0
+[00:19:54.648] ProcessQueue:588 [004925D4]: Processing LOAD (id:14)
+[00:19:54.649] _SyncNotifyState:390 [004925D4]: Cast stop
+[00:19:54.649] sq_notify:704 [004A8F08] notify STOP
+[00:19:54.679] output_thread:78 [004A8F08]: got HTTP connection 556
+[00:19:54.682] handle_http:228 [004A8F08]: received GET /bridge-2.mp3 HTTP/1.1
+[00:19:54.682] handle_http:246 [004A8F08]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Content-Type: audio/mp3
+Connection: close
+
+
+[00:19:55.096] sendSTAT:145 [004A8F08]: STAT:[STMd] msplayed 0
+[00:19:55.101] process_strm:218 [004A8F08] strm command s
+[00:19:55.101] process_strm:287 [004A8F08], strm s autostart: 1 transition period: 10 transition type: 0 codec: m
+[00:19:55.101] sendSTAT:145 [004A8F08]: STAT:[STMf] msplayed 0
+[00:19:55.132] output_thread:151 [004A8F08]: completed: 655360 bytes 
+[00:19:55.159] sq_callback:248 [004925D4]: codec:m, ch:255, s:255, r:255
+[00:19:55.168] sq_get_metadata:495 [004A8F08]: idx 1
+	artist:Bee Gees
+	album:The Very Best of the Bee Gees
+	title:You should be dancing
+	genre:Soul
+	duration:286.824
+	size:0
+	cover:http://192.168.2.10:9000/music/5b762453/cover.jpg
+[00:19:55.168] sq_callback:279 [004925D4]: next URI set http://192.168.2.10:17045/bridge-3.mp3
+[00:19:55.168] sendSTAT:145 [004A8F08]: STAT:[STMc] msplayed 0
+[00:19:55.168] sq_callback:348 Volume 30
+[00:19:55.168] CastSetDeviceVolume:305 [004925D4]: Immediate VOLUME (id:16)
+[00:19:55.172] CastSetDeviceVolume:305 [004925D4]: Immediate VOLUME (id:18)
+[00:19:55.172] CastSimple:205 [004925D4]: Queuing PLAY
+[00:19:55.440] CastSocketThread:785 [004925D4]: Media session id 2
+[00:19:55.452] ProcessQueue:569 [004925D4]: Processing PLAY (id:20)
+[00:19:55.519] ProcessQueue:569 [004925D4]: Processing PLAY (id:21)
+[00:19:55.519] _SyncNotifyState:419 [004925D4]: Cast playing
+[00:19:55.519] sq_notify:681 [004A8F08] playing notif
+[00:19:55.519] sendSTAT:145 [004A8F08]: STAT:[STMs] msplayed 0
+[00:20:03.411] output_thread:151 [004A8F08]: completed: 0 bytes 
+[00:20:03.421] output_flush:202 [004A8F08]: terminating output thread
+[00:20:03.421] sendSTAT:145 [004A8F08]: STAT:[STMf] msplayed 7267
+[00:20:03.421] CastStop:239 [004925D4]: Immediate STOP (id:29)
+[00:20:04.257] _SyncNotifyState:390 [004925D4]: Cast stop
+[00:20:04.257] sq_notify:704 [004A8F08] notify STOP
+[00:20:08.000] slimproto_run:561 [004A8F08] Closing CLI socket 756
+[09:49:29.950] main:1138 Starting squeeze2cast version: v0.3.0.0.3 (Feb  2 2018 @ 22:12:29)
+[09:49:30.187] Initialize:803 UPnP init success - 192.168.2.10:49152
+[09:49:30.300] AddCastDevice:869 [004925D4]: adding renderer (ChromecastAudio0185)
+[09:49:30.362] slimproto:851 squeezelite [004A8F08] <=> player [004925D4]
+[09:49:30.362] slimproto:852 [004A8F08] connecting to 192.168.2.10:3483
+[09:49:30.375] slimproto:883 [004A8F08] connected
+[09:49:30.375] sendHELO:112 [004A8F08] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,pcm,aif,flc,mp3
+[09:49:30.379] sq_callback:220 [004925D4]: device set ON
+[09:49:30.456] CastConnect:368 [004925D4]: SSL connection opened [0061E4A8]
+[09:49:30.456] sq_callback:348 Volume 30

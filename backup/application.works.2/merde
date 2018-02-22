@@ -1,0 +1,23 @@
+HTTP/1.1 302 Found
+Server: nginx/1.6.2
+Date: Sat, 10 Feb 2018 23:05:45 GMT
+Transfer-Encoding: chunked
+Connection: keep-alive
+Location: http://reegh8oa.cdn.dvmr.fr/live/franceinfo-midfi.mp3
+
+HTTP/1.1 200 OK
+Server: nginx/1.6.2
+Date: Sat, 10 Feb 2018 23:05:45 GMT
+Content-Type: audio/mpeg
+Transfer-Encoding: chunked
+Connection: keep-alive
+icy-metadata: 1
+icy-name: sat-franceinfo-midfi.mp3
+icy-pub: 1
+Cache-Control: no-cache, no-store
+Pragma: no-cache
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type
+Access-Control-Allow-Methods: GET, OPTIONS, HEAD
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+

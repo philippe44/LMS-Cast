@@ -1,0 +1,337 @@
+[19:01:30.333] main:1077 Starting squeeze2cast version: v0.3.0.0.3 (Feb  6 2018 @ 19:06:47)
+[19:01:30.333] register_pcm:184 using pcm
+[19:01:30.333] register_flac:250 using flac
+[19:01:30.333] register_thru:111 using thru
+[19:01:30.447] Start:864 Binding to 192.168.2.10:49152
+[19:01:30.716] AddCastDevice:785 [0049694C]: adding renderer (ChromecastAudio0185)
+[19:01:30.786] slimproto:848 squeezelite [004ADEBC] <=> player [0049694C]
+[19:01:30.786] slimproto:849 [004ADEBC] connecting to 192.168.2.10:3483
+[19:01:30.799] slimproto:880 [004ADEBC] connected
+[19:01:30.799] sendHELO:124 [004ADEBC] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,aif,pcm,flc,mp3
+[19:01:30.803] process_strm:229 [004ADEBC] strm command s
+[19:01:30.803] process_strm:296 [004ADEBC], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[19:01:30.803] sendSTAT:157 [004ADEBC]: STAT:[STMf] msplayed 0
+[19:01:30.804] cli_open_socket:179 [004ADEBC]: opened CLI socket 1280
+[19:01:30.809] sq_get_metadata:485 [004ADEBC]: idx 5
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Les marrons
+	genre:Variété française
+	duration:161.853
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[19:01:30.809] bind_socket:554 cannot bind socket 1284
+[19:01:30.809] bind_socket:554 cannot bind socket 1284
+[19:01:30.809] sendSTAT:157 [004ADEBC]: STAT:[STMn] msplayed 0
+[19:01:30.821] pcm_open:161 [004ADEBC]: estimated size 31075820
+[19:01:30.821] process_strm:351 [004ADEBC]: codec:p, ch:2, s:16, r:48000
+[19:01:30.821] sendSTAT:157 [004ADEBC]: STAT:[STMc] msplayed 0
+[19:01:30.821] sq_callback:221 [0049694C]: device set ON
+[19:01:30.904] CastConnect:368 [0049694C]: SSL connection opened [0061E4A0]
+[19:01:30.905] CastSetDeviceVolume:315 [0049694C]: Queuing SET_VOLUME
+[19:01:30.905] CastSimple:205 [0049694C]: Queuing PLAY
+[19:01:30.905] sq_callback:312 Volume 11
+[19:01:30.905] CastSetDeviceVolume:315 [0049694C]: Queuing SET_VOLUME
+[19:01:30.986] pcm_decode:91 [004ADEBC]: setting track_start
+[19:01:38.422] output_thread:195 [004ADEBC]: completed: 0 bytes (gap -31075820)
+[19:01:38.429] output_flush:257 [004ADEBC]: terminating output thread
+[19:01:38.429] sendSTAT:157 [004ADEBC]: STAT:[STMf] msplayed 0
+[19:01:38.429] CastStop:255 [0049694C]: Stop w/o session or connect
+[19:01:38.429] sq_callback:312 Volume 11
+[19:01:38.429] process_strm:229 [004ADEBC] strm command s
+[19:01:38.429] process_strm:296 [004ADEBC], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[19:01:38.429] sendSTAT:157 [004ADEBC]: STAT:[STMf] msplayed 0
+[19:01:38.437] sq_get_metadata:485 [004ADEBC]: idx 6
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Le Honky Tonk du tank
+	genre:Variété française
+	duration:219.853
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[19:01:38.438] bind_socket:554 cannot bind socket 1300
+[19:01:38.438] bind_socket:554 cannot bind socket 1300
+[19:01:38.449] LaunchReceiver:315 [0049694C]: Launching receiver 1
+[19:01:38.449] CastLoad:169 [0049694C]: Queuing LOAD
+[19:01:38.449] sq_callback:263 [0049694C]: current URI http://192.168.2.10:49153/bridge-2.wav
+[19:01:38.449] pcm_open:161 [004ADEBC]: estimated size 42211820
+[19:01:38.449] process_strm:351 [004ADEBC]: codec:p, ch:2, s:16, r:48000
+[19:01:38.450] sendSTAT:157 [004ADEBC]: STAT:[STMc] msplayed 0
+[19:01:38.450] sq_callback:312 Volume 11
+[19:01:38.508] CastSetDeviceVolume:315 [0049694C]: Queuing SET_VOLUME
+[19:01:38.508] CastSimple:205 [0049694C]: Queuing PLAY
+[19:01:38.593] pcm_decode:91 [004ADEBC]: setting track_start
+[19:01:39.263] CastSocketThread:770 [0049694C]: Receiver launched
+[19:01:39.263] ProcessQueue:588 [0049694C]: Processing LOAD (id:2)
+[19:01:39.393] output_thread:72 [004ADEBC]: got HTTP connection 576
+[19:01:39.394] handle_http:284 [004ADEBC]: received GET /bridge-2.wav HTTP/1.1
+[19:01:39.394] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+
+
+[19:01:40.217] CastSocketThread:785 [0049694C]: Media session id 1
+[19:01:40.275] ProcessQueue:562 [0049694C]: Processing VOLUME (id:5)
+[19:01:41.349] ProcessQueue:569 [0049694C]: Processing PLAY (id:6)
+[19:01:41.371] _SyncNotifyState:380 [0049694C]: Cast playing
+[19:01:41.371] sq_notify:620 [004ADEBC] playing notif
+[19:01:41.371] sendSTAT:157 [004ADEBC]: STAT:[STMs] msplayed 0
+[19:01:51.000] slimproto_run:613 [004ADEBC] Closing CLI socket 1280
+[19:04:17.913] decode_thread:96 decode complete
+[19:04:17.985] output_thread:121 [004ADEBC]: self-exit 
+[19:04:17.985] output_thread:195 [004ADEBC]: completed: 42211884 bytes (gap 64)
+[19:04:18.914] sendSTAT:157 [004ADEBC]: STAT:[STMd] msplayed 156430
+[19:04:18.929] process_strm:229 [004ADEBC] strm command s
+[19:04:18.930] process_strm:296 [004ADEBC], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[19:04:18.930] sendSTAT:157 [004ADEBC]: STAT:[STMf] msplayed 156430
+[19:04:18.930] cli_open_socket:179 [004ADEBC]: opened CLI socket 580
+[19:04:18.942] sq_get_metadata:485 [004ADEBC]: idx 7
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Carte postale à ma cousine qui habite au bord de la Méditerrannée
+	genre:Variété française
+	duration:289.600
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[19:04:18.943] sq_callback:257 [0049694C]: next URI http://192.168.2.10:49153/bridge-3.wav
+[19:04:18.965] pcm_open:161 [004ADEBC]: estimated size 55603244
+[19:04:18.965] process_strm:351 [004ADEBC]: codec:p, ch:2, s:16, r:48000
+[19:04:18.965] sendSTAT:157 [004ADEBC]: STAT:[STMc] msplayed 156430
+[19:04:18.965] sq_callback:312 Volume 11
+[19:04:18.966] CastSetDeviceVolume:305 [0049694C]: Immediate VOLUME (id:158)
+[19:04:19.014] pcm_decode:91 [004ADEBC]: setting track_start
+[19:04:23.191] _SyncNotifyState:354 [0049694C]: Cast stop
+[19:04:23.191] CastLoad:156 [0049694C]: Immediate LOAD (id:163)
+[19:04:23.191] CastSimple:205 [0049694C]: Queuing PLAY
+[19:04:23.191] _SyncNotifyState:363 [0049694C]: no gapless http://192.168.2.10:49153/bridge-3.wav
+[19:04:23.231] output_thread:72 [004ADEBC]: got HTTP connection 1344
+[19:04:23.233] handle_http:284 [004ADEBC]: received GET /bridge-3.wav HTTP/1.1
+[19:04:23.233] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+
+
+[19:04:23.986] CastSocketThread:785 [0049694C]: Media session id 2
+[19:04:24.053] ProcessQueue:569 [0049694C]: Processing PLAY (id:165)
+[19:04:24.160] _SyncNotifyState:380 [0049694C]: Cast playing
+[19:04:24.160] sq_notify:620 [004ADEBC] playing notif
+[19:04:24.160] sendSTAT:157 [004ADEBC]: STAT:[STMs] msplayed 0
+[19:04:31.000] slimproto_run:613 [004ADEBC] Closing CLI socket 580
+[19:08:00.442] decode_thread:96 decode complete
+[19:08:00.516] output_thread:121 [004ADEBC]: self-exit 
+[19:08:00.516] output_thread:195 [004ADEBC]: completed: 55603244 bytes (gap 0)
+[19:08:01.000] sendSTAT:157 [004ADEBC]: STAT:[STMd] msplayed 215834
+[19:08:01.009] process_strm:229 [004ADEBC] strm command s
+[19:08:01.009] process_strm:296 [004ADEBC], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[19:08:01.009] sendSTAT:157 [004ADEBC]: STAT:[STMf] msplayed 215834
+[19:08:01.009] cli_open_socket:179 [004ADEBC]: opened CLI socket 1280
+[19:08:01.022] sq_get_metadata:485 [004ADEBC]: idx 8
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Le vieux
+	genre:Variété française
+	duration:198.120
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[19:08:01.022] sq_callback:257 [0049694C]: next URI http://192.168.2.10:49153/bridge-4.wav
+[19:08:01.045] pcm_open:161 [004ADEBC]: estimated size 38039084
+[19:08:01.045] process_strm:351 [004ADEBC]: codec:p, ch:2, s:16, r:48000
+[19:08:01.045] sendSTAT:157 [004ADEBC]: STAT:[STMc] msplayed 215834
+[19:08:01.046] sq_callback:312 Volume 11
+[19:08:01.046] CastSetDeviceVolume:305 [0049694C]: Immediate VOLUME (id:373)
+[19:08:01.145] pcm_decode:91 [004ADEBC]: setting track_start
+[19:08:03.967] _SyncNotifyState:354 [0049694C]: Cast stop
+[19:08:03.967] CastLoad:156 [0049694C]: Immediate LOAD (id:377)
+[19:08:03.967] CastSimple:205 [0049694C]: Queuing PLAY
+[19:08:03.967] _SyncNotifyState:363 [0049694C]: no gapless http://192.168.2.10:49153/bridge-4.wav
+[19:08:04.050] output_thread:72 [004ADEBC]: got HTTP connection 580
+[19:08:04.052] handle_http:284 [004ADEBC]: received GET /bridge-4.wav HTTP/1.1
+[19:08:04.052] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+
+
+[19:08:04.772] CastSocketThread:785 [0049694C]: Media session id 3
+[19:08:04.834] ProcessQueue:569 [0049694C]: Processing PLAY (id:379)
+[19:08:04.917] _SyncNotifyState:380 [0049694C]: Cast playing
+[19:08:04.917] sq_notify:620 [004ADEBC] playing notif
+[19:08:04.917] sendSTAT:157 [004ADEBC]: STAT:[STMs] msplayed 0
+[19:08:11.046] slimproto_run:613 [004ADEBC] Closing CLI socket 1280
+[19:10:37.565] decode_thread:96 decode complete
+[19:10:37.763] output_thread:121 [004ADEBC]: self-exit 
+[19:10:37.763] output_thread:195 [004ADEBC]: completed: 38039084 bytes (gap 0)
+[19:10:38.565] sendSTAT:157 [004ADEBC]: STAT:[STMd] msplayed 153364
+[19:10:38.574] process_strm:229 [004ADEBC] strm command s
+[19:10:38.574] process_strm:296 [004ADEBC], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[19:10:38.574] sendSTAT:157 [004ADEBC]: STAT:[STMf] msplayed 153364
+[19:10:38.574] cli_open_socket:179 [004ADEBC]: opened CLI socket 1288
+[19:10:38.587] sq_get_metadata:485 [004ADEBC]: idx 9
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Russian Lullaby
+	genre:Variété française
+	duration:83.359
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[19:10:38.587] sq_callback:257 [0049694C]: next URI http://192.168.2.10:49153/bridge-5.wav
+[19:10:38.607] pcm_open:161 [004ADEBC]: estimated size 16004972
+[19:10:38.607] process_strm:351 [004ADEBC]: codec:p, ch:2, s:16, r:48000
+[19:10:38.607] sendSTAT:157 [004ADEBC]: STAT:[STMc] msplayed 153364
+[19:10:38.607] sq_callback:312 Volume 11
+[19:10:38.607] CastSetDeviceVolume:305 [0049694C]: Immediate VOLUME (id:527)
+[19:10:38.677] pcm_decode:91 [004ADEBC]: setting track_start
+[19:10:51.000] slimproto_run:613 [004ADEBC] Closing CLI socket 1288
+[19:11:22.998] _SyncNotifyState:354 [0049694C]: Cast stop
+[19:11:22.998] CastLoad:156 [0049694C]: Immediate LOAD (id:570)
+[19:11:22.998] CastSimple:205 [0049694C]: Queuing PLAY
+[19:11:22.999] _SyncNotifyState:363 [0049694C]: no gapless http://192.168.2.10:49153/bridge-5.wav
+[19:11:23.063] output_thread:72 [004ADEBC]: got HTTP connection 576
+[19:11:23.065] handle_http:284 [004ADEBC]: received GET /bridge-5.wav HTTP/1.1
+[19:11:23.065] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+
+
+[19:11:23.784] CastSocketThread:785 [0049694C]: Media session id 4
+[19:11:23.851] ProcessQueue:569 [0049694C]: Processing PLAY (id:572)
+[19:11:23.929] _SyncNotifyState:380 [0049694C]: Cast playing
+[19:11:23.929] sq_notify:620 [004ADEBC] playing notif
+[19:11:23.929] sendSTAT:157 [004ADEBC]: STAT:[STMs] msplayed 0
+[19:12:08.389] decode_thread:96 decode complete
+[19:12:08.454] output_thread:121 [004ADEBC]: self-exit 
+[19:12:08.454] output_thread:195 [004ADEBC]: completed: 16005164 bytes (gap 192)
+[19:12:09.389] sendSTAT:157 [004ADEBC]: STAT:[STMd] msplayed 45127
+[19:12:09.397] process_strm:229 [004ADEBC] strm command s
+[19:12:09.397] process_strm:296 [004ADEBC], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[19:12:09.397] sendSTAT:157 [004ADEBC]: STAT:[STMf] msplayed 45127
+[19:12:09.408] cli_open_socket:179 [004ADEBC]: opened CLI socket 1288
+[19:12:09.419] sq_get_metadata:485 [004ADEBC]: idx 10
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Nathalie
+	genre:Variété française
+	duration:242.360
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[19:12:09.419] sq_callback:257 [0049694C]: next URI http://192.168.2.10:49153/bridge-6.wav
+[19:12:09.440] pcm_open:161 [004ADEBC]: estimated size 46533164
+[19:12:09.440] process_strm:351 [004ADEBC]: codec:p, ch:2, s:16, r:48000
+[19:12:09.451] sendSTAT:157 [004ADEBC]: STAT:[STMc] msplayed 45127
+[19:12:09.451] sq_callback:312 Volume 11
+[19:12:09.451] CastSetDeviceVolume:305 [0049694C]: Immediate VOLUME (id:617)
+[19:12:09.589] pcm_decode:91 [004ADEBC]: setting track_start
+[19:12:21.000] slimproto_run:613 [004ADEBC] Closing CLI socket 1288
+[19:12:47.266] _SyncNotifyState:354 [0049694C]: Cast stop
+[19:12:47.267] CastLoad:156 [0049694C]: Immediate LOAD (id:654)
+[19:12:47.267] CastSimple:205 [0049694C]: Queuing PLAY
+[19:12:47.267] _SyncNotifyState:363 [0049694C]: no gapless http://192.168.2.10:49153/bridge-6.wav
+[19:12:47.298] output_thread:72 [004ADEBC]: got HTTP connection 1296
+[19:12:47.301] handle_http:284 [004ADEBC]: received GET /bridge-6.wav HTTP/1.1
+[19:12:47.301] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+
+
+[19:12:48.059] CastSocketThread:785 [0049694C]: Media session id 5
+[19:12:48.134] ProcessQueue:569 [0049694C]: Processing PLAY (id:656)
+[19:12:48.201] _SyncNotifyState:380 [0049694C]: Cast playing
+[19:12:48.201] sq_notify:620 [004ADEBC] playing notif
+[19:12:48.201] sendSTAT:157 [004ADEBC]: STAT:[STMs] msplayed 0
+[19:14:21.706] decode_thread:96 decode complete
+[19:14:21.797] output_thread:121 [004ADEBC]: self-exit 
+[19:14:21.797] output_thread:195 [004ADEBC]: completed: 46533164 bytes (gap 0)
+[19:14:22.706] sendSTAT:157 [004ADEBC]: STAT:[STMd] msplayed 0
+[19:14:22.721] process_strm:229 [004ADEBC] strm command s
+[19:14:22.721] process_strm:296 [004ADEBC], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[19:14:22.721] sendSTAT:157 [004ADEBC]: STAT:[STMf] msplayed 0
+[19:14:22.721] cli_open_socket:179 [004ADEBC]: opened CLI socket 1288
+[19:14:22.733] sq_get_metadata:485 [004ADEBC]: idx 11
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Tout est dans mon sac
+	genre:Variété française
+	duration:213.453
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[19:14:22.733] sq_callback:257 [0049694C]: next URI http://192.168.2.10:49153/bridge-7.wav
+[19:14:22.733] pcm_open:161 [004ADEBC]: estimated size 40983020
+[19:14:22.747] process_strm:351 [004ADEBC]: codec:p, ch:2, s:16, r:48000
+[19:14:22.747] output_thread:72 [004ADEBC]: got HTTP connection 1344
+[19:14:22.748] sendSTAT:157 [004ADEBC]: STAT:[STMc] msplayed 0
+[19:14:22.748] sq_callback:312 Volume 11
+[19:14:22.748] CastSetDeviceVolume:305 [0049694C]: Immediate VOLUME (id:748)
+[19:14:22.749] handle_http:284 [004ADEBC]: received GET /bridge-6.wav HTTP/1.1
+[19:14:22.749] handle_http:292 wrong file requested, refusing 6 7
+[19:14:22.749] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 410 Gone
+Server: squeezebox-bridge
+Connection: close
+
+
+[19:14:22.749] output_thread:100 HTTP close 1344
+[19:14:22.812] pcm_decode:91 [004ADEBC]: setting track_start
+[19:14:23.344] _SyncNotifyState:413 ChromecastAudio0185: Cast pause
+[19:14:23.344] sq_notify:627 [004ADEBC] unsollicited pause
+[19:14:23.350] sq_callback:312 Volume 0
+[19:14:23.350] CastSetDeviceVolume:305 [0049694C]: Immediate VOLUME (id:750)
+[19:14:23.350] process_strm:229 [004ADEBC] strm command p
+[19:14:23.350] CastSimple:193 [0049694C]: Immediate PAUSE (id:751)
+[19:14:23.350] sendSTAT:157 [004ADEBC]: STAT:[STMp] msplayed 0
+[19:14:23.350] process_strm:263 [004ADEBC] pause (interval:0)
+[19:14:24.398] _SyncNotifyState:354 [0049694C]: Cast stop
+[19:14:24.398] CastLoad:156 [0049694C]: Immediate LOAD (id:753)
+[19:14:24.398] CastSimple:205 [0049694C]: Queuing PLAY
+[19:14:24.398] _SyncNotifyState:363 [0049694C]: no gapless http://192.168.2.10:49153/bridge-7.wav
+[19:14:24.470] output_thread:72 [004ADEBC]: got HTTP connection 1344
+[19:14:24.473] handle_http:284 [004ADEBC]: received GET /bridge-7.wav HTTP/1.1
+[19:14:24.473] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+
+
+[19:14:25.237] CastSocketThread:785 [0049694C]: Media session id 6
+[19:14:25.297] ProcessQueue:569 [0049694C]: Processing PLAY (id:755)
+[19:14:25.350] _SyncNotifyState:380 [0049694C]: Cast playing
+[19:14:25.350] sq_notify:607 [004ADEBC] unsollicited play
+[19:14:25.352] sq_callback:312 Volume 0
+[19:14:25.353] process_strm:229 [004ADEBC] strm command u
+[19:14:25.353] CastSetDeviceVolume:305 [0049694C]: Immediate VOLUME (id:756)
+[19:14:25.353] CastSimple:193 [0049694C]: Immediate PLAY (id:757)
+[19:14:25.353] process_strm:280 [004ADEBC] unpause at: 0 now: 793446294
+[19:14:25.353] sendSTAT:157 [004ADEBC]: STAT:[STMr] msplayed 0
+[19:14:25.353] sq_callback:312 Volume 11
+[19:14:25.353] CastSetDeviceVolume:305 [0049694C]: Immediate VOLUME (id:759)
+[19:14:36.000] slimproto_run:613 [004ADEBC] Closing CLI socket 1288
+[19:17:32.986] process_strm:229 [004ADEBC] strm command u
+[19:17:32.986] process_strm:280 [004ADEBC] unpause at: 0 now: 793633932
+[19:17:32.986] sendSTAT:157 [004ADEBC]: STAT:[STMr] msplayed 187018
+[19:17:45.553] decode_thread:96 decode complete
+[19:17:46.239] output_thread:121 [004ADEBC]: self-exit 
+[19:17:46.239] output_thread:195 [004ADEBC]: completed: 40983084 bytes (gap 64)
+[19:17:58.781] _SyncNotifyState:354 [0049694C]: Cast stop
+[19:17:58.781] sq_notify:643 [004ADEBC] notify STOP
+[19:17:58.781] sendSTAT:157 [004ADEBC]: STAT:[STMu] msplayed 213288
+[19:22:59.588] sq_notify:637 [004ADEBC] forced STOP
+[19:22:59.611] cli_open_socket:179 [004ADEBC]: opened CLI socket 1268
+[19:22:59.612] output_flush:257 [004ADEBC]: terminating output thread
+[19:22:59.618] CastStop:239 [0049694C]: Immediate STOP (id:964)
+[19:22:59.660] sq_notify:637 [004ADEBC] forced STOP
+[19:23:11.000] slimproto_run:613 [004ADEBC] Closing CLI socket 1268

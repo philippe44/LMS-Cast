@@ -30,12 +30,12 @@
 #include "squeeze2cast.h"
 #include "upnpdebug.h"
 #include "upnptools.h"
-#include "webserver.h"
 #include "util_common.h"
 #include "log_util.h"
 #include "util.h"
 #include "cast_util.h"
 #include "castitf.h"
+#include "cast_parse.h"
 #include "mdnssd-itf.h"
 
 #define DISCOVERY_TIME 20
@@ -43,31 +43,27 @@
 /*----------------------------------------------------------------------------*/
 /* globals 																	  */
 /*----------------------------------------------------------------------------*/
-char	   	glBaseVDIR[] = "LMS2CAST";
 s32_t		glLogLimit = -1;
 char		glUPnPSocket[128] = "?";
 struct sMR	glMRDevices[MAX_RENDERERS];
 
 log_level	slimproto_loglevel = lINFO;
+log_level	slimmain_loglevel = lWARN;
 log_level	stream_loglevel = lWARN;
 log_level	decode_loglevel = lWARN;
 log_level	output_loglevel = lWARN;
-log_level	web_loglevel = lWARN;
 log_level	main_loglevel = lINFO;
-log_level	slimmain_loglevel = lINFO;
 log_level	util_loglevel = lWARN;
 log_level	cast_loglevel = lINFO;
 
 tMRConfig			glMRConfig = {
-							-2L,  	// stream_length
 							true,	// enabled
 							false,  // roon_mode
 							false,	// stop_receiver
-							"",
-							1,
-							false,
-							true,
-							true,
+							"",		// name
+							1,      // volume_on_play
+							true,	// send_metadata
+							true,   // send_coverart
 							false,	// autoplay
 							0.5,	// media_volume
 					};
@@ -86,20 +82,18 @@ static u8_t LMSVolumeMap[101] = {
 			};
 
 sq_dev_param_t glDeviceParam = {
+					HTTP_INFINITE, 	 		// stream_length
 					 // both are multiple of 3*4(2) for buffer alignement on sample
 					(200 * 1024 * (4*3)),	// stream_buffer_size
-					(200 * 1024 * (4*3)),   // output_buffer_size
-					-1,                     // max_GET_bytes
+					(16 * 1024 * (4*3)),    // output_buffer_size
 					"pcm,aif,flc,mp3",		// codecs
+					"thru",					// encode
+					"wav",					// raw_audio_format
 					"?",                    // server
 					SQ_RATE_96000,          // sample_rate
 					L24_PACKED_LPCM,		// L24_format
 					FLAC_NORMAL_HEADER,     // flac_header
-					"?",        // buffer_dir
 					"",			// name
-					-1L,		// buffer_limit
-					1024*1024L,	// pacing_size
-					false,		// keep_buffer_file
 					{ 0x00,0x00,0x00,0x00,0x00,0x00 },
 					false,		// send_icy
 					{ 	true,	// use_cli
@@ -131,7 +125,7 @@ static bool					glGracefullShutdown = true;
 static unsigned int 		glPort = 0;
 static char 				glIPaddress[128] = "";
 static void					*glConfigID = NULL;
-static char					glConfigName[SQ_STR_LENGTH] = "./config.xml";
+static char					glConfigName[_STR_LEN_] = "./config.xml";
 
 static char usage[] =
 			VERSION "\n"
@@ -144,7 +138,7 @@ static char usage[] =
 		   "  -I \t\t\tauto save config at every network scan\n"
 		   "  -f <logfile>\t\tWrite debug to logfile\n"
 		   "  -p <pid file>\t\twrite PID in file\n"
-		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|stream|decode|output|web|main|util|cast, level: error|warn|info|debug|sdebug\n"
+		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|slimmain|stream|decode|output|main|util|cast, level: error|warn|info|debug|sdebug\n"
 #if LINUX || FREEBSD
 		   "  -z \t\t\tDaemonize\n"
 #endif
@@ -192,145 +186,117 @@ static char license[] =
 /*----------------------------------------------------------------------------*/
 /* prototypes */
 /*----------------------------------------------------------------------------*/
+static void	RemoveCastDevice(struct sMR *Device);
 static void *MRThread(void *args);
 static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool Group, struct in_addr ip, u16_t port);
-void 		RemoveCastDevice(struct sMR *Device);
-static int	Terminate(void);
-static int  Initialize(void);
 
 // functions prefixed with _ require device's mutex to be locked
 static void _SyncNotifyState(const char *State, struct sMR* Device);
 
 /*----------------------------------------------------------------------------*/
-bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t *cookie, void *param)
+bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t *cookie, void *param)
 {
-	struct sMR *device = caller;
+	struct sMR *Device = caller;
 	char *p = (char*) param;
 	bool rc = true;
 
-	pthread_mutex_lock(&device->Mutex);
+	pthread_mutex_lock(&Device->Mutex);
 
 	// this is async, so player might have been deleted
-	if (!device->Running) {
-		pthread_mutex_unlock(&device->Mutex);
-		LOG_WARN("[%p] device has been removed", device);
+	if (!Device->Running) {
+		pthread_mutex_unlock(&Device->Mutex);
+		LOG_WARN("[%p] device has been removed", Device);
 		return false;
 	}
 
 	if (action == SQ_ONOFF) {
-		device->on = *((bool*) param);
+		Device->on = *((bool*) param);
 
-		LOG_INFO("[%p]: device set %s", caller, device->on ? "ON" : "OFF");
+		LOG_INFO("[%p]: device set %s", caller, Device->on ? "ON" : "OFF");
 
-		if (device->on) {
-			CastPowerOn(device->CastCtx);
+		if (Device->on) {
+			CastPowerOn(Device->CastCtx);
 			// candidate for busyraise/drop as it's using cli
-			if (device->Config.AutoPlay) sq_notify(device->SqueezeHandle, device, SQ_PLAY, NULL, &device->on);
+			if (Device->Config.AutoPlay) sq_notify(Device->SqueezeHandle, Device, SQ_PLAY, NULL, &Device->on);
 		} else {
 			// cannot disconnect when LMS is configured for pause when OFF
-			if (device->sqState == SQ_STOP) CastPowerOff(device->CastCtx);
+			if (Device->sqState == SQ_STOP) CastPowerOff(Device->CastCtx);
 		}
 	}
 
-	if (!device->on && action != SQ_SETNAME && action != SQ_SETSERVER) {
+	if (!Device->on && action != SQ_SETNAME && action != SQ_SETSERVER) {
 		LOG_DEBUG("[%p]: device off or not controlled by LMS", caller);
-		pthread_mutex_unlock(&device->Mutex);
+		pthread_mutex_unlock(&Device->Mutex);
 		return false;
 	}
 
-	LOG_SDEBUG("callback for %s (%d)", device->FriendlyName, action);
+	LOG_SDEBUG("callback for %s (%d)", Device->FriendlyName, action);
 
 	switch (action) {
 
-		case SQ_SETURI:
-			sq_free_metadata(&device->MetaData);
-		case SQ_SETNEXTURI: {
-			sq_seturi_t *p = (sq_seturi_t*) param;
-			char uri[SQ_STR_LENGTH];
+		case SQ_SET_TRACK: {
+			struct track_param *p = (struct track_param*) param;
+			bool Next = (Device->sqState != SQ_STOP);
 
-			LOG_INFO("[%p]: codec:%c, ch:%d, s:%d, r:%d", device, p->codec,
-										p->channels, p->sample_size, p->sample_rate);
+			NFREE(Device->NextURI);
+			sq_free_metadata(&Device->NextMetaData);
+			if (!Device->Config.SendCoverArt) NFREE(p->metadata.artwork);
 
-			sq_get_metadata(device->SqueezeHandle, &device->MetaData, (action == SQ_SETURI) ? false : true);
-			p->file_size = device->MetaData.file_size ?
-						   device->MetaData.file_size : device->Config.StreamLength;
+			LOG_INFO("[%p]:\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n\tgenre:%s\n\tduration:%d.%03d\n\tsize:%d\n\tcover:%s", Device,
+				p->metadata.artist, p->metadata.album, p->metadata.title,
+				p->metadata.genre, div(p->metadata.duration, 1000).quot,
+				div(p->metadata.duration,1000).rem, p->metadata.file_size,
+				p->metadata.artwork ? p->metadata.artwork : "");
 
-			p->duration 	= device->MetaData.duration;
-			p->src_format 	= ext2format(device->MetaData.path);
-			p->remote 		= device->MetaData.remote;
-			p->track_hash	= device->MetaData.track_hash;
-			if (!device->Config.SendCoverArt) NFREE(device->MetaData.artwork);
-
-			// must be done after the above
-			if (!SetContentType(device, p)) {
-				LOG_ERROR("[%p]: no matching codec in player", caller);
-				sq_free_metadata(&device->MetaData);
-				rc = false;
-				break;
-			}
-
-			sprintf(uri, "http://%s:%d/%s/%s.%s", glIPaddress, glPort, glBaseVDIR, p->name, p->ext);
-
-			if (action == SQ_SETNEXTURI) {
-				NFREE(device->NextURI);
-				strcpy(device->ContentType, p->content_type);
-
+			if (Next) {
 				// to know what is expected next
-				device->NextURI = (char*) malloc(strlen(uri) + 1);
-				strcpy(device->NextURI, uri);
-				LOG_INFO("[%p]: next URI set %s", device, device->NextURI);
+				strcpy(Device->NextMime, p->mimetype);
+				// this is a structure copy, pointers remains valid
+				Device->NextMetaData = p->metadata;
+				Device->NextURI = strdup(p->uri);
+				LOG_INFO("[%p]: next URI %s", Device, Device->NextURI);
 			}
 			else {
-				// to detect properly transition
-				NFREE(device->CurrentURI);
-				NFREE(device->NextURI);
-
-				rc = CastLoad(device->CastCtx, uri, p->content_type,
-							  (device->Config.SendMetaData) ? &device->MetaData : NULL);
-
-				sq_free_metadata(&device->MetaData);
-
-				device->CurrentURI = (char*) malloc(strlen(uri) + 1);
-				strcpy(device->CurrentURI, uri);
-				LOG_INFO("[%p]: current URI set %s", device, device->CurrentURI);
+				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (
+							  Device->Config.SendMetaData) ? &p->metadata : NULL);
+				sq_free_metadata(&p->metadata);
+				LOG_INFO("[%p]: current URI %s", Device, p->uri);
 			}
 
 			break;
 		}
 		case SQ_UNPAUSE:
-			if (device->CurrentURI) {
-				if (device->Config.VolumeOnPlay == 1)
-					CastSetDeviceVolume(device->CastCtx, device->Volume, false);
+			// got it, don't need to send it more than once ...
+			if (Device->sqState == SQ_PLAY) break;
 
-				CastPlay(device->CastCtx);
-				device->sqState = SQ_PLAY;
-			}
+			if (Device->Config.VolumeOnPlay == 1)
+				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
+
+			CastPlay(Device->CastCtx);
+			Device->sqState = SQ_PLAY;
 			break;
 		case SQ_PLAY:
-			if (device->CurrentURI) {
 #if !defined(REPOS_TIME)
-				device->StartTime = sq_get_time(device->SqueezeHandle);
-				device->LocalStartTime = gettime_ms();
+			Device->StartTime = sq_get_time(Device->SqueezeHandle);
+			Device->LocalStartTime = gettime_ms();
 #endif
-				if (device->Config.VolumeOnPlay == 1)
-					CastSetDeviceVolume(device->CastCtx, device->Volume, false);
+			if (Device->Config.VolumeOnPlay == 1)
+				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 
-				CastPlay(device->CastCtx);
-				device->sqState = SQ_PLAY;
-				device->sqStamp = gettime_ms();
-			}
-			else rc = false;
+			CastPlay(Device->CastCtx);
+			Device->sqState = SQ_PLAY;
+			Device->sqStamp = gettime_ms();
 			break;
 		case SQ_STOP:
-			CastStop(device->CastCtx);
-			NFREE(device->CurrentURI);
-			NFREE(device->NextURI);
-			device->sqState = action;
+			CastStop(Device->CastCtx);
+			NFREE(Device->NextURI);
+			sq_free_metadata(&Device->NextMetaData);
+			Device->sqState = action;
 			break;
 		case SQ_PAUSE:
-			CastPause(device->CastCtx);
-			device->sqState = action;
-			device->sqStamp = gettime_ms();
+			CastPause(Device->CastCtx);
+			Device->sqState = action;
+			Device->sqStamp = gettime_ms();
 			break;
 		case SQ_NEXT:
 			break;
@@ -343,26 +309,26 @@ static void _SyncNotifyState(const char *State, struct sMR* Device);
 
 			for (i = 100; Volume < LMSVolumeMap[i] && i; i--);
 
-			device->Volume = (double) i / 100;
+			Device->Volume = (double) i / 100;
 			LOG_INFO("Volume %d", i);
 
-			if ((device->VolumeStamp + 1000 - now > 0x7fffffff) &&
-				(!device->Config.VolumeOnPlay || (device->Config.VolumeOnPlay == 1 && device->sqState == SQ_PLAY)))
-				CastSetDeviceVolume(device->CastCtx, device->Volume, false);
+			if ((Device->VolumeStamp + 1000 - now > 0x7fffffff) &&
+				(!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)))
+				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 
 			break;
 		}
 		case SQ_SETNAME:
-			strcpy(device->sq_config.name, param);
+			strcpy(Device->sq_config.name, param);
 			break;
 		case SQ_SETSERVER:
-			strcpy(device->sq_config.dynamic.server, inet_ntoa(*(struct in_addr*) param));
+			strcpy(Device->sq_config.dynamic.server, inet_ntoa(*(struct in_addr*) param));
 			break;
 		default:
 			break;
 	}
 
-	pthread_mutex_unlock(&device->Mutex);
+	pthread_mutex_unlock(&Device->Mutex);
 	return rc;
 }
 
@@ -383,57 +349,51 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 		Param = true;
 		Event = SQ_STOP;
 	}
+	if (!strcasecmp(State, "BUFFERING") && Device->State != BUFFERING) {
+		Event = SQ_TRANSITION;
+		Device->State = BUFFERING;
+	}
 
-	if (!strcasecmp(State, "STOPPED")) {
-		if (Device->State != STOPPED) {
-			LOG_INFO("[%p]: Cast stop", Device);
-			if (Device->NextURI && !Device->Config.AcceptNextURI) {
+	if (!strcasecmp(State, "STOPPED") && Device->State != STOPPED) {
+		LOG_INFO("[%p]: Cast stop", Device);
+		if (Device->NextURI) {
 
-				// fake a "SETURI" and a "PLAY" request
-				NFREE(Device->CurrentURI);
-				Device->CurrentURI = malloc(strlen(Device->NextURI) + 1);
-				strcpy(Device->CurrentURI, Device->NextURI);
-				NFREE(Device->NextURI);
+			// fake a "SETURI" and a "PLAY" request
+			CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime,
+					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL);
 
-				CastLoad(Device->CastCtx, Device->CurrentURI, Device->ContentType,
-						  (Device->Config.SendMetaData) ? &Device->MetaData : NULL);
-				sq_free_metadata(&Device->MetaData);
+			CastPlay(Device->CastCtx);
 
-				CastPlay(Device->CastCtx);
+			LOG_INFO("[%p]: no gapless %s", Device, Device->NextURI);
 
-				Event = SQ_TRACK_CHANGE;
-				LOG_INFO("[%p]: no gapless %s", Device, Device->CurrentURI);
-			}
-			else {
-				// Can be a user stop, an error or a normal stop
-				Event = SQ_STOP;
-			}
+			sq_free_metadata(&Device->NextMetaData);
+			NFREE(Device->NextURI);
+		} else {
+			// Can be a user stop, an error or a normal stop
+			Event = SQ_STOP;
 		}
 
 		Device->State = STOPPED;
 	}
 
-	if (!strcasecmp(State, "PLAYING")) {
-		if (Device->State != PLAYING) {
-
-			LOG_INFO("[%p]: Cast playing", Device);
-			switch (Device->sqState) {
-			case SQ_PAUSE:
-				Param = true;
-			case SQ_PLAY:
-				Event = SQ_PLAY;
-				break;
-			default:
-				/*
-				can be a local playing after stop or a N-1 playing after a quick
-				sequence of "next" when a N stop has been sent ==> ignore it
-				*/
-				LOG_ERROR("[%p]: unhandled playing", Device);
-				break;
-			}
-
-			Device->State = PLAYING;
+	if (!strcasecmp(State, "PLAYING") && Device->State != PLAYING) {
+		LOG_INFO("[%p]: Cast playing", Device);
+		switch (Device->sqState) {
+		case SQ_PAUSE:
+			Param = true;
+		case SQ_PLAY:
+			Event = SQ_PLAY;
+			break;
+		default:
+			/*
+			can be a local playing after stop or a N-1 playing after a quick
+			sequence of "next" when a N stop has been sent ==> ignore it
+			*/
+			LOG_ERROR("[%p]: unhandled playing", Device);
+			break;
 		}
+
+		Device->State = PLAYING;
 	}
 
 	if (!strcasecmp(State, "PAUSED")) {
@@ -459,7 +419,6 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 	if (Event != SQ_NONE)
 		sq_notify(Device->SqueezeHandle, Device, Event, NULL, &Param);
 }
-
 
 
 /*----------------------------------------------------------------------------*/
@@ -491,8 +450,10 @@ static void *MRThread(void *args)
 
 			// a mediaSessionId has been acquired
 			if (type && !strcasecmp(type, "MEDIA_STATUS")) {
+				const char *url;
 				const char *state = GetMediaItem_S(data, 0, "playerState");
 
+				// so far, buffering and playing can be merged
 				if (state && (!strcasecmp(state, "PLAYING") || !strcasecmp(state, "BUFFERING"))) {
 					_SyncNotifyState("PLAYING", p);
 				}
@@ -522,6 +483,9 @@ static void *MRThread(void *args)
 #endif
 					sq_notify(p->SqueezeHandle, p, SQ_TIME, NULL, &elapsed);
 				}
+
+				url = GetMediaInfoItem_S(data, 0, "contentId");
+				if (url) sq_notify(p->SqueezeHandle, p, SQ_TRACK_INFO, NULL, (void*) url);
 
 			}
 
@@ -567,7 +531,7 @@ static void *MRThread(void *args)
 
 
 /*----------------------------------------------------------------------------*/
-char *GetmDNSAttribute(txt_attr_t *p, int count, char *name)
+static char *GetmDNSAttribute(txt_attr_t *p, int count, char *name)
 {
 	int j;
 
@@ -594,7 +558,7 @@ static struct sMR *SearchUDN(char *UDN)
 
 
 /*----------------------------------------------------------------------------*/
-bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
+static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 {
 	struct sMR *Device;
 	mDNSservice_t *s;
@@ -624,6 +588,7 @@ bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		char *UDN = NULL, *Name = NULL;
 		char *Model;
 		bool Group;
+		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", NULL };
 		int j;
 
 		// is the mDNS record usable announce made on behalf
@@ -695,13 +660,13 @@ bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		if (Model && !stristr(Model, "Group")) Group = false;
 		else Group = true;
 		NFREE(Model);
-
+
 		Name = GetmDNSAttribute(s->attr, s->attr_count, "fn");
 		if (!Name) Name = strdup(s->hostname);
 
 		if (AddCastDevice(Device, Name, UDN, Group, s->addr, s->port) && !glDiscovery) {
 			// create a new slimdevice
-			Device->SqueezeHandle = sq_reserve_device(Device, Device->on, &sq_callback);
+			Device->SqueezeHandle = sq_reserve_device(Device, Device->on, MimeCaps, &sq_callback);
 			if (!*(Device->sq_config.name)) strcpy(Device->sq_config.name, Device->FriendlyName);
 			if (!Device->SqueezeHandle || !sq_run_device(Device->SqueezeHandle, &Device->sq_config)) {
 				sq_release_device(Device->SqueezeHandle);
@@ -714,7 +679,6 @@ bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		NFREE(UDN);
 		NFREE(Name);
 	}
-
 	if (glAutoSaveConfigFile || glDiscovery) {
 		LOG_DEBUG("Updating configuration %s", glConfigName);
 		SaveConfig(glConfigName, glConfigID, false);
@@ -774,91 +738,6 @@ static void *MainThread(void *args)
 
 
 /*----------------------------------------------------------------------------*/
-int Initialize(void)
-{
-	struct UpnpVirtualDirCallbacks VirtualDirCallbacks;
-	int i, rc;
-
-	memset(&glMRDevices, 0, sizeof(glMRDevices));
-	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
-
-	UpnpSetLogLevel(UPNP_ALL);
-
-	if (!strstr(glUPnPSocket, "?")) sscanf(glUPnPSocket, "%[^:]:%u", glIPaddress, &glPort);
-
-	if (*glIPaddress) rc = UpnpInit(glIPaddress, glPort);
-	else rc = UpnpInit(NULL, glPort);
-
-	if (rc != UPNP_E_SUCCESS) {
-		LOG_ERROR("UPnP init failed: %d\n", rc);
-		UpnpFinish();
-		return false;
-	}
-
-	UpnpSetMaxContentLength(60000);
-
-	if (!*glIPaddress) strcpy(glIPaddress, UpnpGetServerIpAddress());
-	if (!glPort) glPort = UpnpGetServerPort();
-
-	LOG_INFO("UPnP init success - %s:%u", glIPaddress, glPort);
-
-	rc = UpnpEnableWebserver(true);
-
-	if (rc != UPNP_E_SUCCESS) {
-		LOG_ERROR("Error initalizing WebServer: %d", rc);
-		UpnpFinish();
-		return false;
-	}
-	else {
-		LOG_DEBUG("WebServer enabled", NULL);
-	}
-
-	rc = UpnpAddVirtualDir(glBaseVDIR);
-
-	if (rc != UPNP_E_SUCCESS) {
-		LOG_ERROR("Error setting VirtualDir: %d", rc);
-		UpnpFinish();
-		return false;
-	}
-	else {
-		LOG_DEBUG("VirtualDir set for Squeezelite", NULL);
-	}
-
-	VirtualDirCallbacks.get_info = WebGetInfo;
-	VirtualDirCallbacks.open = WebOpen;
-	VirtualDirCallbacks.read  = WebRead;
-	VirtualDirCallbacks.seek = WebSeek;
-	VirtualDirCallbacks.close = WebClose;
-	VirtualDirCallbacks.write = WebWrite;
-	rc = UpnpSetVirtualDirCallbacks(&VirtualDirCallbacks);
-
-	if (rc != UPNP_E_SUCCESS) {
-		LOG_ERROR("Error registering VirtualDir callbacks: %d", rc);
-		UpnpFinish();
-		return false;
-	}
-	else {
-		LOG_DEBUG("Callbacks registered for VirtualDir", NULL);
-	}
-
-	return true;
-}
-
-/*----------------------------------------------------------------------------*/
-int Terminate(void)
-{
-	LOG_DEBUG("un-register libupnp callbacks ...", NULL);
-	LOG_DEBUG("disable webserver ...", NULL);
-	UpnpRemoveVirtualDir(glBaseVDIR);
-	UpnpEnableWebserver(false);
-	LOG_DEBUG("end libupnp ...", NULL);
-	UpnpFinish();
-
-	return true;
-}
-
-
-/*----------------------------------------------------------------------------*/
 static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group, struct in_addr ip, u16_t port)
 {
 	unsigned long mac_size = 6;
@@ -876,9 +755,9 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->sqState 		= SQ_STOP;
 	Device->State 			= STOPPED;
 	Device->VolumeStamp    	= Device->TrackPoll = 0;
-	Device->ContentType[0] 	= '\0';
-	Device->CurrentURI 		= Device->NextURI = NULL;
-	Device->Group 		= group;
+	Device->NextMime[0]	 	= '\0';
+	Device->NextURI 		= NULL;
+	Device->Group 			= group;
 
 	if (group) {
 		Device->GroupMaster	= calloc(1, sizeof(struct sGroupMember));
@@ -886,11 +765,10 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 		Device->GroupMaster->Port = port;
 	} else Device->GroupMaster = NULL;
 
-
 	strcpy(Device->UDN, UDN);
 	strcpy(Device->FriendlyName, Name);
 
-	memset(&Device->MetaData, 0, sizeof(metadata_t));
+	memset(&Device->NextMetaData, 0, sizeof(metadata_t));
 
 	if (Device->Config.RoonMode) {
 		Device->on = true;
@@ -929,7 +807,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 
 
 /*----------------------------------------------------------------------------*/
-void FlushCastDevices(void)
+static void FlushCastDevices(void)
 {
 	int i;
 
@@ -944,9 +822,10 @@ void FlushCastDevices(void)
 
 
 /*----------------------------------------------------------------------------*/
-void RemoveCastDevice(struct sMR *Device)
+static void RemoveCastDevice(struct sMR *Device)
 {
 	pthread_mutex_lock(&Device->Mutex);
+	sq_free_metadata(&Device->NextMetaData);
 	Device->Running = false;
 	pthread_mutex_unlock(&Device->Mutex);
 	pthread_join(Device->Thread, NULL);
@@ -954,7 +833,6 @@ void RemoveCastDevice(struct sMR *Device)
 	clear_list((list_t**) &Device->GroupMaster, free);
 
 	DeleteCastDevice(Device->CastCtx);
-	NFREE(Device->CurrentURI);
 	NFREE(Device->NextURI);
 }
 
@@ -962,7 +840,33 @@ void RemoveCastDevice(struct sMR *Device)
 static bool Start(void)
 {
 	struct in_addr addr;
-	int i;
+	int i, rc;
+
+	memset(&glMRDevices, 0, sizeof(glMRDevices));
+	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
+
+	UpnpSetLogLevel(UPNP_ALL);
+
+	if (!strstr(glUPnPSocket, "?")) sscanf(glUPnPSocket, "%[^:]:%u", glIPaddress, &glPort);
+
+	if (*glIPaddress) rc = UpnpInit(glIPaddress, glPort);
+	else rc = UpnpInit(NULL, glPort);
+
+	if (rc != UPNP_E_SUCCESS) {
+		LOG_ERROR("UPnP init failed: %d\n", rc);
+		UpnpFinish();
+		return false;
+	}
+
+	UpnpSetMaxContentLength(60000);
+
+	if (!*glIPaddress) strcpy(glIPaddress, UpnpGetServerIpAddress());
+	if (!glPort) glPort = UpnpGetServerPort();
+
+	// start squeeze piece
+	sq_init(glIPaddress, glPort);
+
+	LOG_INFO("Binding to %s:%d", glIPaddress, glPort);
 
 	// init mutex & cond no matter what
 	pthread_mutex_init(&glMainMutex, 0);
@@ -970,7 +874,6 @@ static bool Start(void)
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
 	InitSSL();
-	if (!Initialize()) return false;
 
 	/* start the mDNS devices discovery thread */
 	addr.s_addr = inet_addr(glIPaddress);
@@ -983,9 +886,13 @@ static bool Start(void)
 	return true;
 }
 
+/*----------------------------------------------------------------------------*/
 static bool Stop(void)
 {
 	int i;
+
+	LOG_INFO("stopping squeezelite devices ...", NULL);
+	sq_stop();
 
 	glMainRunning = false;
 
@@ -994,7 +901,7 @@ static bool Stop(void)
 	close_mDNS(glmDNSsearchHandle);
 	pthread_join(glmDNSsearchThread, NULL);
 
-	LOG_DEBUG("flush renderers ...", NULL);
+	LOG_INFO("stopping Cast devices ...", NULL);
 	FlushCastDevices();
 
 	LOG_DEBUG("terminate main thread ...", NULL);
@@ -1004,8 +911,9 @@ static bool Stop(void)
 	pthread_cond_destroy(&glMainCond);
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_destroy(&glMRDevices[i].Mutex);
 
-	LOG_DEBUG("terminate libupnp ...", NULL);
-	Terminate();
+	LOG_DEBUG("end libupnp ...", NULL);
+	UpnpFinish();
+
 	EndSSL();
 
 	if (glConfigID) ixmlDocument_free(glConfigID);
@@ -1030,7 +938,6 @@ static void sighandler(int signum) {
 		exit(EXIT_SUCCESS);
 	}
 
-	sq_stop();
 	Stop();
 	exit(EXIT_SUCCESS);
 }
@@ -1108,14 +1015,13 @@ bool ParseArgs(int argc, char **argv) {
 					if (!strcmp(v, "debug"))  new = lDEBUG;
 					if (!strcmp(v, "sdebug")) new = lSDEBUG;
 					if (!strcmp(l, "all") || !strcmp(l, "slimproto"))	slimproto_loglevel = new;
+					if (!strcmp(l, "all") || !strcmp(l, "slimmain"))	slimmain_loglevel = new;
 					if (!strcmp(l, "all") || !strcmp(l, "stream"))    	stream_loglevel = new;
 					if (!strcmp(l, "all") || !strcmp(l, "decode"))    	decode_loglevel = new;
 					if (!strcmp(l, "all") || !strcmp(l, "output"))    	output_loglevel = new;
-					if (!strcmp(l, "all") || !strcmp(l, "web")) 	  	web_loglevel = new;
 					if (!strcmp(l, "all") || !strcmp(l, "main"))     	main_loglevel = new;
 					if (!strcmp(l, "all") || !strcmp(l, "util"))    	util_loglevel = new;
 					if (!strcmp(l, "all") || !strcmp(l, "cast"))    	cast_loglevel = new;
-					if (!strcmp(l, "all") || !strcmp(l, "slimmain"))    slimmain_loglevel = new;
 				}
 				else {
 					printf("%s", usage);
@@ -1214,10 +1120,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	sq_init();
-
 	if (!Start()) {
-		LOG_ERROR("Cannot start uPnP", NULL);
+		LOG_ERROR("Cannot start uPnP", NULL);
 		strcpy(resp, "exit");
 	}
 
@@ -1257,22 +1161,16 @@ int main(int argc, char *argv[])
 			slimproto_loglevel = debug2level(level);
 		}
 
-		if (!strcmp(resp, "webdbg"))	{
+		if (!strcmp(resp, "slimmaindbg"))	{
 			char level[20];
 			i = scanf("%s", level);
-			web_loglevel = debug2level(level);
+			slimmain_loglevel = debug2level(level);
 		}
 
 		if (!strcmp(resp, "maindbg"))	{
 			char level[20];
 			i = scanf("%s", level);
 			main_loglevel = debug2level(level);
-		}
-
-		if (!strcmp(resp, "slimmainqdbg"))	{
-			char level[20];
-			i = scanf("%s", level);
-			slimmain_loglevel = debug2level(level);
 		}
 
 		if (!strcmp(resp, "utildbg"))	{
@@ -1309,9 +1207,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	LOG_INFO("stopping squeelite devices ...", NULL);
-	sq_stop();
-	LOG_INFO("stopping Cast devices ...", NULL);
 	Stop();
 	LOG_INFO("all done", NULL);
 

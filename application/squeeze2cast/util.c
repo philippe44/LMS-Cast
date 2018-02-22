@@ -31,12 +31,11 @@
 /*----------------------------------------------------------------------------*/
 
 extern log_level	slimproto_loglevel;
+extern log_level	slimmain_loglevel;
 extern log_level	stream_loglevel;
 extern log_level	decode_loglevel;
 extern log_level	output_loglevel;
-extern log_level	web_loglevel;
 extern log_level	main_loglevel;
-extern log_level	slimmain_loglevel;
 extern log_level	util_loglevel;
 extern log_level	cast_loglevel;
 
@@ -426,60 +425,6 @@ unsigned Time2Int(char *Time)
 }
 
 
-/*---------------------------------------------------------------------------*/
-static char *format2ext(u8_t format)
-{
-	switch(format) {
-		case 'p': return "wav";
-		case 'm': return "mp3";
-		case 'f': return "flac";
-		case 'w': return "wma";
-		case 'o': return "ogg";
-		case 'a':
-		case 'l': return "m4a";
-		default: return "xxx";
-	}
-}
-
-/*---------------------------------------------------------------------------*/
-u8_t ext2format(char *ext)
-{
-	if (!ext) return ' ';
-
-	if (strstr(ext, "wav")) return 'w';
-	if (strstr(ext, "flac") || strstr(ext, "flc")) return 'f';
-	if (strstr(ext, "mp3")) return 'm';
-	if (strstr(ext, "wma")) return 'a';
-	if (strstr(ext, "ogg")) return 'o';
-	if (strstr(ext, "m4a")) return '4';
-	if (strstr(ext, "mp4")) return '4';
-	if (strstr(ext, "aif")) return 'i';
-
-	return ' ';
-}
-
-
-/*----------------------------------------------------------------------------*/
-bool SetContentType(struct sMR *Device, sq_seturi_t *uri)
-{
-	strcpy(uri->ext, format2ext(uri->codec));
-
-	switch (uri->codec) {
-	case 'm': return  strcpy(uri->content_type, "audio/mpeg");
-	case 'f': return  strcpy(uri->content_type, "audio/flac");
-	case 'w': return  strcpy(uri->content_type, "audio/wma");
-	case 'o': return  strcpy(uri->content_type, "audio/ogg");
-	case 'a': return  strcpy(uri->content_type, "audio/aac");
-	case 'l': return  strcpy(uri->content_type, "audio/m4a");
-	case 'p': return  strcpy(uri->content_type, "audio/wav");;
-	default:
-		strcpy(uri->content_type, "unknown");
-		strcpy(uri->proto_info, "");
-		return false;
-	}
-}
-
-
 /*----------------------------------------------------------------------------*/
 void MakeMacUnique(struct sMR *Device)
 {
@@ -535,24 +480,18 @@ void SaveConfig(char *name, void *ref, bool full)
 
 	XMLUpdateNode(doc, root, false, "upnp_socket", glUPnPSocket);
 	XMLUpdateNode(doc, root, false, "slimproto_log", level2debug(slimproto_loglevel));
+	XMLUpdateNode(doc, root, false, "slimmain_log", level2debug(slimmain_loglevel));
 	XMLUpdateNode(doc, root, false, "stream_log", level2debug(stream_loglevel));
 	XMLUpdateNode(doc, root, false, "output_log", level2debug(output_loglevel));
 	XMLUpdateNode(doc, root, false, "decode_log", level2debug(decode_loglevel));
-	XMLUpdateNode(doc, root, false, "web_log", level2debug(web_loglevel));
 	XMLUpdateNode(doc, root, false, "main_log",level2debug(main_loglevel));
-	XMLUpdateNode(doc, root, false, "slimmain_log", level2debug(slimmain_loglevel));
 	XMLUpdateNode(doc, root, false, "cast_log",level2debug(cast_loglevel));
 	XMLUpdateNode(doc, root, false, "util_log",level2debug(util_loglevel));
 	XMLUpdateNode(doc, root, false, "log_limit", "%d", (s32_t) glLogLimit);
 
 	XMLUpdateNode(doc, common, false, "streambuf_size", "%d", (u32_t) glDeviceParam.stream_buf_size);
 	XMLUpdateNode(doc, common, false, "output_size", "%d", (u32_t) glDeviceParam.output_buf_size);
-	XMLUpdateNode(doc, common, false, "buffer_dir", glDeviceParam.buffer_dir);
-	XMLUpdateNode(doc, common, false, "buffer_limit", "%d", (u32_t) glDeviceParam.buffer_limit);
-	XMLUpdateNode(doc, common, false, "stream_length", "%d", (s32_t) glMRConfig.StreamLength);
-	XMLUpdateNode(doc, common, false, "stream_pacing_size", "%d", (int) glDeviceParam.stream_pacing_size);
-	XMLUpdateNode(doc, common, false, "max_GET_bytes", "%d", (s32_t) glDeviceParam.max_get_bytes);
-	XMLUpdateNode(doc, common, false, "keep_buffer_file", "%d", (int) glDeviceParam.keep_buffer_file);
+	XMLUpdateNode(doc, common, false, "stream_length", "%d", (s32_t) glDeviceParam.stream_length);
 	XMLUpdateNode(doc, common, false, "enabled", "%d", (int) glMRConfig.Enabled);
 	XMLUpdateNode(doc, common, false, "roon_mode", "%d", (int) glMRConfig.RoonMode);
 	XMLUpdateNode(doc, common, false, "stop_receiver", "%d", (int) glMRConfig.StopReceiver);
@@ -625,13 +564,11 @@ void SaveConfig(char *name, void *ref, bool full)
 /*----------------------------------------------------------------------------*/
 static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name, char *val)
 {
+	if (!val) return;
+
+	if (!strcmp(name, "stream_length")) sq_conf->stream_length = atol(val);
 	if (!strcmp(name, "streambuf_size")) sq_conf->stream_buf_size = atol(val);
 	if (!strcmp(name, "output_size")) sq_conf->output_buf_size = atol(val);
-	if (!strcmp(name, "buffer_dir")) strcpy(sq_conf->buffer_dir, val);
-	if (!strcmp(name, "buffer_limit")) sq_conf->buffer_limit = atol(val);
-	if (!strcmp(name, "stream_length")) Conf->StreamLength = atol(val);
-	if (!strcmp(name, "stream_pacing_size")) sq_conf->stream_pacing_size = atol(val);
-	if (!strcmp(name, "max_GET_bytes")) sq_conf->max_get_bytes = atol(val);
 	if (!strcmp(name, "send_icy")) sq_conf->send_icy = atol(val);
 	if (!strcmp(name, "enabled")) Conf->Enabled = atol(val);
 	if (!strcmp(name, "roon_mode")) Conf->RoonMode = atol(val);
@@ -639,7 +576,6 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "codecs")) strcpy(sq_conf->codecs, val);
 	if (!strcmp(name, "sample_rate"))sq_conf->sample_rate = atol(val);
 	if (!strcmp(name, "flac_header"))sq_conf->flac_header = atol(val);
-	if (!strcmp(name, "keep_buffer_file"))sq_conf->keep_buffer_file = atol(val);
 	if (!strcmp(name, "volume_on_play")) Conf->VolumeOnPlay = atol(val);
 	if (!strcmp(name, "media_volume")) Conf->MediaVolume = atof(val) / 100;
 	if (!strcmp(name, "auto_play")) Conf->AutoPlay = atol(val);
@@ -667,12 +603,11 @@ static void LoadGlobalItem(char *name, char *val)
 
 	if (!strcmp(name, "upnp_socket")) strcpy(glUPnPSocket, val);
 	if (!strcmp(name, "slimproto_log")) slimproto_loglevel = debug2level(val);
+	if (!strcmp(name, "slimmain_log")) slimmain_loglevel = debug2level(val);
 	if (!strcmp(name, "stream_log")) stream_loglevel = debug2level(val);
 	if (!strcmp(name, "output_log")) output_loglevel = debug2level(val);
 	if (!strcmp(name, "decode_log")) decode_loglevel = debug2level(val);
-	if (!strcmp(name, "web_log")) web_loglevel = debug2level(val);
 	if (!strcmp(name, "main_log")) main_loglevel = debug2level(val);
-	if (!strcmp(name, "slimmain_log")) slimmain_loglevel = debug2level(val);
 	if (!strcmp(name, "cast_log")) cast_loglevel = debug2level(val);
 	if (!strcmp(name, "util_log")) util_loglevel = debug2level(val);
 	if (!strcmp(name, "log_limit")) glLogLimit = atol(val);

@@ -1,0 +1,101 @@
+[21:22:15.472] SendCastMessage:238 [0200E4A0]: Cast sending: {"type":"GET_STATUS","requestId":1737,"mediaSessionId":11}
+[21:22:15.485] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:0) BUFFERING
+[21:22:15.501] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1737) BUFFERING
+[21:22:16.501] SendCastMessage:238 [0200E4A0]: Cast sending: {"type":"GET_STATUS","requestId":1738,"mediaSessionId":11}
+[21:22:16.553] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1738) BUFFERING
+[21:22:23.746] decode_thread:96 decode complete
+[21:22:23.832] output_thread:121 [004ADEBC]: self-exit 
+[21:22:23.832] output_thread:195 [004ADEBC]: completed: 46533164 bytes (gap 0)
+[21:22:24.746] sendSTAT:157 [004ADEBC]: STAT:[STMd] msplayed 0
+[21:22:24.755] process_strm:229 [004ADEBC] strm command s
+[21:22:24.768] sq_get_metadata:485 [004ADEBC]: idx 11
+	artist:Sanseverino
+	album:Honky Tonk
+	title:Tout est dans mon sac
+	genre:Variété française
+	duration:213.453
+	size:0
+	cover:http://192.168.2.10:9000/music/2845bc14/cover.jpg
+[21:22:24.768] sq_callback:257 [0049694C]: next URI http://192.168.2.10:49153/bridge-12.wav
+[21:22:24.791] pcm_open:161 [004ADEBC]: estimated size 40983020
+[21:22:24.791] output_thread:72 [004ADEBC]: got HTTP connection 1336
+[21:22:24.791] sendSTAT:157 [004ADEBC]: STAT:[STMc] msplayed 0
+[21:22:24.793] handle_http:284 [004ADEBC]: received GET /bridge-11.wav HTTP/1.1
+[21:22:24.793] handle_http:292 wrong file requested, refusing 11 12
+[21:22:24.793] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 410 Gone
+Server: squeezebox-bridge
+Connection: close
+[21:22:24.793] output_thread:100 HTTP close 1336
+[21:22:24.963] _SyncNotifyState:413 ChromecastAudio0185: Cast pause
+[21:22:24.963] sq_notify:627 [004ADEBC] unsollicited pause
+[21:22:24.968] process_strm:229 [004ADEBC] strm command p
+[21:22:24.968] SendCastMessage:238 [0200E4A0]: Cast sending: {"type":"PAUSE","requestId":1750,"mediaSessionId":11}
+[21:22:24.968] CastSimple:193 [0049694C]: Immediate PAUSE (id:1750)
+[21:22:24.968] sendSTAT:157 [004ADEBC]: STAT:[STMp] msplayed 0
+[21:22:24.968] process_strm:263 [004ADEBC] pause (interval:0)
+[21:22:25.019] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1750) PAUSED
+[21:22:26.147] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1751) IDLE
+[21:22:26.147] _SyncNotifyState:354 [0049694C]: Cast stop
+[21:22:26.148] SendCastMessage:238 [0200E4A0]: Cast sending: {
+ "media": {
+  "contentId": "http://192.168.2.10:49153/bridge-12.wav",
+  "metadata": {
+   "artist": "Sanseverino",
+   "metadataType": 3,
+   "albumName": "Honky Tonk",
+   "images": [
+    {
+     "url": "http://192.168.2.10:9000/music/2845bc14/cover.jpg"
+    }
+   ],
+   "title": "Tout est dans mon sac",
+   "albumArtist": "Sanseverino",
+   "trackNumber": 12
+  },
+  "streamType": "BUFFERED",
+  "contentType": "audio/wav"
+ },
+ "currentTime": 0.0,
+ "type": "LOAD",
+ "requestId": 1752,
+ "sessionId": "b1bcd159-daa8-4f4f-a6c1-f3fed8c84286",
+ "autoplay": false
+}
+[21:22:26.148] CastLoad:156 [0049694C]: Immediate LOAD (id:1752)
+[21:22:26.148] CastSimple:205 [0049694C]: Queuing PLAY
+[21:22:26.148] _SyncNotifyState:363 [0049694C]: no gapless http://192.168.2.10:49153/bridge-12.wav
+[21:22:26.285] output_thread:72 [004ADEBC]: got HTTP connection 1336
+[21:22:26.288] handle_http:284 [004ADEBC]: received GET /bridge-12.wav HTTP/1.1
+[21:22:26.288] handle_http:320 [004ADEBC]: responding:
+HTTP/1.0 200 OK
+Server: squeezebox-bridge
+Connection: close
+Content-Type: audio/wav
+Accept-Ranges: none
+[21:22:26.875] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1753) PAUSED
+[21:22:26.875] ProcessQueue:569 [0049694C]: Processing PLAY (id:1754)
+[21:22:26.994] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1754) BUFFERING
+[21:22:26.995] _SyncNotifyState:380 [0049694C]: Cast playing
+[21:22:26.995] sq_notify:607 [004ADEBC] unsollicited play
+[21:22:26.997] process_strm:229 [004ADEBC] strm command u
+[21:22:26.998] SendCastMessage:238 [0200E4A0]: Cast sending: {"type":"PLAY","requestId":1756,"mediaSessionId":12}
+[21:22:26.998] CastSimple:193 [0049694C]: Immediate PLAY (id:1756)
+[21:22:26.998] process_strm:280 [004ADEBC] unpause at: 0 now: 801127940
+[21:22:26.998] sendSTAT:157 [004ADEBC]: STAT:[STMr] msplayed 0
+[21:25:33.775] SendCastMessage:238 [0200E4A0]: Cast sending: {"type":"GET_STATUS","requestId":1936,"mediaSessionId":12}
+[21:25:33.865] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1936) PLAYING
+[21:25:34.589] process_strm:229 [004ADEBC] strm command u
+[21:25:34.589] process_strm:280 [004ADEBC] unpause at: 0 now: 801315531
+[21:25:34.589] sendSTAT:157 [004ADEBC]: STAT:[STMr] msplayed 186751
+[21:25:34.865] SendCastMessage:238 [0200E4A0]: Cast sending: {"type":"GET_STATUS","requestId":1937,"mediaSessionId":12}
+[21:25:34.921] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1937) PLAYING
+[21:25:47.275] decode_thread:96 decode complete
+[21:25:48.015] output_thread:121 [004ADEBC]: self-exit 
+[21:25:48.015] output_thread:195 [004ADEBC]: completed: 40983084 bytes (gap 64)
+[21:26:00.084] SendCastMessage:238 [0200E4A0]: Cast sending: {"type":"GET_STATUS","requestId":1961,"mediaSessionId":12}
+[21:26:00.132] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:1961) PLAYING
+[21:26:00.437] CastSocketThread:707 [0049694C]: type:MEDIA_STATUS (id:0) IDLE
+[21:26:00.437] _SyncNotifyState:354 [0049694C]: Cast stop
+[21:26:00.437] sq_notify:643 [004ADEBC] notify STOP
+[21:26:00.437] sendSTAT:157 [004ADEBC]: STAT:[STMu] msplayed 213019

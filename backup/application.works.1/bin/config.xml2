@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<squeeze2cast>
+<common>
+<streambuf_size>2457600</streambuf_size>
+<output_size>2457600</output_size>
+<buffer_dir>?</buffer_dir>
+<buffer_limit>-1</buffer_limit>
+<stream_length>-2</stream_length>
+<stream_pacing_size>1048576</stream_pacing_size>
+<max_GET_bytes>-1</max_GET_bytes>
+<keep_buffer_file>0</keep_buffer_file>
+<enabled>1</enabled>
+<roon_mode>0</roon_mode>
+<stop_receiver>0</stop_receiver>
+<codecs>pcm,aif,flc,mp3</codecs>
+<sample_rate>96000</sample_rate>
+<flac_header>1</flac_header>
+<send_icy>0</send_icy>
+<volume_on_play>1</volume_on_play>
+<media_volume>50</media_volume>
+<send_metadata>1</send_metadata>
+<send_coverart>1</send_coverart>
+<remove_count>3</remove_count>
+<auto_play>0</auto_play>
+<server>?</server>
+</common>
+<log_limit>-1</log_limit>
+<upnp_socket>?</upnp_socket>
+<slimproto_log>info</slimproto_log>
+<stream_log>warn</stream_log>
+<output_log>warn</output_log>
+<decode_log>warn</decode_log>
+<web_log>warn</web_log>
+<main_log>info</main_log>
+<slimmain_log>info</slimmain_log>
+<cast_log>info</cast_log>
+<util_log>warn</util_log>
+<scan_interval>30</scan_interval>
+<scan_timeout>15</scan_timeout>
+<device>
+<udn>6752193439f06af59d8212b71e053158</udn>
+<name>ChromecastAudio0185</name>
+<friendly_name>ChromecastAudio0185</friendly_name>
+<mac>cc:cc:09:f3:3a:d0</mac>
+<enabled>1</enabled>
+</device>
+<device>
+<udn>42adc96db5f0caa749a1e22b78ba8c74</udn>
+<name>MERDE !</name>
+<friendly_name>Chambre principale</friendly_name>
+<mac>cc:cc:42:5c:d6:fd</mac>
+<enabled>1</enabled>
+<server>192.168.2.10</server>
+</device>
+<device>
+<udn>6265b71e0a633f183868e477857ada83</udn>
+<name>Salle de séjour</name>
+<friendly_name>Salle de séjour</friendly_name>
+<mac>cc:cc:42:24:9b:9b</mac>
+<enabled>1</enabled>
+</device>
+<device>
+<udn>553c56fd237f9ee9572cc92ae9111f3e</udn>
+<name>Family Room</name>
+<friendly_name>Family Room</friendly_name>
+<mac>cc:cc:33:e5:5f:9e</mac>
+<enabled>1</enabled>
+</device>
+<device>
+<udn>84edf26b6bc9e29b052a2c16450e7d37</udn>
+<name>GoogleHome7386</name>
+<friendly_name>GoogleHome7386</friendly_name>
+<mac>cc:cc:d8:d4:27:f8</mac>
+<enabled>0</enabled>
+</device>
+<device>
+<udn>0B7E4AD7-1A7E-43C9-9CEC-FCC1A149493E</udn>
+<name>Maison</name>
+<friendly_name>Maison</friendly_name>
+<mac>cc:cc:8d:f1:22:f0</mac>
+<enabled>0</enabled>
+</device>
+</squeeze2cast>

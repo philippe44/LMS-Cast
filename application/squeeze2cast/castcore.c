@@ -97,8 +97,8 @@ static int connect_timeout(sockfd sock, const struct sockaddr *addr, socklen_t a
 	FD_ZERO(&w);
 	FD_SET(sock, &w);
 	e = w;
-	tval.tv_sec = timeout;
-	tval.tv_usec = 0;
+	tval.tv_sec = timeout / 1000;
+	tval.tv_usec = (timeout - tval.tv_sec * 1000) * 1000;
 
 	// only return 0 if w set and sock error is zero, otherwise return error code
 	if (select(sock + 1, NULL, &w, &e, timeout ? &tval : NULL) == 1 && FD_ISSET(sock, &w)) {

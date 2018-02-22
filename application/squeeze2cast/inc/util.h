@@ -72,18 +72,10 @@ int 	   	XMLFindAndParseService(IXML_Document *DescDoc, const char *location,
 							const char *serviceType, char **serviceId,
 							char **eventURL, char **controlURL);
 
-int 		GetMediaItem_I(json_t *root, int n, char *item);
-double 		GetMediaItem_F(json_t *root, int n, char *item);
-const char 	*GetMediaItem_S(json_t *root, int n, char *item);
-const char  *GetAppIdItem(json_t *root, char* appId, char *item);
-bool 		GetMediaVolume(json_t *root, int n, double *volume, bool *muted);
-
-bool 	  	SetContentType(struct sMR *Device, sq_seturi_t *uri);
 void	  	SaveConfig(char *name, void *ref, bool full);
 void	   	*LoadConfig(char *name, tMRConfig *Conf, sq_dev_param_t *sq_conf);
 void	  	*FindMRConfig(void *ref, char *UDN);
 void 	  	*LoadMRConfig(void *ref, char *UDN, tMRConfig *Conf, sq_dev_param_t *sq_conf);
-u8_t 	  	ext2format(char *ext);
 
 #if WIN
 void  		winsock_init(void);

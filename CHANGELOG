@@ -1,13 +1,18 @@
 0.3.0.0
+ - rewrite of most of the core code: 
+		- no use of libupnp webserver anymore
+		- own HTTP server for fine control
+		- streaming moved to modified squeezelite part of code
+		- remove temporary file buffering	
  - new handling of mDNS discovery for on-the-fly player addition / removal (no more discovery time and removal counts)
- - Review of all mutex-related issue and various risk of unprotected code
+ - review of all mutex-related issue and various risk of unprotected code
  - review of memory leaks (only the SSL remains, which is the same all over execution)
  - add possibility to dump players ('dump' & 'dumpall' commmands)
  - SSL context is not deleted at every disconnect to avoid memory leaks
  - wrong volume local change when mute was set
  - (2) cli_send_comment uses timeout in connect (for freebsd)
  - (3) mDNS search for group was messed-up
-  
+   
 0.2.12.1
  - build system problem ==> LOAD_FLUSH inconsistency
  

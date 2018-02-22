@@ -34,28 +34,22 @@
 /* typedefs */
 /*----------------------------------------------------------------------------*/
 
-#define MAX_PROTO		128
 #define MAX_RENDERERS	32
 #define	AV_TRANSPORT 	"urn:schemas-upnp-org:service:AVTransport:1"
 #define	RENDERING_CTRL 	"urn:schemas-upnp-org:service:RenderingControl:1"
 #define	CONNECTION_MGR 	"urn:schemas-upnp-org:service:ConnectionManager:1"
 #define MAGIC			0xAABBCCDD
 #define RESOURCE_LENGTH	250
-#define	SCAN_TIMEOUT 	15
-#define SCAN_INTERVAL	30
 
-
-enum 	eMRstate { STOPPED, PLAYING, PAUSED };
+enum 	eMRstate { STOPPED, BUFFERING, PLAYING, PAUSED };
 
 typedef struct sMRConfig
 {
-	int			StreamLength;		// length of the "fake" file
 	bool		Enabled;
 	bool		RoonMode;
 	bool		StopReceiver;
-	char		Name[SQ_STR_LENGTH];
+	char		Name[_STR_LEN_];
 	int 		VolumeOnPlay;		// change only volume when playing has started or disable volume commands
-	bool		AcceptNextURI;
 	bool		SendMetaData;
 	bool		SendCoverArt;
 	bool		AutoPlay;
@@ -72,10 +66,9 @@ struct sMR {
 	char UDN			[RESOURCE_LENGTH];
 	char FriendlyName	[RESOURCE_LENGTH];
 	enum eMRstate 	State;
-	char			*CurrentURI;
-	char			*NextURI;
-	char			ContentType[SQ_STR_LENGTH];		// a bit patchy ... to buffer next URI
-	metadata_t		MetaData;
+	char*			NextURI;
+	char			NextMime[_STR_LEN_];
+	metadata_t		NextMetaData;
 	sq_action_t		sqState;
 	u32_t			sqStamp;
 	u32_t			Elapsed;
@@ -85,7 +78,7 @@ struct sMR {
 	unsigned		TrackPoll;
 	bool			TimeOut;
 	int	 			SqueezeHandle;
-	void			*CastCtx;
+	void*			CastCtx;
 	pthread_mutex_t Mutex;
 	pthread_t 		Thread;
 	double			Volume;

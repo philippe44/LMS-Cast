@@ -25,7 +25,6 @@
 #include <string.h>
 #include <stdio.h>
 
-
 #include "castcore.h"
 
 #include "openssl/crypto.h"

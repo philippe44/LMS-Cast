@@ -1,0 +1,495 @@
+[14:28:33.069] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:28:33.069] CastSocketThread:620 type:PONG (id:0) (s:web-39) (d:sender-0)
+{"type":"PONG"}
+[14:28:36.067] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:28:36.067] CastSocketThread:620 type:PONG (id:0) (s:web-39) (d:sender-0)
+{"type":"PONG"}
+[14:28:39.829] main:1229 Starting squeeze2cast version: v0.1.1.1
+
+[14:28:39.830] slimproto_loglevel:947 slimproto change log
+[14:28:39.830] stream_loglevel:293 stream change log
+[14:28:39.830] output_mr_loglevel:316 output_mr init 2
+[14:28:39.830] WebServerLogLevel:144 webserver change loglevel 2
+[14:28:39.830] main:1265 Buffer path C:\Users\PHILIP~1\AppData\Local\Temp\
+[14:28:40.801] uPNPInitialize:821 uPNP init success - 192.168.2.10:49153
+[14:28:55.140] AddCastDevice:946 [0048E6F0]: adding renderer (ChromecastAudio0185)
+[14:28:55.260] CastConnect:383 [0048E6F0]: SSL connection opened [00BDE340]
+[14:28:55.260] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"CONNECT"}
+[14:28:55.499] slimproto_thread_init:1007 [004A61C0] connecting to 192.168.2.10:3483
+[14:28:55.546] slimproto:880 [004A61C0] connected
+[14:28:55.546] sendHELO:131 [004A61C0] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=0,MaxSampleRate=96000,flc,pcm,mp3
+[14:28:56.167] CastStop:208 [0048E6F0]: Stop req w/o session or connect
+[14:28:56.173] process_strm:237 [004A61C0] strm command s
+[14:28:56.173] process_strm:308 [004A61C0], strm s autostart: 1 transition period: 10 transition type: 0 codec: m
+[14:28:56.173] sendSTAT:164 [004A61C0]: STAT:[STMf] msplayed 0
+[14:28:56.173] stream_sock:396 [004A61C0] connecting to 192.168.2.10:9000
+[14:28:56.183] stream_sock:425 [004A61C0] header: GET /stream.mp3?player=54:60:09:f3:3a:d0 HTTP/1.0
+
+
+[14:28:56.183] sq_callback:249 [0048E6F0]: codec:m, ch:255, s:255, r:255
+[14:28:56.234] sq_get_metadata:564 [004A61C0]: idx 0
+	artist:The Beatles
+	album:Red Album  1962-1966  CD 1
+	title:Yesterday
+	genre:Pop & Folk
+	duration:125.022
+	size:0
+	cover:http://192.168.2.10:9000/music/4f5b3100/cover.jpg
+[14:28:56.234] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"LAUNCH","requestId":1,"appId":"CC1AD845"}
+[14:28:56.234] CastLoad:148 [0048E6F0]: Queuing LOAD
+[14:28:56.234] sq_callback:302 [0048E6F0]: current URI set http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3
+[14:28:56.234] sendSTAT:164 [004A61C0]: STAT:[STMc] msplayed 0
+[14:28:56.235] stream_thread:180 [004A61C0] headers: len: 116
+HTTP/1.1 200 OK
+Server: Logitech Media Server (7.7.5 - 1416570306)
+Connection: close
+Content-Type: audio/mpeg
+
+
+[14:28:56.247] CastSimple:182 [0048E6F0]: Queuing PLAY
+[14:28:56.322] CastSocketThread:620 type:RECEIVER_STATUS (id:0) (s:receiver-0) (d:*)
+{"requestId":0,"status":{"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:28:56.649] stream_thread:254 [004A61C0] end of stream (t:2000352)
+[14:28:56.650] process_strm:237 [004A61C0] strm command u
+[14:28:56.650] process_strm:284 [004A61C0] unpause at: 0 now: 234801628
+[14:28:56.650] sendSTAT:164 [004A61C0]: STAT:[STMr] msplayed 0
+[14:28:56.744] output_thru_thread:736 [004A61C0] wrote total 2000352
+[14:28:57.020] CastSocketThread:620 type:RECEIVER_STATUS (id:1) (s:receiver-0) (d:*)
+{"requestId":1,"status":{"applications":[{"appId":"CC1AD845","displayName":"Default Media Receiver","namespaces":[{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"F57AB832-D078-4D5E-A072-357770864EFE","statusText":"Ready To Cast","transportId":"web-40"}],"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:28:57.020] CastSocketThread:656 [0048E6F0]: Receiver launched
+[14:28:57.020] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"CONNECT","origin":{}}
+[14:28:57.020] SendCastMessage:273 [00BDE340]: Cast sending: {
+ "currentTime": 0.0,
+ "type": "LOAD",
+ "autoplay": false,
+ "requestId": 2,
+ "sessionId": "F57AB832-D078-4D5E-A072-357770864EFE",
+ "media": {
+  "metadata": {
+   "title": "Yesterday",
+   "albumName": "Red Album  1962-1966  CD 1",
+   "metadataType": 3,
+   "albumArtist": "The Beatles",
+   "artist": "The Beatles",
+   "trackNumber": 13,
+   "images": [
+    {
+     "url": "http://192.168.2.10:9000/music/4f5b3100/cover.jpg"
+    }
+   ]
+  },
+  "contentId": "http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3",
+  "contentType": "audio/mpeg",
+  "streamType": "BUFFERED"
+ }
+}
+[14:28:57.087] WebGetInfo:39 Headers: Connection: keep-alive
+[14:28:57.087] WebGetInfo:39 Headers: CAST-DEVICE-CAPABILITIES: {"display_supported":false}
+[14:28:57.087] WebGetInfo:82 [004A61C0]: GetInfo /LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3 -2 audio/mpeg
+[14:28:57.088] sq_open:696 [004A61C0]: open
+[14:28:57.088] sq_seek:810 [004A61C0]: seek 0 (c:0)
+[14:28:57.088] sq_read:879 [004A61C0]: read 1048576 (a:1048576 r:1048576 w:100)
+[14:28:57.089] sq_read:879 [004A61C0]: read 1048576 (a:1048576 r:951776 w:100)
+[14:28:57.508] sq_read:879 [004A61C0]: read 1048576 (a:1048576 r:0 w:100)
+[14:28:57.508] sq_read:922 [004A61C0]: read (end of track) w:100
+[14:28:57.786] sq_close:779 [004A61C0]: read total:2000352
+[14:28:57.901] CastSocketThread:620 type:RECEIVER_STATUS (id:0) (s:receiver-0) (d:*)
+{"requestId":0,"status":{"applications":[{"appId":"CC1AD845","displayName":"Default Media Receiver","namespaces":[{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"F57AB832-D078-4D5E-A072-357770864EFE","statusText":"Now Casting: Yesterday","transportId":"web-40"}],"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:28:57.905] CastSocketThread:620 type:MEDIA_STATUS (id:2) (s:web-40) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PAUSED","currentTime":0,"supportedMediaCommands":15,"volume":{"level":1,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":2}
+[14:28:57.905] CastSocketThread:671 [0048E6F0]: Media session id 1
+[14:28:57.905] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"SET_VOLUME","requestId":3,"mediaSessionId":1,"volume":{"level":0.300000,"muted":false}}
+[14:28:57.905] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"PLAY","requestId":4,"mediaSessionId":1}
+[14:28:57.929] CastSocketThread:620 type:MEDIA_STATUS (id:3) (s:web-40) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PAUSED","currentTime":0,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"repeatMode":"REPEAT_OFF"}],"requestId":3}
+[14:28:57.937] CastSocketThread:620 type:MEDIA_STATUS (id:4) (s:web-40) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"BUFFERING","currentTime":0,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"repeatMode":"REPEAT_OFF"}],"requestId":4}
+[14:28:58.437] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":5,"mediaSessionId":1}
+[14:28:58.490] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:28:58.490] CastSocketThread:620 type:PONG (id:0) (s:web-40) (d:sender-0)
+{"type":"PONG"}
+[14:28:58.496] CastSocketThread:620 type:MEDIA_STATUS (id:5) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"BUFFERING","currentTime":0.365114,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":5}
+[14:28:59.496] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":6,"mediaSessionId":1}
+[14:28:59.506] CastSocketThread:620 type:MEDIA_STATUS (id:0) (s:web-40) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":1.294501,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"repeatMode":"REPEAT_OFF"}],"requestId":0}
+[14:28:59.506] SyncNotifState:406 [0048E6F0]: Cast playing
+[14:28:59.506] sq_notify:965 [004A61C0] uPNP playing notif
+[14:28:59.506] sendSTAT:164 [004A61C0]: STAT:[STMs] msplayed 1294
+[14:28:59.506] sendSTAT:164 [004A61C0]: STAT:[STMd] msplayed 1294
+[14:28:59.512] process_strm:237 [004A61C0] strm command s
+[14:28:59.512] process_strm:308 [004A61C0], strm s autostart: 1 transition period: 10 transition type: 0 codec: m
+[14:28:59.512] sendSTAT:164 [004A61C0]: STAT:[STMf] msplayed 1294
+[14:28:59.512] stream_sock:396 [004A61C0] connecting to 192.168.2.10:9000
+[14:28:59.513] stream_sock:425 [004A61C0] header: GET /stream.mp3?player=54:60:09:f3:3a:d0 HTTP/1.0
+
+
+[14:28:59.513] sq_callback:249 [0048E6F0]: codec:m, ch:255, s:255, r:255
+[14:28:59.523] CastSocketThread:620 type:MEDIA_STATUS (id:6) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":1.376766,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":6}
+[14:28:59.563] sq_get_metadata:564 [004A61C0]: idx 1
+	artist:The Beatles
+	album:Red Album  1962-1966  CD 1
+	title:I Feel Fine
+	genre:Pop & Folk
+	duration:139.885
+	size:0
+	cover:http://192.168.2.10:9000/music/4f5b3100/cover.jpg
+[14:28:59.563] sq_callback:288 [0048E6F0]: next URI set http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-0.mp3
+[14:28:59.563] sendSTAT:164 [004A61C0]: STAT:[STMc] msplayed 1294
+[14:28:59.563] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"SET_VOLUME","requestId":7,"mediaSessionId":1,"volume":{"level":0.300000,"muted":false}}
+[14:28:59.565] stream_thread:180 [004A61C0] headers: len: 116
+HTTP/1.1 200 OK
+Server: Logitech Media Server (7.7.5 - 1416570306)
+Connection: close
+Content-Type: audio/mpeg
+
+
+[14:28:59.825] CastSocketThread:620 type:MEDIA_STATUS (id:7) (s:web-40) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":1.642179,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"repeatMode":"REPEAT_OFF"}],"requestId":7}
+[14:29:00.087] stream_thread:254 [004A61C0] end of stream (t:2238171)
+[14:29:00.088] process_strm:237 [004A61C0] strm command u
+[14:29:00.088] process_strm:284 [004A61C0] unpause at: 0 now: 234805060
+[14:29:00.088] sendSTAT:164 [004A61C0]: STAT:[STMr] msplayed 1642
+[14:29:00.094] output_thru_thread:736 [004A61C0] wrote total 2238171
+[14:29:00.825] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":8,"mediaSessionId":1}
+[14:29:00.893] CastSocketThread:620 type:MEDIA_STATUS (id:8) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":2.745711,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":8}
+[14:29:01.551] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:29:01.551] CastSocketThread:620 type:PONG (id:0) (s:web-40) (d:sender-0)
+{"type":"PONG"}
+[14:29:01.893] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":9,"mediaSessionId":1}
+[14:29:01.946] CastSocketThread:620 type:MEDIA_STATUS (id:9) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":3.76836,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":9}
+[14:29:02.947] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":10,"mediaSessionId":1}
+[14:29:03.012] CastSocketThread:620 type:MEDIA_STATUS (id:10) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":4.871892,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":10}
+[14:29:04.013] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":11,"mediaSessionId":1}
+[14:29:04.077] CastSocketThread:620 type:MEDIA_STATUS (id:11) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":5.903544,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":11}
+[14:29:04.600] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:29:04.601] CastSocketThread:620 type:PONG (id:0) (s:web-40) (d:sender-0)
+{"type":"PONG"}
+[14:29:05.078] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":12,"mediaSessionId":1}
+[14:29:05.125] CastSocketThread:620 type:MEDIA_STATUS (id:12) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":6.926192,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":12}
+[14:29:06.125] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":13,"mediaSessionId":1}
+[14:29:06.171] CastSocketThread:620 type:MEDIA_STATUS (id:13) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":7.957843,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":13}
+[14:29:07.172] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":14,"mediaSessionId":1}
+[14:29:07.225] CastSocketThread:620 type:MEDIA_STATUS (id:14) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":9.051373,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":14}
+[14:29:07.608] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:29:07.608] CastSocketThread:620 type:PONG (id:0) (s:web-40) (d:sender-0)
+{"type":"PONG"}
+[14:29:08.225] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":15,"mediaSessionId":1}
+[14:29:08.272] CastSocketThread:620 type:MEDIA_STATUS (id:15) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":10.105019,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":15}
+[14:29:09.272] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":16,"mediaSessionId":1}
+[14:29:09.322] CastSocketThread:620 type:MEDIA_STATUS (id:16) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":11.115672,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":16}
+[14:29:10.322] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":17,"mediaSessionId":1}
+[14:29:10.376] CastSocketThread:620 type:MEDIA_STATUS (id:17) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":12.209204,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":17}
+[14:29:10.653] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:29:10.653] CastSocketThread:620 type:PONG (id:0) (s:web-40) (d:sender-0)
+{"type":"PONG"}
+[14:29:11.377] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"GET_STATUS","requestId":18,"mediaSessionId":1}
+[14:29:11.434] CastSocketThread:620 type:MEDIA_STATUS (id:18) (s:web-40) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":13.230856,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"metadata":{"title":"Yesterday","albumName":"Red Album  1962-1966  CD 1","metadataType":3,"albumArtist":"The Beatles","artist":"The Beatles","trackNumber":13,"images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}]},"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","contentType":"audio/mpeg","streamType":"BUFFERED","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":18}
+[14:29:11.527] SendCastMessage:273 [00BDE340]: Cast sending: {"type":"STOP","requestId":19,"mediaSessionId":1}
+[14:29:12.346] CastSocketThread:620 type:RECEIVER_STATUS (id:0) (s:receiver-0) (d:*)
+{"requestId":0,"status":{"applications":[{"appId":"CC1AD845","displayName":"Default Media Receiver","namespaces":[{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"F57AB832-D078-4D5E-A072-357770864EFE","statusText":"Ready To Cast","transportId":"web-40"}],"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:29:12.355] CastSocketThread:620 type:MEDIA_STATUS (id:19) (s:web-40) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"IDLE","currentTime":0,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"idleReason":"CANCELLED"}],"requestId":19}
+[14:29:12.355] SyncNotifState:378 [0048E6F0]: Cast stop
+[14:29:12.355] sq_notify:990 [004A61C0] uPNP notify STOP
+[14:37:38.664] main:1229 Starting squeeze2cast version: v0.1.1.1
+
+[14:37:38.665] slimproto_loglevel:947 slimproto change log
+[14:37:38.665] stream_loglevel:293 stream change log
+[14:37:38.665] output_mr_loglevel:316 output_mr init 2
+[14:37:38.665] WebServerLogLevel:144 webserver change loglevel 2
+[14:37:38.665] main:1265 Buffer path C:\Users\PHILIP~1\AppData\Local\Temp\
+[14:37:39.707] uPNPInitialize:821 uPNP init success - 192.168.2.10:49153
+[14:37:54.163] AddCastDevice:946 [0048E6F0]: adding renderer (ChromecastAudio0185)
+[14:37:54.270] CastConnect:383 [0048E6F0]: SSL connection opened [020BE340]
+[14:37:54.271] SendCastMessage:273 [020BE340]: Cast sending: {"type":"CONNECT"}
+[14:37:54.762] slimproto_thread_init:1007 [004A61C0] connecting to 192.168.2.10:3483
+[14:37:54.815] slimproto:880 [004A61C0] connected
+[14:37:54.815] sendHELO:131 [004A61C0] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=0,MaxSampleRate=96000,flc,pcm,mp3
+[14:37:57.791] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:00.920] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:03.885] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:06.922] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:09.997] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:13.008] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:16.236] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:19.061] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:20.012] CastStop:208 [0048E6F0]: Stop req w/o session or connect
+[14:38:20.020] process_strm:237 [004A61C0] strm command s
+[14:38:20.020] process_strm:308 [004A61C0], strm s autostart: 1 transition period: 10 transition type: 0 codec: m
+[14:38:20.020] sendSTAT:164 [004A61C0]: STAT:[STMf] msplayed 0
+[14:38:20.020] stream_sock:396 [004A61C0] connecting to 192.168.2.10:9000
+[14:38:20.020] stream_sock:425 [004A61C0] header: GET /stream.mp3?player=54:60:09:f3:3a:d0 HTTP/1.0
+
+
+[14:38:20.020] sq_callback:249 [0048E6F0]: codec:m, ch:255, s:255, r:255
+[14:38:20.171] sq_get_metadata:564 [004A61C0]: idx 0
+	artist:The Beatles
+	album:Red Album  1962-1966  CD 1
+	title:Please Please Me
+	genre:Pop & Folk
+	duration:123.350
+	size:0
+	cover:http://192.168.2.10:9000/music/4f5b3100/cover.jpg
+[14:38:20.171] SendCastMessage:273 [020BE340]: Cast sending: {"type":"LAUNCH","requestId":1,"appId":"CC1AD845"}
+[14:38:20.171] CastLoad:148 [0048E6F0]: Queuing LOAD
+[14:38:20.171] sq_callback:302 [0048E6F0]: current URI set http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3
+[14:38:20.171] sendSTAT:164 [004A61C0]: STAT:[STMc] msplayed 0
+[14:38:20.174] stream_thread:180 [004A61C0] headers: len: 116
+HTTP/1.1 200 OK
+Server: Logitech Media Server (7.7.5 - 1416570306)
+Connection: close
+Content-Type: audio/mpeg
+
+
+[14:38:20.185] CastSimple:182 [0048E6F0]: Queuing PLAY
+[14:38:20.587] stream_thread:254 [004A61C0] end of stream (t:1973603)
+[14:38:20.587] process_strm:237 [004A61C0] strm command u
+[14:38:20.587] process_strm:284 [004A61C0] unpause at: 0 now: 235365556
+[14:38:20.587] sendSTAT:164 [004A61C0]: STAT:[STMr] msplayed 0
+[14:38:20.681] output_thru_thread:736 [004A61C0] wrote total 1973603
+[14:38:21.288] CastSocketThread:620 type:RECEIVER_STATUS (id:1) (s:receiver-0) (d:*)
+{"requestId":1,"status":{"applications":[{"appId":"CC1AD845","displayName":"Default Media Receiver","namespaces":[{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"D874B8B1-D7AE-433F-B2C1-F44BCAA5B10A","statusText":"Ready To Cast","transportId":"web-41"}],"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:38:21.288] CastSocketThread:656 [0048E6F0]: Receiver launched
+[14:38:21.288] SendCastMessage:273 [020BE340]: Cast sending: {"type":"CONNECT","origin":{}}
+[14:38:21.288] SendCastMessage:273 [020BE340]: Cast sending: {
+ "media": {
+  "contentId": "http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3",
+  "metadata": {
+   "metadataType": 3,
+   "title": "Please Please Me",
+   "albumName": "Red Album  1962-1966  CD 1",
+   "albumArtist": "The Beatles",
+   "images": [
+    {
+     "url": "http://192.168.2.10:9000/music/4f5b3100/cover.jpg"
+    }
+   ],
+   "artist": "The Beatles",
+   "trackNumber": 2
+  },
+  "streamType": "BUFFERED",
+  "contentType": "audio/mpeg"
+ },
+ "sessionId": "D874B8B1-D7AE-433F-B2C1-F44BCAA5B10A",
+ "type": "LOAD",
+ "requestId": 2,
+ "currentTime": 0.0,
+ "autoplay": false
+}
+[14:38:21.346] WebGetInfo:39 Headers: Connection: keep-alive
+[14:38:21.346] WebGetInfo:39 Headers: CAST-DEVICE-CAPABILITIES: {"display_supported":false}
+[14:38:21.346] WebGetInfo:82 [004A61C0]: GetInfo /LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3 -2 audio/mpeg
+[14:38:21.347] sq_open:696 [004A61C0]: open
+[14:38:21.347] sq_seek:810 [004A61C0]: seek 0 (c:0)
+[14:38:21.347] sq_read:879 [004A61C0]: read 1048576 (a:1048576 r:1048576 w:100)
+[14:38:21.348] sq_read:879 [004A61C0]: read 1048576 (a:1048576 r:925027 w:100)
+[14:38:21.795] sq_read:879 [004A61C0]: read 1048576 (a:1048576 r:0 w:100)
+[14:38:21.795] sq_read:922 [004A61C0]: read (end of track) w:100
+[14:38:22.069] sq_close:779 [004A61C0]: read total:1973603
+[14:38:22.099] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:22.099] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:22.172] CastSocketThread:620 type:RECEIVER_STATUS (id:0) (s:receiver-0) (d:*)
+{"requestId":0,"status":{"applications":[{"appId":"CC1AD845","displayName":"Default Media Receiver","namespaces":[{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"D874B8B1-D7AE-433F-B2C1-F44BCAA5B10A","statusText":"Now Casting: Please Please Me","transportId":"web-41"}],"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:38:22.187] CastSocketThread:620 type:MEDIA_STATUS (id:2) (s:web-41) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PAUSED","currentTime":0,"supportedMediaCommands":15,"volume":{"level":1,"muted":false},"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":2}
+[14:38:22.187] CastSocketThread:671 [0048E6F0]: Media session id 1
+[14:38:22.187] SendCastMessage:273 [020BE340]: Cast sending: {"type":"SET_VOLUME","requestId":3,"mediaSessionId":1,"volume":{"level":0.300000,"muted":false}}
+[14:38:22.187] SendCastMessage:273 [020BE340]: Cast sending: {"type":"PLAY","requestId":4,"mediaSessionId":1}
+[14:38:22.245] CastSocketThread:620 type:MEDIA_STATUS (id:3) (s:web-41) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PAUSED","currentTime":0,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"repeatMode":"REPEAT_OFF"}],"requestId":3}
+[14:38:22.260] CastSocketThread:620 type:MEDIA_STATUS (id:4) (s:web-41) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"BUFFERING","currentTime":0,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"repeatMode":"REPEAT_OFF"}],"requestId":4}
+[14:38:23.257] CastSocketThread:620 type:MEDIA_STATUS (id:0) (s:web-41) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":0.691794,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"repeatMode":"REPEAT_OFF"}],"requestId":0}
+[14:38:23.257] SyncNotifState:406 [0048E6F0]: Cast playing
+[14:38:23.257] sq_notify:965 [004A61C0] uPNP playing notif
+[14:38:23.257] sendSTAT:164 [004A61C0]: STAT:[STMs] msplayed 691
+[14:38:23.257] sendSTAT:164 [004A61C0]: STAT:[STMd] msplayed 691
+[14:38:23.262] process_strm:237 [004A61C0] strm command s
+[14:38:23.262] process_strm:308 [004A61C0], strm s autostart: 1 transition period: 10 transition type: 0 codec: m
+[14:38:23.262] sendSTAT:164 [004A61C0]: STAT:[STMf] msplayed 691
+[14:38:23.262] stream_sock:396 [004A61C0] connecting to 192.168.2.10:9000
+[14:38:23.263] stream_sock:425 [004A61C0] header: GET /stream.mp3?player=54:60:09:f3:3a:d0 HTTP/1.0
+
+
+[14:38:23.263] sq_callback:249 [0048E6F0]: codec:m, ch:255, s:255, r:255
+[14:38:23.313] sq_get_metadata:564 [004A61C0]: idx 1
+	artist:The Beatles
+	album:Red Album  1962-1966  CD 1
+	title:Yesterday
+	genre:Pop & Folk
+	duration:125.022
+	size:0
+	cover:http://192.168.2.10:9000/music/4f5b3100/cover.jpg
+[14:38:23.313] sq_callback:288 [0048E6F0]: next URI set http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-0.mp3
+[14:38:23.313] sendSTAT:164 [004A61C0]: STAT:[STMc] msplayed 691
+[14:38:23.313] SendCastMessage:273 [020BE340]: Cast sending: {"type":"SET_VOLUME","requestId":5,"mediaSessionId":1,"volume":{"level":0.300000,"muted":false}}
+[14:38:23.314] stream_thread:180 [004A61C0] headers: len: 116
+HTTP/1.1 200 OK
+Server: Logitech Media Server (7.7.5 - 1416570306)
+Connection: close
+Content-Type: audio/mpeg
+
+
+[14:38:23.368] CastSocketThread:620 type:MEDIA_STATUS (id:5) (s:web-41) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":0.865939,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"repeatMode":"REPEAT_OFF"}],"requestId":5}
+[14:38:23.727] stream_thread:254 [004A61C0] end of stream (t:2000352)
+[14:38:23.727] process_strm:237 [004A61C0] strm command u
+[14:38:23.727] process_strm:284 [004A61C0] unpause at: 0 now: 235368708
+[14:38:23.727] sendSTAT:164 [004A61C0]: STAT:[STMr] msplayed 865
+[14:38:23.825] output_thru_thread:736 [004A61C0] wrote total 2000352
+[14:38:23.868] SendCastMessage:273 [020BE340]: Cast sending: {"type":"GET_STATUS","requestId":6,"mediaSessionId":1}
+[14:38:23.922] CastSocketThread:620 type:MEDIA_STATUS (id:6) (s:web-41) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":1.376765,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":6}
+[14:38:24.922] SendCastMessage:273 [020BE340]: Cast sending: {"type":"GET_STATUS","requestId":7,"mediaSessionId":1}
+[14:38:24.990] CastSocketThread:620 type:MEDIA_STATUS (id:7) (s:web-41) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":2.480297,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":7}
+[14:38:25.151] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:25.151] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:25.990] SendCastMessage:273 [020BE340]: Cast sending: {"type":"GET_STATUS","requestId":8,"mediaSessionId":1}
+[14:38:26.040] CastSocketThread:620 type:MEDIA_STATUS (id:8) (s:web-41) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":3.522945,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":8}
+[14:38:27.040] SendCastMessage:273 [020BE340]: Cast sending: {"type":"GET_STATUS","requestId":9,"mediaSessionId":1}
+[14:38:27.110] CastSocketThread:620 type:MEDIA_STATUS (id:9) (s:web-41) (d:sender-0)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"PLAYING","currentTime":4.534596,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"currentItemId":1,"items":[{"itemId":1,"media":{"contentId":"http://192.168.2.10:49153/LMS2CAST/54-60-09-f3-3a-d0-idx-1.mp3","metadata":{"metadataType":3,"title":"Please Please Me","albumName":"Red Album  1962-1966  CD 1","albumArtist":"The Beatles","images":[{"url":"http://192.168.2.10:9000/music/4f5b3100/cover.jpg"}],"artist":"The Beatles","trackNumber":2},"streamType":"BUFFERED","contentType":"audio/mpeg","duration":null},"autoplay":false}],"repeatMode":"REPEAT_OFF"}],"requestId":9}
+[14:38:27.732] SendCastMessage:273 [020BE340]: Cast sending: {"type":"STOP","requestId":10,"mediaSessionId":1}
+[14:38:28.164] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:28.164] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:28.547] CastSocketThread:620 type:RECEIVER_STATUS (id:0) (s:receiver-0) (d:*)
+{"requestId":0,"status":{"applications":[{"appId":"CC1AD845","displayName":"Default Media Receiver","namespaces":[{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"D874B8B1-D7AE-433F-B2C1-F44BCAA5B10A","statusText":"Ready To Cast","transportId":"web-41"}],"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:38:28.552] CastSocketThread:620 type:MEDIA_STATUS (id:10) (s:web-41) (d:*)
+{"type":"MEDIA_STATUS","status":[{"mediaSessionId":1,"playbackRate":1,"playerState":"IDLE","currentTime":0,"supportedMediaCommands":15,"volume":{"level":0.3,"muted":false},"currentItemId":1,"idleReason":"CANCELLED"}],"requestId":10}
+[14:38:28.552] SyncNotifState:378 [0048E6F0]: Cast stop
+[14:38:28.552] sq_notify:990 [004A61C0] uPNP notify STOP
+[14:38:31.249] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:31.249] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:34.332] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:34.332] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:37.295] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:37.296] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:40.351] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:40.351] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:43.399] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:43.407] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:46.459] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:46.459] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:49.501] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:49.501] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:52.547] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:52.547] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:55.570] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:55.570] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:38:58.638] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:38:58.638] CastSocketThread:620 type:PONG (id:0) (s:web-41) (d:sender-0)
+{"type":"PONG"}
+[14:39:01.604] main:1229 Starting squeeze2cast version: v0.1.1.1
+
+[14:39:01.606] slimproto_loglevel:947 slimproto change log
+[14:39:01.606] stream_loglevel:293 stream change log
+[14:39:01.606] output_mr_loglevel:316 output_mr init 2
+[14:39:01.606] WebServerLogLevel:144 webserver change loglevel 2
+[14:39:01.606] main:1265 Buffer path C:\Users\PHILIP~1\AppData\Local\Temp\
+[14:39:02.581] uPNPInitialize:821 uPNP init success - 192.168.2.10:49153
+[14:39:17.115] AddCastDevice:946 [0048E6F0]: adding renderer (Chromecast6363)
+[14:39:17.276] CastConnect:383 [0048E6F0]: SSL connection opened [01EBE340]
+[14:39:17.276] SendCastMessage:273 [01EBE340]: Cast sending: {"type":"CONNECT"}
+[14:39:17.524] slimproto_thread_init:1007 [004A61C0] connecting to 192.168.2.10:3483
+[14:39:17.570] slimproto:880 [004A61C0] connected
+[14:39:17.570] sendHELO:131 [004A61C0] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=0,MaxSampleRate=96000,flc,pcm,mp3
+[14:39:20.487] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:23.526] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:25.163] CastSocketThread:620 type:RECEIVER_STATUS (id:0) (s:receiver-0) (d:*)
+{"requestId":0,"status":{"applications":[{"appId":"E8C28D3C","displayName":"Backdrop","namespaces":[{"name":"urn:x-cast:com.google.cast.sse"}],"sessionId":"510B7353-7E3D-4009-B0BA-138880E5BAAF","statusText":"","transportId":"web-1"}],"isActiveInput":false,"isStandBy":false,"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:39:26.919] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:27.692] CastSocketThread:620 type:RECEIVER_STATUS (id:0) (s:receiver-0) (d:*)
+{"requestId":0,"status":{"applications":[{"appId":"E8C28D3C","displayName":"Backdrop","namespaces":[{"name":"urn:x-cast:com.google.cast.sse"}],"sessionId":"510B7353-7E3D-4009-B0BA-138880E5BAAF","statusText":"","transportId":"web-1"}],"volume":{"level":1.0,"muted":false}},"type":"RECEIVER_STATUS"}
+[14:39:29.621] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:32.653] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:35.714] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:38.711] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:41.751] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:44.761] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:47.778] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:50.829] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:53.825] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:56.869] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:39:59.869] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:40:02.918] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:40:05.921] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:40:08.975] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:40:12.018] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:40:15.072] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}
+[14:40:18.179] CastSocketThread:620 type:PONG (id:0) (s:receiver-0) (d:sender-0)
+{"type":"PONG"}

@@ -49,6 +49,8 @@
 #include <signal.h>
 #include <sys/stat.h>
 
+#define _STR_LEN_ 256
+
 #if LINUX || OSX || FREEBSD
 #include <sys/types.h>
 #include <unistd.h>
@@ -84,6 +86,7 @@ int SendARP(in_addr_t src, in_addr_t dst, u8_t mac[], unsigned long *size);
 char *strlwr(char *str);
 #define _random(x) random()
 char *GetTempPath(u16_t size, char *path);
+int asprintf(char **strp, const char *fmt, ...);
 #define S_ADDR(X) X.s_addr
 
 #endif
@@ -106,6 +109,7 @@ typedef __int64 s64_t;
 #define inline __inline
 
 int gettimeofday(struct timeval *tv, struct timezone *tz);
+int asprintf(char **strp, const char *fmt, ...);
 
 //#define poll(fds,numfds,timeout) WSAPoll(fds,numfds,timeout)
 #define usleep(x) Sleep((x)/1000)
