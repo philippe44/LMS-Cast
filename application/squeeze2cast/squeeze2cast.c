@@ -128,7 +128,8 @@ static void					*glConfigID = NULL;
 static char					glConfigName[_STR_LEN_] = "./config.xml";
 
 static char usage[] =
-			VERSION "\n"
+
+			VERSION "\n"
 		   "See -t for license terms\n"
 		   "Usage: [options]\n"
 		   "  -s <server[:port]>\tConnect to specified server, otherwise uses autodiscovery to find server\n"
@@ -183,7 +184,8 @@ static char license[] =
 		   "along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\n"
 	;
 
-/*----------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------*/
 /* prototypes */
 /*----------------------------------------------------------------------------*/
 static void	RemoveCastDevice(struct sMR *Device);
@@ -255,8 +257,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 				Device->NextMetaData = p->metadata;
 				Device->NextURI = strdup(p->uri);
 				LOG_INFO("[%p]: next URI %s", Device, Device->NextURI);
-			}
-			else {
+			} else {
 				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (
 							  Device->Config.SendMetaData) ? &p->metadata : NULL);
 				sq_free_metadata(&p->metadata);
@@ -338,8 +339,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 {
 	sq_event_t Event = SQ_NONE;
 	bool Param = false;
-	u32_t now = gettime_ms();
-
+	
 	/*
 	DEVICE MUTEX IS LOCKED
 	*/
@@ -348,16 +348,16 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 		Device->State = STOPPED;
 		Param = true;
 		Event = SQ_STOP;
-	}
-	if (!strcasecmp(State, "BUFFERING") && Device->State != BUFFERING) {
-		Event = SQ_TRANSITION;
-		Device->State = BUFFERING;
-	}
+	}
 
-	if (!strcasecmp(State, "STOPPED") && Device->State != STOPPED) {
+	if (!strcasecmp(State, "BUFFERING") && Device->State != BUFFERING) {
+		Event = SQ_TRANSITION;
+		Device->State = BUFFERING;
+	}
+
+	if (!strcasecmp(State, "STOPPED") && Device->State != STOPPED) {
 		LOG_INFO("[%p]: Cast stop", Device);
 		if (Device->NextURI) {
-
 			// fake a "SETURI" and a "PLAY" request
 			CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime,
 					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL);
@@ -404,8 +404,8 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 		when already playing
 		*/
 		if (Device->State == PLAYING) {
-			// detect unsollicited pause, but do not confuse it with a fast pause/play
-			if (Device->sqState != SQ_PAUSE && (Device->sqStamp + 2000 - now > 0x7fffffff)) {
+			// detect unsollicited pause, but do not confuse it with a fast pause/play
+			if (Device->sqState != SQ_PAUSE && (Device->sqStamp + 2000 - gettime_ms() > 0x7fffffff)) {
 				Event = SQ_PAUSE;
 				Param = true;
 			}
@@ -679,8 +679,10 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		NFREE(UDN);
 		NFREE(Name);
 	}
-	if (glAutoSaveConfigFile || glDiscovery) {
-		LOG_DEBUG("Updating configuration %s", glConfigName);
+
+	if (glAutoSaveConfigFile || glDiscovery) {
+
+		LOG_DEBUG("Updating configuration %s", glConfigName);
 		SaveConfig(glConfigName, glConfigID, false);
 	}
 
@@ -876,7 +878,8 @@ static bool Start(void)
 	InitSSL();
 
 	/* start the mDNS devices discovery thread */
-	addr.s_addr = inet_addr(glIPaddress);
+
+	addr.s_addr = inet_addr(glIPaddress);
 	glmDNSsearchHandle = init_mDNS(false, addr);
 	pthread_create(&glmDNSsearchThread, NULL, &mDNSsearchThread, NULL);
 
@@ -965,8 +968,7 @@ bool ParseArgs(int argc, char **argv) {
 		} else if (strstr("tzZIk", opt)) {
 			optarg = NULL;
 			optind += 1;
-		}
-		else {
+		} else {
 			printf("%s", usage);
 			return false;
 		}
@@ -1022,8 +1024,7 @@ bool ParseArgs(int argc, char **argv) {
 					if (!strcmp(l, "all") || !strcmp(l, "main"))     	main_loglevel = new;
 					if (!strcmp(l, "all") || !strcmp(l, "util"))    	util_loglevel = new;
 					if (!strcmp(l, "all") || !strcmp(l, "cast"))    	cast_loglevel = new;
-				}
-				else {
+				} else {
 					printf("%s", usage);
 					return false;
 				}
@@ -1114,14 +1115,14 @@ int main(int argc, char *argv[])
 		if (pid_file) {
 			fprintf(pid_file, "%d", getpid());
 			fclose(pid_file);
-		}
-		else {
+		} else {
 			LOG_ERROR("Cannot open PID file %s", glPidFile);
 		}
 	}
 
 	if (!Start()) {
-		LOG_ERROR("Cannot start uPnP", NULL);
+
+		LOG_ERROR("Cannot start uPnP", NULL);
 		strcpy(resp, "exit");
 	}
 
@@ -1130,8 +1131,7 @@ int main(int argc, char *argv[])
 #if LINUX || FREEBSD
 		if (!glDaemonize && glInteractive)
 			i = scanf("%s", resp);
-		else
-			pause();
+		else pause();
 #else
 		if (glInteractive)
 			i = scanf("%s", resp);
