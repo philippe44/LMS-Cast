@@ -238,7 +238,6 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 
 		case SQ_SET_TRACK: {
 			struct track_param *p = (struct track_param*) param;
-			bool Next = (Device->sqState != SQ_STOP);
 
 			NFREE(Device->NextURI);
 			sq_free_metadata(&Device->NextMetaData);
@@ -250,7 +249,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 				div(p->metadata.duration,1000).rem, p->metadata.file_size,
 				p->metadata.artwork ? p->metadata.artwork : "");
 
-			if (Next) {
+			if (p->next) {
 				// to know what is expected next
 				strcpy(Device->NextMime, p->mimetype);
 				// this is a structure copy, pointers remains valid
@@ -263,8 +262,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 				sq_free_metadata(&p->metadata);
 				LOG_INFO("[%p]: current URI %s", Device, p->uri);
 			}
-
-			break;
+ 			break;
 		}
 		case SQ_UNPAUSE:
 			// got it, don't need to send it more than once ...
