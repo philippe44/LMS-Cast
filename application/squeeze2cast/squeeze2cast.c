@@ -86,13 +86,13 @@ sq_dev_param_t glDeviceParam = {
 					 // both are multiple of 3*4(2) for buffer alignement on sample
 					(200 * 1024 * (4*3)),	// stream_buffer_size
 					(16 * 1024 * (4*3)),    // output_buffer_size
-					"pcm,aif,flc,mp3",		// codecs
+					"aac,ogg,aif,flc,pcm,mp3",		// codecs
 					"thru",					// encode
 					"wav",					// raw_audio_format
 					"?",                    // server
 					SQ_RATE_96000,          // sample_rate
 					L24_PACKED_LPCM,		// L24_format
-					FLAC_NORMAL_HEADER,     // flac_header
+					FLAC_NORMAL_HEADER,	    // flac_header
 					"",			// name
 					{ 0x00,0x00,0x00,0x00,0x00,0x00 },
 					false,		// send_icy
@@ -275,6 +275,8 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			Device->sqState = SQ_PLAY;
 			break;
 		case SQ_PLAY:
+			// got it, don't need to send it more than once ...
+			if (Device->sqState == SQ_PLAY) break;
 #if !defined(REPOS_TIME)
 			Device->StartTime = sq_get_time(Device->SqueezeHandle);
 			Device->LocalStartTime = gettime_ms();
@@ -586,7 +588,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		char *UDN = NULL, *Name = NULL;
 		char *Model;
 		bool Group;
-		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", NULL };
+		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", NULL };
 		int j;
 
 		// is the mDNS record usable announce made on behalf

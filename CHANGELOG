@@ -12,6 +12,11 @@
  - wrong volume local change when mute was set
  - (2) cli_send_comment uses timeout in connect (for freebsd)
  - (3) mDNS search for group was messed-up
+ - (5) if STMd is sent early (happens with when ratio player buffer/compression is large, e.g. mp3) services like Deezer close the stream connection because it's idle for too long
+ - (5) add ogg,aac and aiff
+ - (5) when missing codec, thru flag must be set otherwise output.c tries to use the encodebuf
+ - (5) duration and ms_played status acquisition was protected by wrong mutex-related
+ - (5) in main.c, LOCK_O/UNLOCK_O was empty
    
 0.2.12.1
  - build system problem ==> LOAD_FLUSH inconsistency
