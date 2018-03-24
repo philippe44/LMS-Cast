@@ -28,7 +28,7 @@
 	[% END %]
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_DEBUG" desc="PLUGIN_CASTBRIDGE_DEBUG_DESC" %]
 		<select class="stdedit" name="debugs" id="debugs">
-		[% FOREACH entry IN [ '', 'all', 'output', 'stream', 'slimproto', 'slimmain', 'decode', 'slimmain', 'cast', 'util', 'web', 'main'] %]
+		[% FOREACH entry IN [ '', 'all', 'output', 'stream', 'slimproto', 'decode', 'slimmain', 'cast', 'util', 'web', 'main'] %]
 			<option [% IF entry == debugs %]selected[% END %] value="[% entry %]">[% "PLUGIN_CASTBRIDGE_$entry" | string %]</option>
 		[% END %]
 		</select>
@@ -36,7 +36,7 @@
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_LOGGING" desc="PLUGIN_CASTBRIDGE_LOGGING_DESC" %]
 		<input name="logging" type="checkbox" [% IF logging %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_LOGENABLE" | string %]
 		&nbsp<a href="[% webroot %]castbridge-log.log" target="log">[% "PLUGIN_CASTBRIDGE_LOGLINK" | string %]</a>
-		&nbsp[% "PLUGIN_CASTBRIDGE_LOGSIZE" | string %]&nbsp<input type="text" class="stdedit" name="log_limit" id="log_limit" value="[% log_limit %]" size="2"> 
+		&nbsp[% "PLUGIN_CASTBRIDGE_LOGSIZE" | string %]&nbsp<input [% IF !xmlparams %] disabled [% END %] type="text" class="stdedit" name="log_limit" id="log_limit" value="[% log_limit %]" size="2"> 
 		&nbsp<input name="eraselog" type="checkbox" [% IF eraselog %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_ERASELOG" | string %]
 		&nbsp<input name="cleanlog" type="submit" value=[% "PLUGIN_CASTBRIDGE_CLEANLOG" | string %]> 
 	[% END %]
@@ -51,6 +51,11 @@
 		&nbsp<input name="delconfig" type="submit" value=[% "PLUGIN_CASTBRIDGE_DELCONFIG" | string %]>
 	[% END %]
 	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPSOCKET" desc="PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC" %]
+		<input [% IF useLMSsocket || !xmlparams %] disabled [% END %] type="text" class="stdedit" name="upnp_socket" id="upnp_socket" value="[% upnp_socket %]" size="20">
+		&nbsp<input name="useLMSsocket" type="checkbox" [% IF useLMSsocket %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_USELMSSOCKET" | string %]
+	[% END %]
+		
 	[% IF !xmlparams %]
 		[% WRAPPER settingSection %]
 			<b><font color=red>[% "PLUGIN_CASTBRIDGE_NOCONFIG" | string %]</font></b>
@@ -59,11 +64,6 @@
 	
 	<input hidden type="text" class="stdedit" name="xmlparams" id="xmlparams" value="1" size="5">
 	<input hidden type="text" class="stdedit" name="prevseldevice" id="prevseldevice" value="[% prevseldevice %]" size="5">
-	
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPSOCKET" desc="PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC" %]
-		<input [% IF useLMSsocket %] disabled [% END %] type="text" class="stdedit" name="upnp_socket" id="upnp_socket" value="[% upnp_socket %]" size="20">
-		&nbsp<input name="useLMSsocket" type="checkbox" [% IF useLMSsocket %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_USELMSSOCKET" | string %]
-	[% END %]
 	
 	<hr>
 

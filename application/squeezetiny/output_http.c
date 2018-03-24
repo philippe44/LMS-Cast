@@ -126,7 +126,7 @@ static void output_thread(struct thread_ctx_s *ctx) {
 
 		// something wrong happened or master connection closed
 		if (n < 0 || !res) {
-			LOG_INFO("[%p]: HTTP close %u (bytes %zd)", ctx, sock, bytes);
+			LOG_INFO("[%p]: HTTP close %u (bytes %zd) (n:%d res:%d)", ctx, sock, bytes, n, res);
 			closesocket(sock);
 			sock = -1;
 			continue;
@@ -414,9 +414,9 @@ static ssize_t handle_http(struct thread_ctx_s *ctx, int sock, char *mimetype,
 		res = -1;
 	} else {
 		kd_add(resp, "Content-Type", mimetype);
-		kd_add(resp, "Accept-Ranges", "none");
+		//kd_add(resp, "Accept-Ranges", "none");
 		if (ctx->output.length > 0) {
-			asprintf(&str, "%u", ctx->output.length);
+			asprintf(&str, "%zu", ctx->output.length);
 			kd_add(resp, "Content-Length", str);
 			free(str);
 		}
@@ -433,7 +433,7 @@ static ssize_t handle_http(struct thread_ctx_s *ctx, int sock, char *mimetype,
 			}
 		} else if (bytes && Sonos) {
 			// Sonos client re-opening the connection, so make it believe we
-			// have a 1G length - thus it will sent a range-request
+			// have a 2G length - thus it will sent a range-request
 			asprintf(&str, "%zu", hsize);
 			if (ctx->output.length < 0) kd_add(resp, "Content-Length", "2048000000");
 			NFREE(str);
