@@ -34,8 +34,6 @@
 /* typedefs */
 /*----------------------------------------------------------------------------*/
 
-#define REPOS_TIME 1
-
 #define MAX_RENDERERS	32
 #define	AV_TRANSPORT 	"urn:schemas-upnp-org:service:AVTransport:1"
 #define	RENDERING_CTRL 	"urn:schemas-upnp-org:service:RenderingControl:1"
