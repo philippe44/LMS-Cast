@@ -327,6 +327,7 @@ static void sq_init_metadata(metadata_t *metadata)
 	metadata->index 	= 0;
 	metadata->file_size = 0;
 	metadata->duration 	= 0;
+	metadata->bitrate 	= 0;
 	metadata->remote 	= false;
 }
 
@@ -403,6 +404,12 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, bool next)
 		metadata->album = cli_find_tag(rsp, "album");
 		metadata->genre = cli_find_tag(rsp, "genre");
 		metadata->remote_title = cli_find_tag(rsp, "remote_title");
+
+		if ((p = cli_find_tag(rsp, "bitrate")) != NULL) {
+			metadata->bitrate = atoi(p);
+			if (strchr(p, 'k')) metadata->bitrate *= 1000;
+			free(p);
+		}
 
 		if ((p = cli_find_tag(rsp, "duration")) != NULL) {
 			metadata->duration = 1000 * atof(p);

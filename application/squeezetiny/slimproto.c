@@ -322,6 +322,7 @@ static void process_strm(u8_t *pkt, int len, struct thread_ctx_s *ctx) {
 			out->fade_mode = strm->transition_type - '0';
 			out->fade_secs = strm->transition_period;
 			out->duration = info.metadata.duration;
+			out->bitrate = info.metadata.bitrate;
 			out->remote = info.metadata.remote;
 			out->icy.last = gettime_ms() - ICY_UPDATE_TIME;
 			out->trunc16 = false;
@@ -836,12 +837,14 @@ static void slimproto_run(struct thread_ctx_s *ctx) {
 			 services like Deezer close the connection before all has been sent,
 			 so need to wait a bit before sending STMd ... grr
 			*/
-			if ((ctx->decode.state == DECODE_COMPLETE && ctx->status.output_running == THREAD_EXITED &&
-				 ctx->canSTMdu && (!ctx->status.duration || ctx->status.duration - ctx->status.ms_played < STREAM_DELAY)) ||
+			if ((ctx->decode.state == DECODE_COMPLETE && ctx->status.output_running == THREAD_EXITED &&	ctx->canSTMdu &&
+				(!ctx->status.duration || ctx->status.duration - ctx->status.ms_played < STREAM_DELAY) &&
+				(!ctx->output.bitrate  || (ctx->status.stream_bytes / (ctx->output.bitrate / 1000)) * 8 - ctx->status.ms_played < STREAM_DELAY)) ||
 				ctx->decode.state == DECODE_ERROR) {
 				if (ctx->decode.state == DECODE_COMPLETE) _sendSTMd = true;
 				if (ctx->decode.state == DECODE_ERROR)    _sendSTMn = true;
 				ctx->decode.state = DECODE_STOPPED;
+				LOG_INFO("[%p]: STMd (rate %u) %u bytes (duration %u) %u ms", ctx, ctx->output.bitrate, ctx->status.stream_bytes, ctx->status.duration, ctx->status.ms_played);
 				if (ctx->status.stream_state == STREAMING_HTTP || ctx->status.stream_state == STREAMING_FILE) {
 					_stream_disconnect = true;
 				}

@@ -57,6 +57,7 @@ typedef struct metadata_s {
 	u32_t index;
 	u32_t track;
 	u32_t duration;
+	u32_t bitrate;
 	u32_t file_size;
 	bool  remote;
 	u32_t track_hash;

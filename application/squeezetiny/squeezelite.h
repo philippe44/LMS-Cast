@@ -201,7 +201,7 @@ typedef enum { STOPPED = 0, DISCONNECT, STREAMING_WAIT,
 			   STREAMING_BUFFERING, STREAMING_FILE, STREAMING_HTTP, SEND_HEADERS, RECV_HEADERS } stream_state;
 typedef enum { DISCONNECT_OK = 0, LOCAL_DISCONNECT = 1, REMOTE_DISCONNECT = 2, UNREACHABLE = 3, TIMEOUT = 4 } disconnect_code;
 
-#define STREAM_DELAY 30000
+#define STREAM_DELAY 15000
 
 struct streamstate {
 	stream_state state;
@@ -342,6 +342,7 @@ struct outputstate {
 	bool	trunc16;		 // true if 24 bits samples must be truncated to 16
 	int 	in_endian, out_endian;	// 1 = little (MSFT/INTL), 0 = big (PCM/AAPL)
 	u32_t 	duration;       // duration of track in ms, 0 if unknown
+	u32_t 	bitrate;        // birate, 0 if unknown
 	bool  	remote;			// local track or not (if duration == 0 => live)
 	ssize_t length;			// HTTP content-length (-1:no chunked, -3 chunked if possible, >0 fake length)
 	bool 	chunked;		// chunked mode
