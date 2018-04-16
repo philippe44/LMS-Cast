@@ -834,17 +834,20 @@ static void slimproto_run(struct thread_ctx_s *ctx) {
 			 we don't want to send STMd before STMs
 			 also, if STMd is sent early, streaming of next track will start but
 			 then will stall for a long time while current track is finishing and
-			 services like Deezer close the connection before all has been sent,
-			 so need to wait a bit before sending STMd ... grr
+			 services like Deezer or RP plugin close the connection before all
+			 has been sent, so need to wait a bit before sending STMd and to make
+			 it worse, RP plugin with FLAC gives wrong duration, so need to use
+			 bitrate instead, but not sure bitrate is always available ... grr
 			*/
 			if ((ctx->decode.state == DECODE_COMPLETE && ctx->status.output_running == THREAD_EXITED &&	ctx->canSTMdu &&
-				(!ctx->status.duration || ctx->status.duration - ctx->status.ms_played < STREAM_DELAY) &&
-				(!ctx->output.bitrate  || (ctx->status.stream_bytes / (ctx->output.bitrate / 1000)) * 8 - ctx->status.ms_played < STREAM_DELAY)) ||
+				(!ctx->output.remote || (!ctx->status.duration && !ctx->output.bitrate) ||
+				 (ctx->status.duration && ctx->status.duration - ctx->status.ms_played < STREAM_DELAY) ||
+				 (ctx->output.bitrate && (ctx->status.stream_bytes / (ctx->output.bitrate / 1000)) * 8 - ctx->status.ms_played < STREAM_DELAY))) ||
 				ctx->decode.state == DECODE_ERROR) {
 				if (ctx->decode.state == DECODE_COMPLETE) _sendSTMd = true;
 				if (ctx->decode.state == DECODE_ERROR)    _sendSTMn = true;
 				ctx->decode.state = DECODE_STOPPED;
-				LOG_INFO("[%p]: STMd (rate %u) %u bytes (duration %u) %u ms", ctx, ctx->output.bitrate, ctx->status.stream_bytes, ctx->status.duration, ctx->status.ms_played);
+				LOG_INFO("[%p]: STMd (rate %u) %llu bytes (duration %u) %u ms", ctx, ctx->output.bitrate, ctx->status.stream_bytes, ctx->status.duration, ctx->status.ms_played);
 				if (ctx->status.stream_state == STREAMING_HTTP || ctx->status.stream_state == STREAMING_FILE) {
 					_stream_disconnect = true;
 				}
