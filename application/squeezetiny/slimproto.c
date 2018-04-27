@@ -322,7 +322,6 @@ static void process_strm(u8_t *pkt, int len, struct thread_ctx_s *ctx) {
 			out->fade_mode = strm->transition_type - '0';
 			out->fade_secs = strm->transition_period;
 			out->duration = info.metadata.duration;
-			out->bitrate = info.metadata.bitrate;
 			out->remote = info.metadata.remote;
 			out->icy.last = gettime_ms() - ICY_UPDATE_TIME;
 			out->trunc16 = false;
@@ -480,7 +479,7 @@ static void process_codc(u8_t *pkt, int len, struct thread_ctx_s *ctx) {
 		LOG_ERROR("[%p] no matching codec %c", ctx, out->codec);
     }
 
-	 UNLOCK_O;
+	UNLOCK_O;
 
 	LOG_DEBUG("[%p] codc: %c", ctx, codc->format);
 }
@@ -835,19 +834,14 @@ static void slimproto_run(struct thread_ctx_s *ctx) {
 			 also, if STMd is sent early, streaming of next track will start but
 			 then will stall for a long time while current track is finishing and
 			 services like Deezer or RP plugin close the connection before all
-			 has been sent, so need to wait a bit before sending STMd and to make
-			 it worse, RP plugin with FLAC gives wrong duration, so need to use
-			 bitrate instead, but not sure bitrate is always available ... grr
+			 has been sent, so need to wait a bit before sending STMd ... grr
 			*/
 			if ((ctx->decode.state == DECODE_COMPLETE && ctx->status.output_running == THREAD_EXITED &&	ctx->canSTMdu &&
-				(!ctx->output.remote || (!ctx->status.duration && !ctx->output.bitrate) ||
-				 (ctx->status.duration && ctx->status.duration - ctx->status.ms_played < STREAM_DELAY) ||
-				 (ctx->output.bitrate && (ctx->status.stream_bytes / (ctx->output.bitrate / 1000)) * 8 - ctx->status.ms_played < STREAM_DELAY))) ||
+				(!ctx->output.remote || (ctx->status.duration && ctx->status.duration - ctx->status.ms_played < STREAM_DELAY))) ||
 				ctx->decode.state == DECODE_ERROR) {
 				if (ctx->decode.state == DECODE_COMPLETE) _sendSTMd = true;
 				if (ctx->decode.state == DECODE_ERROR)    _sendSTMn = true;
 				ctx->decode.state = DECODE_STOPPED;
-				LOG_INFO("[%p]: STMd (rate %u) %llu bytes (duration %u) %u ms", ctx, ctx->output.bitrate, ctx->status.stream_bytes, ctx->status.duration, ctx->status.ms_played);
 				if (ctx->status.stream_state == STREAMING_HTTP || ctx->status.stream_state == STREAMING_FILE) {
 					_stream_disconnect = true;
 				}
@@ -1027,7 +1021,7 @@ void slimproto_close(struct thread_ctx_s *ctx) {
 	LOG_INFO("[%p] slimproto stop for %s", ctx, ctx->config.name);
   	ctx->running = false;
 	wake_controller(ctx);
-	pthread_detach(ctx->thread);
+	pthread_join(ctx->thread, NULL);
 }
 
 

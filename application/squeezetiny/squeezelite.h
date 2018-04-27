@@ -342,7 +342,6 @@ struct outputstate {
 	bool	trunc16;		 // true if 24 bits samples must be truncated to 16
 	int 	in_endian, out_endian;	// 1 = little (MSFT/INTL), 0 = big (PCM/AAPL)
 	u32_t 	duration;       // duration of track in ms, 0 if unknown
-	u32_t 	bitrate;        // birate, 0 if unknown
 	bool  	remote;			// local track or not (if duration == 0 => live)
 	ssize_t length;			// HTTP content-length (-1:no chunked, -3 chunked if possible, >0 fake length)
 	bool 	chunked;		// chunked mode

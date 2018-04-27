@@ -1,6 +1,10 @@
-0.3.0.3.1
- - REPOS_TIME was set by mistake, preventing proper repositionning ...
- - detect bitrate to not send STMd too early even with stream where duration is wrong (e.g. RadioParadise)
+0.3.0.3
+ - (1) REPOS_TIME was set by mistake, preventing proper repositionning ...
+ - (1) detect bitrate to not send STMd too early even with stream where duration is wrong (e.g. RadioParadise)
+ - (2) slimproto_close must join thread, not detach it otherwise other _close function might destroy buffer mutexes
+ - (2) move to "status" cmd query to have only a single query for all metadata
+ - (2) remove bitrate usage to send STMd, was not reliable at status or songinfo on RP send the current bitrate 
+ - (2) metadata path and track_has removed
  
 0.3.0.2
  - mimetype delayed acquisition in output_http is a boolean, relying now on out->mimetype
