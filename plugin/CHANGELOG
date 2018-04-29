@@ -5,6 +5,7 @@
  - (2) move to "status" cmd query to have only a single query for all metadata
  - (2) remove bitrate usage to send STMd, was not reliable at status or songinfo on RP send the current bitrate 
  - (2) metadata path and track_has removed
+ - (3) duration can be taken from "status" as well
  
 0.3.0.2
  - mimetype delayed acquisition in output_http is a boolean, relying now on out->mimetype
