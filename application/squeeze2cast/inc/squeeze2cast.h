@@ -41,6 +41,8 @@
 #define MAGIC			0xAABBCCDD
 #define RESOURCE_LENGTH	250
 
+#define HTTP_DEFAULT_PORT 49152
+
 enum 	eMRstate { STOPPED, BUFFERING, PLAYING, PAUSED };
 
 typedef struct sMRConfig

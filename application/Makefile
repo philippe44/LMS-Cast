@@ -47,7 +47,7 @@ SOURCES_LIBS =
 OBJECTS 		= $(patsubst %.c,$(OBJ)/%.o,$(SOURCES)) $(patsubst %.c,$(OBJ)/%.o,$(SOURCES_LIBS)) 
 OBJECTS_STATIC 	= $(patsubst %.c,$(OBJ)/%.o,$(SOURCES)) $(patsubst %.c,$(OBJ)/%-static.o,$(SOURCES_LIBS)) 
 
-LIBRARY 		= $(OBJ)/libupnp.a $(OBJ)/libixml.a $(OBJ)/libthreadutil.a
+LIBRARY 		= $(OBJ)/libixml.a
 LIBRARY_STATIC 	= $(LIBRARY) 
 
 all: $(EXECUTABLE) $(EXECUTABLE_STATIC)

@@ -122,8 +122,6 @@ static pthread_cond_t		glMainCond;
 static bool					glInteractive = true;
 static char					*glPidFile = NULL;
 static bool					glGracefullShutdown = true;
-static unsigned int 		glPort = 0;
-static char 				glIPaddress[128] = "";
 static void					*glConfigID = NULL;
 static char					glConfigName[_STR_LEN_] = "./config.xml";
 
@@ -842,33 +840,28 @@ static void RemoveCastDevice(struct sMR *Device)
 static bool Start(void)
 {
 	struct in_addr addr;
-	int i, rc;
+	char IPaddr[16] = "";
+	unsigned Port = 0;
+	int i;
 
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
-	UpnpSetLogLevel(UPNP_ALL);
+	if (!strstr(glUPnPSocket, "?")) sscanf(glUPnPSocket, "%[^:]:%u", IPaddr, &Port);
 
-	if (!strstr(glUPnPSocket, "?")) sscanf(glUPnPSocket, "%[^:]:%u", glIPaddress, &glPort);
-
-	if (*glIPaddress) rc = UpnpInit(glIPaddress, glPort);
-	else rc = UpnpInit(NULL, glPort);
-
-	if (rc != UPNP_E_SUCCESS) {
-		LOG_ERROR("UPnP init failed: %d\n", rc);
-		UpnpFinish();
-		return false;
+	if (*IPaddr) {
+		addr.s_addr = inet_addr(IPaddr);
+	} else {
+		addr.s_addr = get_localhost(NULL);
+		strcpy(IPaddr, inet_ntoa(addr));
 	}
 
-	UpnpSetMaxContentLength(60000);
-
-	if (!*glIPaddress) strcpy(glIPaddress, UpnpGetServerIpAddress());
-	if (!glPort) glPort = UpnpGetServerPort();
+	if (!Port) Port = HTTP_DEFAULT_PORT;
 
 	// start squeeze piece
-	sq_init(glIPaddress, glPort);
+	sq_init(IPaddr, Port);
 
-	LOG_INFO("Binding to %s:%d", glIPaddress, glPort);
+	LOG_INFO("Binding to %s:%d", IPaddr, Port);
 
 	// init mutex & cond no matter what
 	pthread_mutex_init(&glMainMutex, 0);
@@ -879,7 +872,6 @@ static bool Start(void)
 
 	/* start the mDNS devices discovery thread */
 
-	addr.s_addr = inet_addr(glIPaddress);
 	glmDNSsearchHandle = init_mDNS(false, addr);
 	pthread_create(&glmDNSsearchThread, NULL, &mDNSsearchThread, NULL);
 
@@ -913,9 +905,6 @@ static bool Stop(void)
 	pthread_mutex_destroy(&glMainMutex);
 	pthread_cond_destroy(&glMainCond);
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_destroy(&glMRDevices[i].Mutex);
-
-	LOG_DEBUG("end libupnp ...", NULL);
-	UpnpFinish();
 
 	EndSSL();
 

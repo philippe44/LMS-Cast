@@ -1,3 +1,7 @@
+0.3.0.4
+ - add aarch64 version
+ - remove libupnp & libthreadutil
+ 
 0.3.0.3
  - (1) REPOS_TIME was set by mistake, preventing proper repositionning ...
  - (1) detect bitrate to not send STMd too early even with stream where duration is wrong (e.g. RadioParadise)
