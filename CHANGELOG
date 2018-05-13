@@ -1,3 +1,8 @@
+0.3.0.5
+ - for Windows XP IP_ADD_MULTICAST must be after binding
+ - do not use WSAPoll() in Windows for XP compatibility
+ - fail if mDNS searcher cannot be initialized
+ 
 0.3.0.4
  - add aarch64 version
  - remove libupnp & libthreadutil

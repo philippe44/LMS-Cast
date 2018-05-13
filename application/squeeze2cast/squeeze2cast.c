@@ -871,8 +871,11 @@ static bool Start(void)
 	InitSSL();
 
 	/* start the mDNS devices discovery thread */
+	if ((glmDNSsearchHandle = init_mDNS(false, addr)) == NULL) {
+		LOG_ERROR("Cannot start mDNS searcher", NULL);
+		return false;
+	}
 
-	glmDNSsearchHandle = init_mDNS(false, addr);
 	pthread_create(&glmDNSsearchThread, NULL, &mDNSsearchThread, NULL);
 
 	/* start the main thread */
