@@ -311,7 +311,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			Device->Volume = (double) i / 100;
 			LOG_INFO("Volume %d", i);
 
-			if ((Device->VolumeStamp + 1000 - now > 0x7fffffff) &&
+			if (((Device->VolumeStamp + 1000) - now > 1000) &&
 				(!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)))
 				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 
@@ -403,7 +403,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 		*/
 		if (Device->State == PLAYING) {
 			// detect unsollicited pause, but do not confuse it with a fast pause/play
-			if (Device->sqState != SQ_PAUSE && (Device->sqStamp + 2000 - gettime_ms() > 0x7fffffff)) {
+			if (Device->sqState != SQ_PAUSE && ((Device->sqStamp + 2000) - gettime_ms() > 2000)) {
 				Event = SQ_PAUSE;
 				Param = true;
 			}
@@ -474,7 +474,7 @@ static void *MRThread(void *args)
 					u32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
 #if !defined(REPOS_TIME)
 					// LMS reposition time can be a bit BEFORE seek time ...
-					if (gettime_ms() - p->LocalStartTime + 5000 - elapsed > 0x7fffffff) {
+					if ((gettime_ms() - p->LocalStartTime + 5000) - elapsed > 5000) {
 						if (elapsed > p->StartTime)	elapsed -= p->StartTime;
 						else elapsed = 0;
 					}
