@@ -257,6 +257,9 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			} else {
 				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (
 							  Device->Config.SendMetaData) ? &p->metadata : NULL);
+#if !defined(REPOS_TIME)
+				Device->StartTime = sq_get_time(Device->SqueezeHandle);
+#endif
 				sq_free_metadata(&p->metadata);
 				LOG_INFO("[%p]: current URI %s", Device, p->uri);
 			}
@@ -275,10 +278,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 		case SQ_PLAY:
 			// got it, don't need to send it more than once ...
 			if (Device->sqState == SQ_PLAY) break;
-#if !defined(REPOS_TIME)
-			Device->StartTime = sq_get_time(Device->SqueezeHandle);
-			Device->LocalStartTime = gettime_ms();
-#endif
+
 			if (Device->Config.VolumeOnPlay == 1)
 				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 
@@ -366,6 +366,9 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 
 			sq_free_metadata(&Device->NextMetaData);
 			NFREE(Device->NextURI);
+#if !defined(REPOS_TIME)
+			Device->StartTime = 0;
+#endif
 		} else {
 			// Can be a user stop, an error or a normal stop
 			Event = SQ_STOP;
@@ -403,10 +406,8 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 		*/
 		if (Device->State == PLAYING) {
 			// detect unsollicited pause, but do not confuse it with a fast pause/play
-			if (Device->sqState != SQ_PAUSE && ((Device->sqStamp + 2000) - gettime_ms() > 2000)) {
-				Event = SQ_PAUSE;
-				Param = true;
-			}
+			if (Device->sqState != SQ_PAUSE && ((Device->sqStamp + 2000) - gettime_ms() > 2000)) Param = true;
+			Event = SQ_PAUSE;
 			LOG_INFO("%s: Cast pause", Device->FriendlyName);
 
 			Device->State = PAUSED;
@@ -472,9 +473,11 @@ static void *MRThread(void *args)
 				*/
 				if (p->State == PLAYING && p->sqState == SQ_PLAY && CastIsMediaSession(p->CastCtx)) {
 					u32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
+					s32_t gap = elapsed - sq_self_time(p->SqueezeHandle);
+
+					LOG_DEBUG("elapsed %u, self %u, gap %u", elapsed, sq_self_time(p->SqueezeHandle), abs(gap));
 #if !defined(REPOS_TIME)
-					// LMS reposition time can be a bit BEFORE seek time ...
-					if ((gettime_ms() - p->LocalStartTime + 5000) - elapsed > 5000) {
+					if (p->StartTime > 500 && abs(gap) > 2000) {
 						if (elapsed > p->StartTime)	elapsed -= p->StartTime;
 						else elapsed = 0;
 					}
@@ -776,11 +779,11 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	} else Device->on = false;
 
 	// optional
-	Device->sqStamp = Device->Elapsed = 0;
+	Device->sqStamp = 0;
 	Device->CastCtx = NULL;
 	Device->Volume = 0;
 #if !defined(REPOS_TIME)
-	Device->StartTime = Device->LocalStartTime = 0;
+	Device->StartTime = 0;
 #endif
 
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);

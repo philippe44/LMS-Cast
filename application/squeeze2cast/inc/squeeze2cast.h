@@ -73,9 +73,8 @@ struct sMR {
 	metadata_t		NextMetaData;
 	sq_action_t		sqState;
 	u32_t			sqStamp;
-	u32_t			Elapsed;
 #if !defined(REPOS_TIME)
-	u32_t			StartTime, LocalStartTime;
+	u32_t			StartTime;
 #endif
 	unsigned		TrackPoll;
 	bool			TimeOut;
