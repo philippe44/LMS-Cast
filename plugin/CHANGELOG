@@ -1,5 +1,7 @@
 0.3.0.6
  - 32 bits comparaison correction (volume could be stuck)
+ - do not set playing state on "buffering" event
+ - ms_played was set to incorrect value when switching between tracks (track_start_time)
  
 0.3.0.5
  - for Windows XP IP_ADD_MULTICAST must be after binding

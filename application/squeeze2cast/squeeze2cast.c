@@ -452,7 +452,7 @@ static void *MRThread(void *args)
 				const char *state = GetMediaItem_S(data, 0, "playerState");
 
 				// so far, buffering and playing can be merged
-				if (state && (!strcasecmp(state, "PLAYING") || !strcasecmp(state, "BUFFERING"))) {
+				if (state && !strcasecmp(state, "PLAYING")) {
 					_SyncNotifyState("PLAYING", p);
 				}
 
