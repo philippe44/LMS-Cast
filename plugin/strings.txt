@@ -154,29 +154,16 @@ PLUGIN_CASTBRIDGE_CODECSPARAM
 	EN	Audio codec parameters
 
 PLUGIN_CASTBRIDGE_CODECSPARAM_DESC
-	EN	The bridge can either simply passthrough audio data to the player (with minor alteration) or do a full transcoding which
-	EN	improves compatibility by sending controlled format and allows replay gain as well as fading in and out. It's also 
-	EN	possible to send audio in a continuous flow of data instead of tracks one-bye-one to enable gapless and cross-fading. 
-	EN	See user's guide for more details
-	EN	<br>- <i>Mode:</i> set processing mode. Format is [thru|pcm|flac:[q]][,r:[-]<rate>][,s:8|16|24][,flow]. "thru" is simple 
-	EN	passthrough, "pcm" and "flac" are for decoding, re-encoding and sending in "pcm" or "flac" to player. When re-encoding
-	EN	"r:" forces	a maximum sample rate when predicated with "-" or a fixed sample rate if not. "s:" is to set sample size. 
-	EN	"flow" forces creates a continuous sample flow of audio, enabling true gapless and cross-fading, but then metadata is
-	EN	disabled 
-	EN	<br><i>- Codecs:</i>  reports supported codecs to LMS. Comma-separated, list made of mp3, flc, aif, pcm, aac, ogg.
-	EN	If re-encode is enabled, local decoding will be done by the bridge (only mp3,aac,flac,pmc and ogg are supported)
-	EN	For example, to only support (in order of preference) FLAC and MP3 , enter "flc,mp3" (without ""). 
-	EN	<br><i>- Max rate:</i>  reports maximum sample rate to LMS. This does not influence local resampling, it's just an 
-	EN	information for LMS to decide to do transcoding. Usually ChromeCast support up to 96kHz in "thru" mode
+	EN	Several codecs are supported by the Chromecast player. They will be reported to LMS to decide when to do transcoding. 
+	EN	<br><i>- Supported Codecs</i> is an ordered, comma-separated, list made of mp3, flc, aif, pcm
+	EN	For example, to only support (in order of preference) FLAC and MP3 , enter "flc,mp3" (without ""). Chromecast devices 
+	EN	do not support other codecs
 	
-PLUGIN_CASTBRIDGE_CODECS
-	EN	Mode
-
-PLUGIN_CASTBRIDGE_CODECS
-	EN	Codecs
-
 PLUGIN_CASTBRIDGE_SAMPLERATE
-	EN	Max rate
+	EN	Max Sample Rate
+
+PLUGIN_CASTBRIDGE_CODECS
+	EN	Supported codecs
 
 PLUGIN_CASTBRIDGE_SERVER
 	EN	LMS Server

@@ -63,7 +63,6 @@ void sq_wipe_device(struct thread_ctx_s *ctx) {
 	mutex_unlock(ctx->cli_mutex);
 
 	slimproto_close(ctx);
-	output_flush(ctx);
 	output_close(ctx);
 #if RESAMPLE
 	process_end(ctx);
@@ -187,8 +186,8 @@ bool cli_open_socket(struct thread_ctx_s *ctx) {
 /*---------------------------------------------------------------------------*/
 char *cli_send_cmd(char *cmd, bool req, bool decode, struct thread_ctx_s *ctx)
 {
-#define CLI_LEN 4096
-	char *packet;
+#define CLI_LEN 2048
+	char packet[CLI_LEN];
 	int wait;
 	size_t len;
 	char *rsp = NULL;
@@ -200,7 +199,6 @@ bool cli_open_socket(struct thread_ctx_s *ctx) {
 	}
 	ctx->cli_timestamp = gettime_ms();
 
-	packet = malloc(CLI_LEN);
 	wait = CLI_SEND_TO / CLI_SEND_SLEEP;
 	cmd = cli_encode(cmd);
 	if (req) len = sprintf(packet, "%s ?\n", cmd);
@@ -253,11 +251,8 @@ bool cli_open_socket(struct thread_ctx_s *ctx) {
 		*(strrchr(rsp, '\n')) = '\0';
 	}
 
+	NFREE(cmd);
 	mutex_unlock(ctx->cli_mutex);
-
-	free(cmd);
-	free(packet);
-
 	return rsp;
 }
 
@@ -332,7 +327,6 @@ static void sq_init_metadata(metadata_t *metadata)
 	metadata->file_size = 0;
 	metadata->duration 	= 0;
 	metadata->remote 	= false;
-	metadata->bitrate	= 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -340,16 +334,16 @@ void sq_default_metadata(metadata_t *metadata, bool init)
 {
 	if (init) sq_init_metadata(metadata);
 
-	if (!metadata->title) metadata->title 	= strdup("Streaming from LMS");
-	if (!metadata->album) metadata->album 	= strdup("");
-	if (!metadata->artist) metadata->artist = strdup("");
-	if (!metadata->genre) metadata->genre 	= strdup("");
-	if (!metadata->remote_title) metadata->remote_title	= strdup("Streaming from LMS");
+	if (!metadata->title) metadata->title 	= strdup("[LMS]");
+	if (!metadata->album) metadata->album 	= strdup("[no album]");
+	if (!metadata->artist) metadata->artist = strdup("[no artist]");
+	if (!metadata->genre) metadata->genre 	= strdup("[no genre]");
+	if (!metadata->remote_title) metadata->remote_title	= strdup("[no remote]");
 }
 
 
 /*--------------------------------------------------------------------------*/
-bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, unsigned offset)
+bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, bool next)
 {
 	struct thread_ctx_s *ctx = &thread_ctx[handle - 1];
 	char cmd[1024];
@@ -365,7 +359,7 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, unsigned offs
 
 	sq_init_metadata(metadata);
 
-	sprintf(cmd, "%s status - %d tags:xcfldatgrKN", ctx->cli_id, offset + 1);
+	sprintf(cmd, "%s status - 2 tags:xcfldatgrKN", ctx->cli_id);
 	rsp = cli_send_cmd(cmd, false, false, ctx);
 
 	if (!rsp || !*rsp) {
@@ -376,14 +370,14 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, unsigned offs
 
 	// find the current index
 	if ((p = cli_find_tag(rsp, "playlist_cur_index")) != NULL) {
-		metadata->index = atoi(p) + offset;
+		metadata->index = atoi(p);
+		if (next) metadata->index++;
 		free(p);
 	}
 
 	// need to make sure we rollover if end of list
 	if ((p = cli_find_tag(rsp, "playlist_tracks")) != NULL) {
 		metadata->index %= atoi(p);
-		free(p);
 	}
 
 	sprintf(cmd, "playlist%%20index%%3a%d ", metadata->index);
@@ -408,11 +402,6 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, unsigned offs
 			free(p);
 		}
 		*/
-
-		if ((p = cli_find_tag(cur, "bitrate")) != NULL) {
-			metadata->bitrate = atol(p);
-			free(p);
-		}
 
 		if ((p = cli_find_tag(cur, "tracknum")) != NULL) {
 			metadata->track = atol(p);
@@ -440,14 +429,12 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, unsigned offs
 			snprintf(artwork, _STR_LEN_, "http://%s:%s%s", ctx->server_ip, ctx->server_port, metadata->artwork);
 			// why the f... does LMS use .png extension in image proxy, where IT IS jpeg?
 			if ((p = strstr(artwork, ".png")) != NULL) strcpy(p, ".jpg");
-			free(metadata->artwork);
+    		free(metadata->artwork);
 			metadata->artwork = artwork;
 		}
-	} else {
-		LOG_ERROR("[%p]: track not found %u %s", ctx, metadata->index, rsp);
 	}
 
-	if (!offset && metadata->duration && ((p = cli_find_tag(rsp, "time")) != NULL)) {
+	if (!next && metadata->duration && ((p = cli_find_tag(rsp, "time")) != NULL)) {
 		metadata->duration -= (u32_t) (atof(p) * 1000);
 		free(p);
 	}
@@ -531,12 +518,12 @@ void sq_notify(sq_dev_handle_t handle, void *caller_id, sq_event_t event, u8_t *
 			} else if (ctx->render.state != RD_PLAYING) {
 				LOCK_O;
 				ctx->render.state = RD_PLAYING;
-				// PLAY event can happen before render index has been captured
+				// output thread served index in the renderer, we are truly started
 				if (ctx->render.index == ctx->output.index) {
 					ctx->output.track_started = true;
 					ctx->render.track_start_time = gettime_ms();
-					LOG_INFO("[%p] track %u started at %u", ctx, ctx->render.index, ctx->render.track_start_time);
-            } else {
+					LOG_INFO("[%p] track started (at %u)", ctx, ctx->render.track_start_time);
+				} else {
 					LOG_INFO("[%p] play notification", ctx );
 				}
 				UNLOCK_O;
@@ -577,14 +564,12 @@ void sq_notify(sq_dev_handle_t handle, void *caller_id, sq_event_t event, u8_t *
 				sprintf(cmd, "%s stop", ctx->cli_id);
 				rsp = cli_send_cmd(cmd, false, true, ctx);
 				NFREE(rsp);
-			/* FIXME: not sure anymore what this tries to cover
-			} else if (ctx->stream.state <= DISCONNECT && !ctx->output.completed) {
-				// happens if streaming fails (spotty)
+			} else if (ctx->stream.state <= DISCONNECT && ctx->output_running == THREAD_RUNNING) {
+				// this should be mutex protected, but will not make it foolproof still
 				LOG_INFO("[%p] un-managed STOP, re-starting", ctx);
 				sprintf(cmd, "%s time -5.00", ctx->cli_id);
 				rsp = cli_send_cmd(cmd, false, true, ctx);
 				NFREE(rsp);
-			*/
 			} else {
 				// might be a STMu or a STMo, let slimproto decide
 				LOCK_O;
@@ -606,20 +591,7 @@ void sq_notify(sq_dev_handle_t handle, void *caller_id, sq_event_t event, u8_t *
 			u32_t time = *((u32_t*) param);
 			LOG_DEBUG("[%p] time %d %d", ctx, ctx->render.ms_played, time);
 			LOCK_O;
-			if (ctx->render.index != -1) {
-				ctx->render.ms_played = time - ctx->output.offset;
-				if (ctx->output.encode.flow && ctx->render.duration && ctx->render.ms_played > ctx->render.duration) {
-					ctx->output.offset += ctx->render.duration;
-					ctx->render.ms_played -= ctx->render.duration;
-					ctx->render.duration = ctx->output.duration;
-					ctx->render.index = ctx->output.index;
-					ctx->output.track_started = true;
-					ctx->render.track_start_time = gettime_ms();
-					LOG_INFO("[%p] flow track started at %u for %u", ctx,
-							   ctx->render.track_start_time, ctx->render.duration);
-					wake_controller(ctx);
-				}
-			}
+			if (ctx->render.index != -1) ctx->render.ms_played = time;
 			UNLOCK_O;
 			break;
 		}
@@ -630,10 +602,9 @@ void sq_notify(sq_dev_handle_t handle, void *caller_id, sq_event_t event, u8_t *
 			uri = strstr(uri, BRIDGE_URL);
 			if (!uri) break;
 			/*
-			if we detect a change of track then update render context. Still,
-			we have to wait	for PLAY status before claiming track has started.
-			make sure as well that renderer track number is not from an old
-			context
+			if we detect a change of track and this is the track served by the
+			output thread, then update render context. Still, we have to wait
+			for PLAY status before claiming track has started
 			*/
 			sscanf(uri, BRIDGE_URL "%u", &index);
 			if (ctx->render.index != index && ctx->output.index == index) {
@@ -657,9 +628,8 @@ void sq_notify(sq_dev_handle_t handle, void *caller_id, sq_event_t event, u8_t *
 	 }
  }
 
-
-/*---------------------------------------------------------------------------*/
-void sq_init(char *ip, u16_t port)
+/*---------------------------------------------------------------------------*/
+void sq_init(char *ip, u16_t port)
 {
 	strcpy(sq_ip, ip);
 	sq_port = port;
@@ -732,19 +702,12 @@ bool sq_run_device(sq_dev_handle_t handle, sq_dev_param_t *param)
 										  ctx->config.mac[0], ctx->config.mac[1], ctx->config.mac[2],
 										  ctx->config.mac[3], ctx->config.mac[4], ctx->config.mac[5]);
 
-	if (!stream_thread_init(ctx)) return false;
+	stream_thread_init(ctx->config.stream_buf_size, ctx);
+	output_init(ctx->config.output_buf_size, ctx);
+	decode_thread_init(ctx);
+	slimproto_thread_init(ctx);
 
-	if (output_init(ctx)) {
-		decode_thread_init(ctx);
-		slimproto_thread_init(ctx);
-#if RESAMPLE
-		process_init(param->resample_options, ctx);
-#endif
-		return true;
-	} else {
-		stream_close(ctx);
-		return false;
-	}
+	return true;
 }
 
 /*--------------------------------------------------------------------------*/

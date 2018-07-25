@@ -488,13 +488,13 @@ void SaveConfig(char *name, void *ref, bool full)
 	XMLUpdateNode(doc, root, false, "cast_log",level2debug(cast_loglevel));
 	XMLUpdateNode(doc, root, false, "util_log",level2debug(util_loglevel));
 	XMLUpdateNode(doc, root, false, "log_limit", "%d", (s32_t) glLogLimit);
-	XMLUpdateNode(doc, common, false, "streambuf_size", "%d", (u32_t) glDeviceParam.streambuf_size);
-	XMLUpdateNode(doc, common, false, "output_size", "%d", (u32_t) glDeviceParam.outputbuf_size);
+
+	XMLUpdateNode(doc, common, false, "streambuf_size", "%d", (u32_t) glDeviceParam.stream_buf_size);
+	XMLUpdateNode(doc, common, false, "output_size", "%d", (u32_t) glDeviceParam.output_buf_size);
 	XMLUpdateNode(doc, common, false, "stream_length", "%d", (s32_t) glDeviceParam.stream_length);
 	XMLUpdateNode(doc, common, false, "enabled", "%d", (int) glMRConfig.Enabled);
 	XMLUpdateNode(doc, common, false, "roon_mode", "%d", (int) glMRConfig.RoonMode);
 	XMLUpdateNode(doc, common, false, "stop_receiver", "%d", (int) glMRConfig.StopReceiver);
-	XMLUpdateNode(doc, common, false, "mode", glDeviceParam.mode);
 	XMLUpdateNode(doc, common, false, "codecs", glDeviceParam.codecs);
 	XMLUpdateNode(doc, common, false, "sample_rate", "%d", (int) glDeviceParam.sample_rate);
 	XMLUpdateNode(doc, common, false, "flac_header", "%d", (int) glDeviceParam.flac_header);
@@ -567,14 +567,13 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!val) return;
 
 	if (!strcmp(name, "stream_length")) sq_conf->stream_length = atol(val);
-	if (!strcmp(name, "streambuf_size")) sq_conf->streambuf_size = atol(val);
-	if (!strcmp(name, "output_size")) sq_conf->outputbuf_size = atol(val);
+	if (!strcmp(name, "streambuf_size")) sq_conf->stream_buf_size = atol(val);
+	if (!strcmp(name, "output_size")) sq_conf->output_buf_size = atol(val);
 	if (!strcmp(name, "send_icy")) sq_conf->send_icy = atol(val);
 	if (!strcmp(name, "enabled")) Conf->Enabled = atol(val);
 	if (!strcmp(name, "roon_mode")) Conf->RoonMode = atol(val);
 	if (!strcmp(name, "stop_receiver")) Conf->StopReceiver = atol(val);
 	if (!strcmp(name, "codecs")) strcpy(sq_conf->codecs, val);
-	if (!strcmp(name, "mode")) strcpy(sq_conf->mode, val);
 	if (!strcmp(name, "sample_rate"))sq_conf->sample_rate = atol(val);
 	if (!strcmp(name, "flac_header"))sq_conf->flac_header = atol(val);
 	if (!strcmp(name, "volume_on_play")) Conf->VolumeOnPlay = atol(val);

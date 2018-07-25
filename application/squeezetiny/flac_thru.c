@@ -153,7 +153,7 @@ decode_state flac_decode(struct thread_ctx_s *ctx) {
 		return DECODE_COMPLETE;
 	}
 
-	// need to do that before header increments pointer
+	// need to do that here
 	if (ctx->decode.new_stream) ctx->output.track_start = ctx->outputbuf->writep;
 
 	// the min in and out are enough to process a full header
@@ -172,13 +172,10 @@ decode_state flac_decode(struct thread_ctx_s *ctx) {
 			memcpy(ctx->outputbuf->writep, &flac_header, bytes);
 			memcpy(ctx->outputbuf->buf, (u8_t*) &flac_header + bytes, sizeof(flac_header) - bytes);
 			_buf_inc_writep(ctx->outputbuf, sizeof(flac_header));
-
 			bytes = min(sizeof(flac_streaminfo_t), _buf_cont_write(ctx->outputbuf));
 			memcpy(ctx->outputbuf->writep, p->streaminfo, bytes);
 			memcpy(ctx->outputbuf->buf, (u8_t*) p->streaminfo + bytes, sizeof(flac_streaminfo_t) - bytes);
 			_buf_inc_writep(ctx->outputbuf, sizeof(flac_streaminfo_t));
-
-			LOG_INFO("[%p]: FLAC header added", ctx);
 		}
 
 		free(p->streaminfo);
@@ -187,6 +184,10 @@ decode_state flac_decode(struct thread_ctx_s *ctx) {
 
 	if (ctx->decode.new_stream) {
 		LOG_INFO("[%p]: setting track_start", ctx);
+
+		//FIXME: not in use for now, sample rate always same how to know starting rate when resamplign will be used
+		ctx->output.current_sample_rate = decode_newstream(p->sample_rate, ctx->output.supported_rates, ctx);
+		if (ctx->output.fade_mode) _checkfade(true, ctx);
 		ctx->decode.new_stream = false;
 	}
 
@@ -218,7 +219,8 @@ static void flac_open(u8_t sample_size, u32_t sample_rate, u8_t	channels, u8_t e
 			memcpy(p->streaminfo, &FLAC_NORMAL_STREAMINFO, sizeof(flac_streaminfo_t));
 		else
 			memcpy(p->streaminfo, &FLAC_FULL_STREAMINFO, sizeof(flac_streaminfo_t));
-	} else p->streaminfo = NULL;
+	}
+	else p->streaminfo = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -233,7 +235,7 @@ static void flac_close(struct thread_ctx_s *ctx) {
 }
 
 /*---------------------------------------------------------------------------*/
-struct codec *register_flac_thru(void) {
+struct codec *register_flac(void) {
 	static struct codec ret = {
 		'c',         // id = flac in thru-mode
 		"flc", 		 // types
@@ -248,7 +250,7 @@ struct codec *register_flac_thru(void) {
 	return &ret;
 }
 
-void deregister_flac_thru(void) {
+void deregister_flac(void) {
 }
 
 /*---------------------------------------------------------------------------*/

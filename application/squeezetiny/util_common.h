@@ -37,10 +37,12 @@ u32_t 		hash32(char *str);
 
 bool 		get_interface(struct in_addr *addr);
 in_addr_t 	get_localhost(char **name);
-void 		get_mac(u8_t *mac);
 
 char*		make_dlna_content(char *mimetype, u32_t duration);
 char*		mimetype2ext(char *mimetype);
 u8_t 		mimetype2format(char *mimetype);
+char*		find_mimetype(char codec, char *mimetypes[], char *out);
+char*		find_pcm_mimetype(u8_t endian, u8_t *sample_size, bool truncable, u32_t sample_rate,
+							  u8_t channels, char *mimetypes[], char *options);
 
 #endif

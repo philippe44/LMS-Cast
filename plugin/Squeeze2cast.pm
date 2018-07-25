@@ -50,7 +50,7 @@ sub binaries {
 	}
 	
 	if ($os->{'os'} eq 'Darwin') {
-		return qw(squeeze2cast-osx-multi squeeze2cast-osx-multi-static);
+		return qw(squeeze2cast-osx-multi);
 	}
 	
 	if ($os->{'os'} eq 'Windows') {
