@@ -84,8 +84,8 @@ static u8_t LMSVolumeMap[101] = {
 sq_dev_param_t glDeviceParam = {
 					HTTP_INFINITE, 	 		// stream_length
 					 // both are multiple of 3*4(2) for buffer alignement on sample
-					(200 * 1024 * (4*3)),	// stream_buffer_size
-					(16 * 1024 * (4*3)),    // output_buffer_size
+					STREAMBUF_SIZE,			// stream_buffer_size
+					OUTPUTBUF_SIZE,			// output_buffer_size
 					"aac,ogg,flc,aif,pcm,mp3",		// codecs
 					"thru",					// encode
 					"wav",					// raw_audio_format
@@ -95,7 +95,10 @@ sq_dev_param_t glDeviceParam = {
 					FLAC_NORMAL_HEADER,	    // flac_header
 					"",			// name
 					{ 0x00,0x00,0x00,0x00,0x00,0x00 },
-					false,		// send_icy
+					false,					// send_icy
+#ifdef RESAMPLE
+					"",						// resample_options
+#endif
 					{ 	true,	// use_cli
 						"" },   // server
 				} ;
@@ -241,13 +244,14 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			sq_free_metadata(&Device->NextMetaData);
 			if (!Device->Config.SendCoverArt) NFREE(p->metadata.artwork);
 
-			LOG_INFO("[%p]:\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n\tgenre:%s\n\tduration:%d.%03d\n\tsize:%d\n\tcover:%s", Device,
-				p->metadata.artist, p->metadata.album, p->metadata.title,
-				p->metadata.genre, div(p->metadata.duration, 1000).quot,
-				div(p->metadata.duration,1000).rem, p->metadata.file_size,
-				p->metadata.artwork ? p->metadata.artwork : "");
+			LOG_INFO("[%p]:\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n\tgenre:%s\n"
+					 "\tduration:%d.%03d\n\tsize:%d\n\tcover:%s\n\toffset:%u", Device,
+					p->metadata.artist, p->metadata.album, p->metadata.title,
+					p->metadata.genre, div(p->metadata.duration, 1000).quot,
+					div(p->metadata.duration,1000).rem, p->metadata.file_size,
+					p->metadata.artwork ? p->metadata.artwork : "", p->offset);
 
-			if (p->next) {
+			if (p->offset) {
 				// to know what is expected next
 				strcpy(Device->NextMime, p->mimetype);
 				// this is a structure copy, pointers remains valid
@@ -477,7 +481,8 @@ static void *MRThread(void *args)
 
 					LOG_DEBUG("elapsed %u, self %u, gap %u", elapsed, sq_self_time(p->SqueezeHandle), abs(gap));
 #if !defined(REPOS_TIME)
-					if (p->StartTime > 500 && abs(gap) > 2000) {
+					// no time correction in case of flow ... huh
+					if (!strstr(p->sq_config.mode, "flow") && p->StartTime > 500 && abs(gap) > 2000) {
 						if (elapsed > p->StartTime)	elapsed -= p->StartTime;
 						else elapsed = 0;
 					}

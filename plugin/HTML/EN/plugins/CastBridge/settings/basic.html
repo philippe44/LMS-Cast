@@ -89,9 +89,13 @@
 	[% END %]		
 
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CODECSPARAM" desc="PLUGIN_CASTBRIDGE_CODECSPARAM_DESC" %]
-		[% "PLUGIN_CASTBRIDGE_CODECS" | string %]&nbsp<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="10">
-		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]&nbsp<select class="stdedit" name="sample_rate" id="sample_rate">
-		[% FOREACH entry IN [ '', '44100', '48000', '96000' ] %]
+		[% "PLUGIN_UPNPBRIDGE_MODE" | string %]&nbsp
+		<input type="text" class="stdedit" name="mode" id="mode" value="[% mode %]" size="15">
+		[% "PLUGIN_CASTBRIDGE_CODECS" | string %]&nbsp
+		<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="15">
+		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]&nbsp
+		<select class="stdedit" name="sample_rate" id="sample_rate">
+		[% FOREACH entry IN [ '', '44100', '48000', '88200', '96000', '176400', '192000' ] %]
 			<option [% IF entry == sample_rate %]selected[% END %] value="[% entry %]">[% entry %]</option>
 		[% END %]
 		</select>

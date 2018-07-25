@@ -25,6 +25,9 @@
 #include "squeezedefs.h"
 #include "util_common.h"
 
+#define OUTPUTBUF_SIZE	(4*1024*1024)
+#define STREAMBUF_SIZE	(512*1024)
+
 #define MAX_FILE_SIZE 	0xffff0000
 #define	MAX_MIMETYPES 	128
 #define BRIDGE_URL	 	"bridge-"
@@ -58,14 +61,15 @@ typedef struct metadata_s {
 	u32_t duration;
 	u32_t file_size;
 	bool  remote;
+	u32_t bitrate;
 } metadata_t;
 
 typedef	struct sq_dev_param_s {
 	enum { HTTP_INFINITE = -1, HTTP_CHUNKED = -3, HTTP_LARGE = MAX_FILE_SIZE } stream_length;
-	unsigned 	stream_buf_size;
-	unsigned 	output_buf_size;
+	unsigned 	streambuf_size;
+	unsigned 	outputbuf_size;
 	char		codecs[_STR_LEN_];
-	char		encode[8];
+	char		mode[_STR_LEN_];
 	char 		raw_audio_format[_STR_LEN_];
 	char		server[_STR_LEN_];
 	sq_rate_e	sample_rate;
@@ -74,6 +78,9 @@ typedef	struct sq_dev_param_s {
 	char		name[_STR_LEN_];
 	u8_t		mac[6];
 	bool		send_icy;
+#ifdef RESAMPLE
+	char		resample_options[_STR_LEN_];
+#endif
 	// set at runtime, not from config
 	struct {
 		bool		use_cli;
@@ -84,7 +91,7 @@ typedef	struct sq_dev_param_s {
 
 struct track_param
 {
-	bool 		next;
+	unsigned	offset;
 	metadata_t	metadata;
 	char		uri[_STR_LEN_];
 	char		mimetype[_STR_LEN_];
@@ -104,7 +111,7 @@ void				sq_release_device(sq_dev_handle_t);
 void				sq_notify(sq_dev_handle_t handle, void *caller_id, sq_event_t event, u8_t *cookie, void *param);
 u32_t 				sq_get_time(sq_dev_handle_t handle);
 u32_t 				sq_self_time(sq_dev_handle_t handle);
-bool				sq_get_metadata(sq_dev_handle_t handle, struct metadata_s *metadata, bool next);
+bool				sq_get_metadata(sq_dev_handle_t handle, struct metadata_s *metadata, unsigned offset);
 void				sq_default_metadata(struct metadata_s *metadata, bool init);
 void 				sq_free_metadata(struct metadata_s *metadata);
 bool 				sq_set_time(sq_dev_handle_t handle, char *pos);
