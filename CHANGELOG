@@ -1,6 +1,7 @@
 1.0.0
  - full processing mode with flow
  - many bug fixes
+ - (3) handling of < 0 sample rates
  
 0.3.0.9
  - squeeze2upnp backporting
