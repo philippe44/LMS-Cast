@@ -182,9 +182,14 @@ static char license[] =
 		   "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
 		   "GNU General Public License for more details.\n\n"
 		   "You should have received a copy of the GNU General Public License\n"
-		   "along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\n"
-	;
+		   "along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\n";
 
+#define SET_LOGLEVEL(log) 		    \
+	if (!strcmp(resp, #log"dbg")) { \
+		char level[20];           	\
+		i = scanf("%s", level);   	\
+		log ## _loglevel = debug2level(level); \
+	}
 
 /*----------------------------------------------------------------------------*/
 /* prototypes */
@@ -1143,49 +1148,16 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
-		if (!strcmp(resp, "streamdbg"))	{
-			char level[20];
-			i = scanf("%s", level);
-			stream_loglevel = debug2level(level);
-		}
+		SET_LOGLEVEL(stream);
+		SET_LOGLEVEL(output);
+		SET_LOGLEVEL(decode);
+		SET_LOGLEVEL(slimproto);
+		SET_LOGLEVEL(slimmain);
+		SET_LOGLEVEL(main);
+		SET_LOGLEVEL(util);
+		SET_LOGLEVEL(cast);
 
-		if (!strcmp(resp, "outputdbg"))	{
-			char level[20];
-			i = scanf("%s", level);
-			output_loglevel = debug2level(level);
-		}
-
-		if (!strcmp(resp, "slimprotodbg"))	{
-			char level[20];
-			i = scanf("%s", level);
-			slimproto_loglevel = debug2level(level);
-		}
-
-		if (!strcmp(resp, "slimmaindbg"))	{
-			char level[20];
-			i = scanf("%s", level);
-			slimmain_loglevel = debug2level(level);
-		}
-
-		if (!strcmp(resp, "maindbg"))	{
-			char level[20];
-			i = scanf("%s", level);
-			main_loglevel = debug2level(level);
-		}
-
-		if (!strcmp(resp, "utildbg"))	{
-			char level[20];
-			i = scanf("%s", level);
-			util_loglevel = debug2level(level);
-		}
-
-		if (!strcmp(resp, "castdbg"))	{
-			char level[20];
-			i = scanf("%s", level);
-			cast_loglevel = debug2level(level);
-		}
-
-		 if (!strcmp(resp, "save"))	{
+		if (!strcmp(resp, "save"))	{
 			char name[128];
 			i = scanf("%s", name);
 			SaveConfig(name, glConfigID, true);
