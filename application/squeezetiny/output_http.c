@@ -34,7 +34,7 @@ static log_level 	*loglevel = &output_loglevel;
 #define MAX_BLOCK		(32*1024)
 #define TAIL_SIZE		(2048*1024)
 #define HEAD_SIZE		65536
-#define ICY_INTERVAL	32000
+#define ICY_INTERVAL	16384
 #define TIMEOUT			50
 #define SLEEP			50
 #define DRAIN_MAX		(5000 / TIMEOUT)
@@ -48,6 +48,8 @@ static void 	output_http_thread(struct thread_param_s *param);
 static ssize_t 	handle_http(struct thread_ctx_s *ctx, int sock, int thread_index,
 						   size_t bytes, u8_t **tbuf, size_t hsize);
 static void 	mirror_header(key_data_t *src, key_data_t *rsp, char *key);
+static ssize_t 	send_with_icy(struct thread_ctx_s *ctx, int sock, const void *buf,
+							 ssize_t *len, int flags);
 
 /*---------------------------------------------------------------------------*/
 bool output_start(struct thread_ctx_s *ctx) {
@@ -110,7 +112,7 @@ static void output_http_thread(struct thread_param_s *param) {
 	*/
 
 	while (thread->running) {
-		struct timeval timeout = {0, TIMEOUT*1000};
+		struct timeval timeout = {0, 0};
 		bool res = true;
 		int n;
 
@@ -154,6 +156,9 @@ static void output_http_thread(struct thread_param_s *param) {
 		FD_ZERO(&rfds);
 		FD_SET(sock, &rfds);
 
+		// short wait if obuf has free space and there is something to process
+		timeout.tv_usec = _buf_used(ctx->outputbuf) && _buf_space(obuf) > obuf->size / 8 ?
+						   			TIMEOUT*1000 / 10 : TIMEOUT*1000;
 		n = select(sock + 1, &rfds, &wfds, NULL, &timeout);
 
 		// need to wait till we have an initialized codec
@@ -203,7 +208,7 @@ static void output_http_thread(struct thread_param_s *param) {
 		// got a connection but a select timeout, so no HTTP headers yet
 		if (!http_ready) continue;
 
-		// need to send the header as it's a restart (Sonos!)
+		// need to send the header as it's a restart (Sonos!) - no ICY
 		if (hpos) {
 			ssize_t sent = send(sock, hbuf + hsize - hpos, hpos, 0);
 			if (sent > 0) hpos -= sent;
@@ -256,17 +261,24 @@ static void output_http_thread(struct thread_param_s *param) {
 		decoded (COMPLETE), sent in outputbuf, transfered to obuf which is then
 		fully sent to the player before that track even starts, so as soon as it
 		actually starts, decoder states moves to STOPPED, STMd is sent but new
-		deata does not arrive before the test below happens, so output thread
-		exit. I	don't know how to prevent that from happening, except by using
-		horrific timers
+		data does not arrive before the test below happens, so output thread
+		exits. I don't know how to prevent that from happening, except by using
+		horrific timers. Note as well that drain_count is not a proper timer,
+		but it starts only to decrement when decoder is STOPPED and after all
+		outputbuf has been process, so when still sending obuf, the time counted
+		depends when the player releases the wfds, which is not predictible.
+		Still, as soon as obuf is empty, this is chunks of TIMEOUT, so it's very
+		unlikey that while emptying obuf, the decoder has not restarted if there
+		is a next track
 		*/
 
 		if (ctx->output.encode.flow) {
+			// drain_count is not really time, but close enough
 			if (!_output_fill(obuf, ctx) && ctx->decode.state == DECODE_STOPPED) drain_count--;
 			else drain_count = DRAIN_MAX;
 		} else if (drain_count && !_output_fill(obuf, ctx) && ctx->decode.state > DECODE_RUNNING) {
 			// full track pulled from outputbuf, draining from obuf
-			_output_end_stream(true, ctx);
+			_output_end_stream(obuf, ctx);
 			ctx->output.completed = true;
 			drain_count = 0;
 			wake_controller(ctx);
@@ -275,7 +287,7 @@ static void output_http_thread(struct thread_param_s *param) {
 
 		// now are surely running - socket is non blocking, so this is fast
 		if (_buf_used(obuf) || tpos < bytes) {
-			ssize_t	space;
+			ssize_t	sent, space;
 
 			// we cannot write, so don't bother
 			if (!FD_ISSET(sock, &wfds)) {
@@ -303,11 +315,11 @@ static void output_http_thread(struct thread_param_s *param) {
 			if (tpos < bytes) {
 				size_t i = tpos % TAIL_SIZE;
 				space = min(space, TAIL_SIZE - i);
-				space = send(sock, tbuf + i, space, 0);
+				sent = send_with_icy(ctx, sock, tbuf + i, &space, 0);
 				LOG_DEBUG("[%p]: send from tail %zd ", ctx, space);
-			} else space = send(sock, (void*) _buf_readp(obuf), space, 0);
+			} else sent = send_with_icy(ctx, sock, (void*) _buf_readp(obuf), &space, 0);
 
-			if (space > 0) {
+			if (sent > 0) {
 				if (bytes < HEAD_SIZE) {
 					memcpy(hbuf + bytes, _buf_readp(obuf), min(space, HEAD_SIZE - bytes));
 					hsize += min(space, HEAD_SIZE - bytes);
@@ -315,7 +327,7 @@ static void output_http_thread(struct thread_param_s *param) {
 
 				// check for end of chunk - space cannot be bigger than chunk!
 				if (chunk_count) {
-					chunk_count -= space;
+					chunk_count -= sent;
 					if (!chunk_count) {
 						strcpy(chunk_frame_buf, "\r\n");
 						chunk_frame = chunk_frame_buf;
@@ -364,8 +376,8 @@ static void output_http_thread(struct thread_param_s *param) {
 	thread->http = -1;
 	thread->running = false;
 	if (ctx->output.encode.flow) {
-		// terminate codec if needed (FLAC so far)
-		_output_end_stream(false, ctx);
+		// terminate codec if needed
+		_output_end_stream(NULL, ctx);
 		// need to have slimproto move on in case of stream failure
 		ctx->output.completed = true;
 	}
@@ -374,6 +386,66 @@ static void output_http_thread(struct thread_param_s *param) {
 	LOG_INFO("[%p]: end thread %d (%zu bytes)", ctx, thread == ctx->output_thread ? 0 : 1, bytes);
 }
 
+/*----------------------------------------------------------------------------*/
+static ssize_t send_with_icy(struct thread_ctx_s *ctx, int sock, const void *buf, ssize_t *len, int flags) {
+	struct outputstate *p = &ctx->output;
+	ssize_t bytes = 0;
+
+	// ICY not active, just send
+	if (!p->icy.interval) {
+		bytes = send(sock, buf, *len, flags);
+		if (bytes >= 0) *len = bytes;
+		return bytes;
+	}
+
+	/*
+	len is what we are authorized to send, due to chunk encoding so don't go
+	over even if this is to send ICY metadata, we'll have to do it next time,
+	hence this painful "buffer" system
+	*/
+
+	// ICY is active
+	if (!p->icy.remain && !p->icy.count) {
+		int len_16 = 0;
+
+		LOG_SDEBUG("[%p]: ICY checking", ctx);
+
+		if (p->icy.updated) {
+			// there is room for 1 extra byte at the beginning for length
+			len_16 = sprintf(p->icy.buffer, "NStreamTitle='%s%s%s';StreamURL='%s';",
+							 p->icy.artist, *p->icy.artist ? " - " : "",
+							 p->icy.title, p->icy.artwork) - 1;
+			LOG_INFO("[%p]: ICY update\n\t%s\n\t%s\n\t%s", ctx, p->icy.artist, p->icy.title, p->icy.artwork);
+			len_16 = (len_16 + 15) / 16;
+		}
+
+		p->icy.buffer[0] = len_16;
+		p->icy.size = p->icy.count = len_16 * 16 + 1;
+		p->icy.remain = p->icy.interval;
+		p->icy.updated = false;
+	}
+
+	// write ICY pending data
+	if (p->icy.count) {
+		bytes = min(*len, p->icy.count);
+		bytes = send(sock, p->icy.buffer + p->icy.size - p->icy.count, bytes, flags);
+		// socket is non-blocking (will prevent data send below as well)
+		if (bytes <= 0) bytes = *len = 0;
+		else p->icy.count -= bytes;
+	}
+
+	// write data if remaining space
+	if (bytes < *len) {
+		*len = min(*len - bytes, p->icy.remain);
+		*len = send(sock, buf, *len, flags);
+		// socket is non-blocking
+		if (*len <= 0) *len = 0;
+		else p->icy.remain -= *len;
+	} else *len = 0;
+
+	// return 0 when send fails
+	return bytes + *len;
+}
 
 /*----------------------------------------------------------------------------*/
 /*
@@ -384,7 +456,8 @@ suspend the connection using TCP, but if they close it and want to resume (i.e.
 they request a range, we'll restart from where we were and mostly it will not be
 acceptable by the player, so then use the option seek_after_pause
 */
-static ssize_t handle_http(struct thread_ctx_s *ctx, int sock, int thread_index, size_t bytes, u8_t **tbuf, size_t hsize)
+static ssize_t handle_http(struct thread_ctx_s *ctx, int sock, int thread_index,
+						   size_t bytes, u8_t **tbuf, size_t hsize)
 {
 	char *body = NULL, *request = NULL, *str = NULL;
 	key_data_t headers[64], resp[16] = { { NULL, NULL } };
@@ -422,19 +495,19 @@ static ssize_t handle_http(struct thread_ctx_s *ctx, int sock, int thread_index,
 	kd_add(resp, "Connection", "close");
 
 	// check if add ICY metadata is needed (only on live stream)
-	ctx->output.icy.interval = ctx->output.icy.count = 0;
 	format = mimetype2format(ctx->output.mimetype);
-	if (ctx->config.send_icy && !ctx->output.duration &&
+	ctx->output.icy.count = 0;
+	if (ctx->config.send_icy && (!ctx->output.duration || ctx->output.encode.flow) &&
 		(format == 'm' || format == 'a') &&
 		((str = kd_lookup(headers, "Icy-MetaData")) != NULL) && atol(str)) {
 		asprintf(&str, "%u", ICY_INTERVAL);
 		kd_add(resp, "icy-metaint", str);
+		free(str);
 		LOCK_O;
 		ctx->output.icy.interval = ctx->output.icy.remain = ICY_INTERVAL;
-		// just to make sure icy will be resent
-		ctx->output.icy.hash++;
+		ctx->output.icy.updated = true;
 		UNLOCK_O;
-	}
+	} else ctx->output.icy.interval = 0;
 
 	// are we opening the expected file
 	if (index != thread_index) {
@@ -450,7 +523,7 @@ static ssize_t handle_http(struct thread_ctx_s *ctx, int sock, int thread_index,
 			free(str);
 		}
 
-		mirror_header(headers, resp, "TransferMode.DLNA.ORG");
+		mirror_header(headers, resp, "transferMode.dlna.org");
 
 		if (kd_lookup(headers, "getcontentFeatures.dlna.org")) {
 			char *dlna_features = make_dlna_content(ctx->output.mimetype, ctx->output.duration);

@@ -46,6 +46,21 @@ sub handler {
 		my $update;
 		
 		$log->debug("save settings required");
+		
+		# transcode special parameters
+		$params->{mode} = $params->{encode_mode};
+		if ( $params->{encode_mode} ) {
+			if ($params->{encode_mode} eq 'flc') {
+				$params->{mode} .=  ":$params->{encode_level}" if defined $params->{encode_level} && $params->{encode_level} ne '';
+			} elsif ($params->{encode_mode} eq 'mp3') {
+				$params->{mode} .=  ":$params->{encode_bitrate}" if $params->{encode_bitrate};
+			} 
+			if ($params->{encode_mode} && $params->{encode_mode} ne 'thru') {
+				$params->{mode} .= ",r:" . ($params->{encode_rate_flag} ? "-" : "") . $params->{encode_rate} if $params->{encode_rate};
+				$params->{mode} .= ",s:$params->{encode_size}" if $params->{encode_size};
+				$params->{mode} .= ",flow" if $params->{encode_flow};
+			}	
+		}
 				
 		for my $param (@bool) {
 			my $val = $params->{ $param } ? 1 : 0;
@@ -259,6 +274,35 @@ sub handler2 {
 	
 	$callback->($client, $params, $class->SUPER::handler($client, $params), @args);
 }
+
+
+sub beforeRender {
+	my ($class, $params, $client) = @_;
+		
+	# this works only because 'mode' is set manually by reading XML	
+	my @items = split /,/, $params->{mode};
+	
+	foreach my $item (qw(rate rate_flag flow mode size level bitrate)) {
+		delete $params->{"encode_$item"};
+	}	
+		
+	foreach my $item (@items) {
+		if ($item =~ /r:(-?\d*)/) {
+			$params->{encode_rate} = abs($1);
+			$params->{encode_rate_flag} = 1 if ($1 < 0);
+		} elsif ($item =~ /s:(\d*)/) {
+			$params->{encode_size} = $1;
+		} elsif ($item =~ /flow/) {	
+			$params->{encode_flow} = 1;
+		} else {
+			$item =~ m|([^:]+):*(\d*)|i;
+			$params->{encode_mode} = $1;
+			$params->{encode_level} = $2 if defined $2 && $1 eq 'flc';
+			$params->{encode_bitrate} = $2 if $2 && $1 eq 'mp3';
+		}	
+	}	
+}
+
 
 sub mergeprofile{
 	my ($p1, $p2) = @_;

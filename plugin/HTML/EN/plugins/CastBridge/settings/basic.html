@@ -88,17 +88,101 @@
 		[% END %]
 	[% END %]		
 
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CODECSPARAM" desc="PLUGIN_CASTBRIDGE_CODECSPARAM_DESC" %]
-		[% "PLUGIN_UPNPBRIDGE_MODE" | string %]&nbsp
-		<input type="text" class="stdedit" name="mode" id="mode" value="[% mode %]" size="15">
-		[% "PLUGIN_CASTBRIDGE_CODECS" | string %]&nbsp
-		<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="15">
-		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]&nbsp
+	<script type="text/javascript">
+	function showadvanced(status, options) {
+		var options = document.getElementById(options);
+		options.style.display = (status.checked) ? 'inline' : 'none';
+	}
+	</script>
+	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CASTAUDIOCAPS" desc="PLUGIN_CASTBRIDGE_CASTAUDIOCAPS_DESC" %]
+		[% "PLUGIN_CASTBRIDGE_CODECS" | string %]
+		<input type="text" class="stdedit" name="codecs" id="codecs" value="[% codecs %]" size="20">&nbsp
+		[% "PLUGIN_CASTBRIDGE_SAMPLERATE" | string %]
 		<select class="stdedit" name="sample_rate" id="sample_rate">
 		[% FOREACH entry IN [ '', '44100', '48000', '88200', '96000', '176400', '192000' ] %]
 			<option [% IF entry == sample_rate %]selected[% END %] value="[% entry %]">[% entry %]</option>
 		[% END %]
-		</select>
+		</select>&nbsp&nbsp
+	[% END %]
+	
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_ENCODEPARAMS" desc="PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC" %]
+		<script type="text/javascript">
+		function modechange(input) {
+			var mode = input.options[input.selectedIndex].value;
+			var process = document.getElementsByClassName('encode_process');
+			var	flac = document.getElementById('encode_flac');
+			var	mp3 = document.getElementById('encode_mp3');
+						
+			flac.style.display = mp3.style.display = 'none';
+			for (var i = 0; i < process.length; i++) {
+				process[i].style.display = 'inline';
+			}
+												
+			if (!mode || mode === 'thru') {
+				for (var i = 0; i < process.length; i++) {
+					process[i].style.display = 'none';
+				}
+			} else if (mode === 'flc') {
+				flac.style.display = 'inline';
+			} else if (mode === 'mp3') {
+				mp3.style.display = 'inline';
+			}	
+		}
+		</script>
+		
+		[% "PLUGIN_CASTBRIDGE_ENCODEMODE" | string %]
+		<select class="stdedit" name="encode_mode" id="encode_mode" onchange="modechange(this)">
+		[% FOREACH entry IN [ ['',''], ['none','thru'], ['pcm','pcm'], ['flac', 'flc'], ['mp3', 'mp3'] ] %]
+			<option [% IF entry.1 == encode_mode %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% END %]
+		</select>&nbsp
+		<span class="encode_process" [% IF !encode_mode || encode_mode == 'thru' %]hidden[% END %]>
+			<input name="encode_flow" type="checkbox" [% IF encode_flow %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_ENCODEFLOW" | string %]&nbsp
+			<input name="advanced_encode_flag" type="checkbox" onchange="showadvanced(this,'advanced_encode')" [% IF advanced_encode_flag %]checked[% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_ADVANCED" | string %]
+		</span>&nbsp&nbsp
+		<span id="advanced_encode" [% IF !advanced_encode_flag %]hidden[% END %]>
+			<br><br>
+			<span class="encode_process" [% IF !encode_mode || encode_mode == 'thru' %]hidden[% END %]>
+				<span id="encode_flac" [% IF encode_mode != 'flc' %]hidden[% END %]>
+					[% "PLUGIN_CASTBRIDGE_ENCODEFLACLEVEL" | string %]
+					<select class="stdedit" name="encode_level" id="encode_level">
+					[% FOREACH entry IN [ '', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ] %]
+						<option [% IF entry == encode_level %]selected[% END %] value="[% entry %]">[% entry %]</option>
+					[% END %]
+					</select>&nbsp
+				</span>
+				<span id="encode_mp3" [% IF encode_mode != 'mp3' %]hidden[% END %]>
+					[% "PLUGIN_CASTBRIDGE_ENCODEMP3BITRATE" | string %]
+					<select class="stdedit" name="encode_bitrate" id="encode_bitrate">
+					[% FOREACH entry IN [ '', '64', '96', '128', '144', '160', '192', '224', '256', '320' ] %]
+						<option [% IF entry == encode_bitrate %]selected[% END %] value="[% entry %]">[% entry %]</option>
+					[% END %]
+					</select>&nbsp
+				</span>
+				<script type="text/javascript">
+				function encoderate(rate) {
+					var param = document.getElementById('encode_rate_span');
+					param.style.display = rate.options[rate.selectedIndex].value ? 'inline' : 'none';
+				}
+				</script>
+				[% "PLUGIN_CASTBRIDGE_ENCODERATE" | string %]
+				<select class="stdedit" name="encode_rate" id="encode_rate" onchange="encoderate(this)">
+				[% FOREACH entry IN [ ['source',''], ['44100','44100'], ['48000','48000'], ['88200','88200'], ['96000','96000'], ['176400','176400'], ['192000','192000'] ] %]
+					<option [% IF entry.1 == encode_rate %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+				[% END %]
+				</select>
+				<span id="encode_rate_span"  [% IF !encode_rate %]hidden[% END %]>
+					<input name="encode_rate_flag" type="checkbox"[% IF encode_rate_flag %]checked[% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_ENCODERATEFLAG" | string %]
+				</span>&nbsp
+				[% "PLUGIN_CASTBRIDGE_ENCODESIZE" | string %]
+				<select class="stdedit" name="encode_size" id="encode_size">
+				[% FOREACH entry IN [ ['source',''], ['8','8'], ['16','16'], ['24','24'], ['32','32'] ] %]
+					<option [% IF entry.1 == encode_size %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+				[% END %]
+				</select>&nbsp
+			</span>	
+		</span>	
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_MDNSMGMT" desc="PLUGIN_CASTBRIDGE_MDNSMGMT_DESC" %]

@@ -150,34 +150,63 @@ PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
 
-PLUGIN_CASTBRIDGE_CODECSPARAM
-	EN	Audio codec parameters
+PLUGIN_CASTBRIDGE_CASTAUDIOCAPS
+	EN	Chromecast player audio capabilities
 
-PLUGIN_CASTBRIDGE_CODECSPARAM_DESC
-	EN	The bridge can either simply passthrough audio data to the player (with minor alteration) or do a full transcoding which
-	EN	improves compatibility by sending controlled format and allows replay gain as well as fading in and out. It's also 
-	EN	possible to send audio in a continuous flow of data instead of tracks one-bye-one to enable gapless and cross-fading. 
-	EN	See user's guide for more details
-	EN	<br>- <i>Mode:</i> set processing mode. Format is [thru|pcm|flac:[q]][,r:[-]<rate>][,s:8|16|24][,flow]. "thru" is simple 
-	EN	passthrough, "pcm" and "flac" are for decoding, re-encoding and sending in "pcm" or "flac" to player. When re-encoding
-	EN	"r:" forces	a maximum sample rate when predicated with "-" or a fixed sample rate if not. "s:" is to set sample size. 
-	EN	"flow" forces creates a continuous sample flow of audio, enabling true gapless and cross-fading, but then metadata is
-	EN	disabled 
-	EN	<br><i>- Codecs:</i>  reports supported codecs to LMS. Comma-separated, list made of mp3, flc, aif, pcm, aac, ogg.
-	EN	If re-encode is enabled, local decoding will be done by the bridge (only mp3,aac,flac,pmc and ogg are supported)
-	EN	For example, to only support (in order of preference) FLAC and MP3 , enter "flc,mp3" (without ""). 
-	EN	<br><i>- Max rate:</i>  reports maximum sample rate to LMS. This does not influence local resampling, it's just an 
-	EN	information for LMS to decide to do transcoding. Usually ChromeCast support up to 96kHz in "thru" mode
-	
-PLUGIN_CASTBRIDGE_CODECS
-	EN	Mode
+PLUGIN_CASTBRIDGE_CASTAUDIOCAPS_DESC
+	EN	List the audio capabilities of the Chromecast player as they will be reported to LMS
+	EN	<br><i>- Codecs:</i> supported codecs. Comma-separated, list made of mp3, flc, aif, pcm, aac, ogg
+	EN	and alc. When re-encoding is enabled, local decoding will be done by the bridge (only mp3,aac,flac,pmc and ogg are supported)
+	EN	<br><i>- Max sample rate:</i> maximum supported sample rate. This will let LMS decide when to do resampling on
+	EN	the server side.
+			
+PLUGIN_CASTBRIDGE_SAMPLERATE
+	EN	Max sample rate
 
 PLUGIN_CASTBRIDGE_CODECS
 	EN	Codecs
+	
+PLUGIN_CASTBRIDGE_ADVANCED
+	EN	Show advanced options
+	
+PLUGIN_CASTBRIDGE_ENCODEPARAMS
+	EN	Audio format to Chromecast player
+	
+PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC
+	EN	The bridge can either simply passthrough audio data to the player (with minor alteration) or do a full transcoding which
+	EN	improves compatibility by sending controlled format and allows replay gain as well as fading in and out. It's also 
+	EN	possible to send audio in a continuous flow of data instead of tracks one-bye-one to enable true gapless and 
+	EN	cross-fading. See user's guide for more details
+	EN	<br><i>- Transcode:</i> format sent to player. When left empty or set to 'none', audio is simply passed through to player
+	EN	<br><i>- Flow:</i> enable "flow" mode where playlists are sent as a continuous audio stream.
+	EN	<br><i>- Flac compression:</i> in flac mode, set the compression level. 0 = lowest compression & CPU load
+	EN	<br><i>- MP3 bitrate:</i> in mp3 mode, set bitrate
+	EN	<br><i>- Resampling rate:</i> resample rate for re-encoding. When "Max" is set, resampling will only happen if rate is
+	EN	above set value, except in flow mode where rate must be fixed (44100 by default). When left empty no resampling is done.
+	EN	<br><i>- Sample size:</i> sample size for re-encoding. When left empty, original track sample size is used except in flow
+	EN	where sample size must be fixed (16 bits by default)
 
-PLUGIN_CASTBRIDGE_SAMPLERATE
-	EN	Max rate
+PLUGIN_CASTBRIDGE_ENCODEMODE
+	EN	Transcode
 
+PLUGIN_CASTBRIDGE_ENCODEFLACLEVEL
+	EN	Flac compression
+	
+PLUGIN_CASTBRIDGE_ENCODEMP3BITRATE
+	EN	MP3 bitrate
+	
+PLUGIN_CASTBRIDGE_ENCODERATEFLAG
+	EN	Max
+	
+PLUGIN_CASTBRIDGE_ENCODERATE
+	EN	Resampling rate
+
+PLUGIN_CASTBRIDGE_ENCODESIZE
+	EN	Sample size
+
+PLUGIN_CASTBRIDGE_ENCODEFLOW
+	EN	Flow
+	
 PLUGIN_CASTBRIDGE_SERVER
 	EN	LMS Server
 	
