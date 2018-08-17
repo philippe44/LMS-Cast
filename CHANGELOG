@@ -4,6 +4,7 @@
  - reduce icy interval to 16384
  - fade-in/out was not working properly for short tracks in flow mode
  - shorter wait in select() if obuf has space and there is data to proceed
+ - check mp3 sample rate & bitrate consitency
  - Improve webUI parameters handling
  
   
