@@ -219,13 +219,14 @@ bool _output_fill(struct buffer *buf, struct thread_ctx_s *ctx) {
 				out = bytes_per_frame * 2;
 			} else optr = buf->writep;
 
-			// all modes excpet 24 bits packed
 			in = min(in, _buf_cont_read(ctx->outputbuf));
 			frames = min(in / BYTES_PER_FRAME, out / bytes_per_frame);
 			frames = min(frames, p->encode.sample_rate / MAX_FRAMES_SEC);
+
+			// L24_PCM and one frame or previous odd frames to process
 			if (p->encode.buffer && p->encode.count == 1) frames = 1;
 
-			// fading & gain
+			// fading & gain (might change frames parity)
 			process = frames = gain_and_fade(frames, 0, ctx);
 
 			// not able to process at that time (cross-fade), callback later
@@ -233,16 +234,27 @@ bool _output_fill(struct buffer *buf, struct thread_ctx_s *ctx) {
 
 			// in case of L24_LPCM, we need 2 frames at least
 			if (p->encode.buffer) {
-				if (frames == 1) {
+				u8_t *iptr = ctx->outputbuf->readp;
+
+				if (frames & 0x01) {
 					// copy L+R in temporary buffer
-					memcpy(p->encode.buffer + p->encode.count * BYTES_PER_FRAME, ctx->outputbuf->readp, BYTES_PER_FRAME);
+					memcpy(p->encode.buffer + p->encode.count * BYTES_PER_FRAME,
+						   ctx->outputbuf->readp + (frames - 1) * BYTES_PER_FRAME,
+						   BYTES_PER_FRAME);
+
+					// single/previous off frames can now process
 					if (++p->encode.count == 2) {
-						lpcm_pack((u8_t*) optr, p->encode.buffer, 2 * BYTES_PER_FRAME, p->encode.channels, 1);
+						iptr = p->encode.buffer;
 						p->encode.count = 0;
-						process = 2;
-					} else process = 0;
-				} else lpcm_pack((u8_t*) optr, ctx->outputbuf->readp, frames * BYTES_PER_FRAME,
-								  p->encode.channels, 1);
+						process = 2;
+					} else process--;
+				}
+
+
+				// might be nothing to process if only one frame available
+
+				lpcm_pack(optr, iptr, process * BYTES_PER_FRAME, p->encode.channels, 1);
+
 			} else scale_and_pack(optr, (u32_t*) ctx->outputbuf->readp, frames,
 								  p->encode.channels, p->encode.sample_size, p->out_endian);
 
@@ -376,7 +388,7 @@ void _output_new_stream(struct buffer *obuf, struct thread_ctx_s *ctx) {
 			}
 			break;
 		case 'p':
-			default:
+		default:
 			out->header.buffer = NULL;
 			out->header.size = out->header.count = 0;
 			if (out->encode.sample_size == 24 && ctx->config.L24_format == L24_PACKED_LPCM) {
@@ -384,14 +396,14 @@ void _output_new_stream(struct buffer *obuf, struct thread_ctx_s *ctx) {
 				out->encode.buffer = malloc(2 * BYTES_PER_FRAME);
 				out->encode.count = 0;
 			}
-			//FIXME: why setting length here at 0?
-			// length = 0;
 			break;
 		}
 
 		if (ctx->config.stream_length > 0) ctx->output.length = length;
 		//FIXME ctx->output.length = length;
-		LOG_INFO("[%p]: PCM estimated size %zu", ctx, length);
+		LOG_INFO("[%p]: encoding in PCM r:%u s:%u f:%c", ctx, out->encode.sample_rate,
+											out->encode.sample_size, out->format);
+		LOG_INFO("[%p]: estimated length %zu", ctx, length);
 	} else if (out->encode.mode == ENCODE_FLAC) {
 		FLAC__StreamEncoder *codec;
 		bool ok;
@@ -409,7 +421,8 @@ void _output_new_stream(struct buffer *obuf, struct thread_ctx_s *ctx) {
 		ok &= !FLAC(f, stream_encoder_init_stream, codec, flac_write_callback, NULL, NULL, NULL, obuf);
 		if (ok) {
 			out->encode.codec = (void*) codec;
-			LOG_INFO("[%p]: encoding with FLAC-%u)", ctx, out->encode.level);
+			LOG_INFO("[%p]: encoding in FLAC-%u, r:%u s:%u", ctx, out->encode.level,
+										out->encode.sample_rate, out->encode.sample_size);
 		}
 		else {
 			FLAC(f, stream_encoder_delete, codec);
@@ -435,7 +448,9 @@ void _output_new_stream(struct buffer *obuf, struct thread_ctx_s *ctx) {
 		out->encode.codec = (void*) shine_initialise(&config);
 		if (out->encode.codec) {
 			out->encode.buffer = malloc(shine_samples_per_pass(out->encode.codec) * out->encode.channels * 2);
-			LOG_INFO("[%p]: encoding with shine MP3-%u", ctx, out->encode.level);
+			LOG_INFO("[%p]: encoding in MP3-%u r:%u s:%u", ctx,
+										out->encode.level, out->encode.sample_rate,
+										out->encode.sample_size);
 		} else {
 			LOG_ERROR("%p]: failed initializing MP3-%u r:%u s:%u c:%u", ctx,
 								  out->encode.level, out->encode.sample_rate,
@@ -1051,8 +1066,8 @@ static int shine_make_config_valid(int freq, int *bitr) {
 	mpeg_version = shine_mpeg_version(samplerate_index);
 
 	// find index first
-	for (i = sizeof(bitrates) / sizeof(int); i && bitrates[i] > *bitr; i--);
-	if (!i) return -1;
+	for (i = sizeof(bitrates) / sizeof(int) - 1; i && bitrates[i] > *bitr; i--) {}
+    if (!i) return -1;
 
     // find match equal or less
 	while (shine_find_bitrate_index(bitrates[i], mpeg_version) < 0) i--;

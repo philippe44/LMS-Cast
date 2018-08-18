@@ -371,7 +371,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 
 			CastPlay(Device->CastCtx);
 
-			LOG_INFO("[%p]: no gapless %s", Device, Device->NextURI);
+			LOG_INFO("[%p]: gapped transition %s", Device, Device->NextURI);
 
 			sq_free_metadata(&Device->NextMetaData);
 			NFREE(Device->NextURI);
