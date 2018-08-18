@@ -1,3 +1,6 @@
+1.1.1
+ - (1) mp3 bitrate selection was using one level below minimum   
+ 
 1.1.0
  - add MP3 re-encoding
  - icy artwork removes ' - ' when no artist
