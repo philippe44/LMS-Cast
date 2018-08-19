@@ -1,5 +1,7 @@
 1.1.1
  - (1) mp3 bitrate selection was using one level below minimum   
+ - (3) N/A: send_icy was not zeroing len in case of error (non blocking sock)
+ - (3) N/A: when building pcm 24 bits, at least 2 frames must be available in destination buf
  
 1.1.0
  - add MP3 re-encoding
