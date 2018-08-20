@@ -255,10 +255,8 @@ bool _output_fill(struct buffer *buf, struct thread_ctx_s *ctx) {
 					} else process--;
 				}
 
-
-				// might be nothing to process if only one frame available
-
-				lpcm_pack(optr, iptr, process * BYTES_PER_FRAME, p->encode.channels, 1);
+				// might be nothing to process if only one frame available
+				lpcm_pack(optr, iptr, process * BYTES_PER_FRAME, p->encode.channels, 1);
 
 			} else scale_and_pack(optr, (u32_t*) ctx->outputbuf->readp, frames,
 								  p->encode.channels, p->encode.sample_size, p->out_endian);

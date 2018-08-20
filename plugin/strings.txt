@@ -181,7 +181,7 @@ PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC
 	EN	<br><i>- Flow:</i> enable "flow" mode where playlists are sent as a continuous audio stream.
 	EN	<br><i>- Flac compression:</i> in flac mode, set the compression level. 0 = lowest compression & CPU load
 	EN	<br><i>- MP3 bitrate:</i> in mp3 mode, set bitrate
-	EN	<br><i>- Resampling rate:</i> resample rate for re-encoding. When "Max" is set, resampling will only happen if rate is
+	EN	<br><i>- Resample at:</i> resample rate for re-encoding. When "No higher" is set, resampling will only happen if rate is
 	EN	above set value, except in flow mode where rate must be fixed (44100 by default). When left empty no resampling is done.
 	EN	<br><i>- Sample size:</i> sample size for re-encoding. When left empty, original track sample size is used except in flow
 	EN	where sample size must be fixed (16 bits by default)
@@ -196,10 +196,10 @@ PLUGIN_CASTBRIDGE_ENCODEMP3BITRATE
 	EN	MP3 bitrate
 	
 PLUGIN_CASTBRIDGE_ENCODERATEFLAG
-	EN	Max
+	EN	No higher
 	
 PLUGIN_CASTBRIDGE_ENCODERATE
-	EN	Resampling rate
+	EN	Resample at
 
 PLUGIN_CASTBRIDGE_ENCODESIZE
 	EN	Sample size
