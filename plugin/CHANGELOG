@@ -1,3 +1,6 @@
+1.1.2
+ - re-encocde name for flac is named 'flc', not 'flac'
+ 
 1.1.1
  - mp3 bitrate selection was using one level below minimum   
  - N/A: send_icy was not zeroing len in case of error (non blocking sock)
