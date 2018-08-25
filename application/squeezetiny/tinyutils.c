@@ -546,8 +546,8 @@ int read_line(int fd, char *line, int maxlen, int timeout)
 		else return 0;
 
 		if (rval == -1) {
-			if (errno == EAGAIN) return 0;
-			LOG_ERROR("fd: %d read error: %s", fd, strerror(errno));
+			if (last_error() == EAGAIN) return 0;
+			LOG_ERROR("fd: %d read error: %u %s", fd, last_error(), strerror(last_error()));
 			return -1;
 		}
 
