@@ -999,7 +999,7 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 	// detect processing mode
 	if (stristr(mode, "thru")) out->encode.mode = ENCODE_THRU;
 	else if (stristr(mode, "pcm")) out->encode.mode = ENCODE_PCM;
-	else if (stristr(mode, "flac")) out->encode.mode = ENCODE_FLAC;
+	else if (stristr(mode, "flc")) out->encode.mode = ENCODE_FLAC;
 	else if (stristr(mode, "mp3")) out->encode.mode = ENCODE_MP3;
 
 	// force read of re-encoding parameters
@@ -1063,13 +1063,15 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 	} else if (out->encode.mode == ENCODE_PCM) {
 
 		if (out->encode.sample_rate && out->encode.sample_size) {
-			// everything is fixed			mimetype = find_pcm_mimetype(&out->encode.sample_size, ctx->config.L24_format == L24_TRUNC16_PCM,
+			// everything is fixed
+			mimetype = find_pcm_mimetype(&out->encode.sample_size, ctx->config.L24_format == L24_TRUNC16_PCM,
 										 out->encode.sample_rate, 2, ctx->mimetypes, ctx->config.raw_audio_format);
 		} else if ((info.metadata.sample_size || out->encode.sample_size) &&
 				   (info.metadata.sample_rate || out->encode.sample_rate || out->supported_rates[0])) {
 			u8_t sample_size = out->encode.sample_size ? out->encode.sample_size : info.metadata.sample_size;
 			u32_t sample_rate;
-			// try to use source format, but return generic mimetype
+
+			// try to use source format, but return generic mimetype
 			if (out->encode.sample_rate) sample_rate = out->encode.sample_rate;
 			else if (out->supported_rates[0] < 0) sample_rate = abs(out->supported_rates[0]);
 			else sample_rate = info.metadata.sample_rate;
@@ -1082,7 +1084,8 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 		} else {
 			char format[16] = "";
 
-			// really can't use raw format			if (stristr(ctx->config.raw_audio_format, "wav")) strcat(format, "wav");
+			// really can't use raw format
+			if (stristr(ctx->config.raw_audio_format, "wav")) strcat(format, "wav");
 			if (stristr(ctx->config.raw_audio_format, "aif")) strcat(format, "aif");
 
 			mimetype = find_mimetype('p', ctx->mimetypes, format);
@@ -1108,8 +1111,7 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 		} else out->encode.level = 128;
 
 	}
-
-	// matching found in player
+	// matching found in player
 	if (mimetype) {
 		strcpy(out->mimetype, mimetype);
 		free(mimetype);

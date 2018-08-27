@@ -1,3 +1,6 @@
+1.2.1
+ - mode was still comapred to "flac" and not "flc" in slimproto.c!
+ 
 1.2.0
  - CC firmware 1.34.130671 has a problematic GET behavior that requires a tail buffer like Sonos
  
