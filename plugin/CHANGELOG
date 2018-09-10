@@ -1,3 +1,8 @@
+1.3.2
+ - add duration to media JSON payload - does not always work, though
+ - renderer index could be captured from a previous track in case of fast play/stop/play sessions
+ - when using StopReceiver, the sessionId must be stopped, not the mediaSessionId
+ 
 1.3.1
  - flac compression level was not used from mode parameter
  

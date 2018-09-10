@@ -56,6 +56,7 @@ void 		clear_list(list_t **list, void (*free_func)(void *));
 void 		QueueInit(tQueue *queue, bool mutex, void (*f)(void*));
 void 		QueueInsert(tQueue *queue, void *item);
 void 		*QueueExtract(tQueue *queue);
+void 		*QueueHead(tQueue *queue);
 void 		QueueFlush(tQueue *queue);
 
 char 		*uPNPEvent2String(Upnp_EventType S);

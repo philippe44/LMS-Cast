@@ -157,6 +157,17 @@ void *QueueExtract(tQueue *queue)
 	return item;
 }
 
+/*----------------------------------------------------------------------------*/
+void *QueueHead(tQueue *queue)
+{
+	void *item;
+
+	if (queue->mutex) pthread_mutex_lock(queue->mutex);
+	item = queue->list.item;
+	if (queue->mutex) pthread_mutex_unlock(queue->mutex);
+
+	return item;
+}
 
 /*----------------------------------------------------------------------------*/
 void QueueFlush(tQueue *queue)
