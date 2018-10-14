@@ -155,8 +155,9 @@ PLUGIN_CASTBRIDGE_CASTAUDIOCAPS
 
 PLUGIN_CASTBRIDGE_CASTAUDIOCAPS_DESC
 	EN	List the audio capabilities of the Chromecast player as they will be reported to LMS
-	EN	<br><i>- Codecs:</i> supported codecs. Comma-separated, list made of mp3, flc, aif, pcm, aac, ogg
-	EN	and alc. When re-encoding is enabled, local decoding will be done by the bridge (only mp3,aac,flc,pcm and ogg are supported)
+	EN	<br><i>- Codecs:</i> supported codecs. Comma-separated, list of <b>lossy</b>:aac,ogg,mp3 <b>lossless</b>:flc,alc 
+	EN	and <b>uncompressed</b>:pcm,aif. When re-encoding is enabled, local decoding will be done by the bridge 
+	EN	(only mp3,aac,flc,alc,pcm and ogg are supported)
 	EN	<br><i>- Max sample rate:</i> maximum supported sample rate. This will let LMS decide when to do resampling on
 	EN	the server side.
 			
