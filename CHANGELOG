@@ -1,3 +1,6 @@
+1.5.1
+ - accept announces from other hosts as long as they are not a CC device themselves (mDNS relay)
+
 1.5.0
  - add alac support
  

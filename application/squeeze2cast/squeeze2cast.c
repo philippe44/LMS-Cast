@@ -567,6 +567,16 @@ static struct sMR *SearchUDN(char *UDN)
 	return NULL;
 }
 
+/*----------------------------------------------------------------------------*/
+static bool isMember(struct in_addr host) {
+	int i;
+	for (i = 0; i < MAX_RENDERERS; i++) {
+		 if (glMRDevices[i].Running && GetAddr(glMRDevices[i].CastCtx).s_addr == host.s_addr)
+			return true;
+	}
+	return false;
+}
+
 
 /*----------------------------------------------------------------------------*/
 static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
@@ -602,8 +612,9 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", NULL };
 		int j;
 
-		// is the mDNS record usable announce made on behalf
-		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL || s->host.s_addr != s->addr.s_addr) continue;
+		// is the mDNS record usable announce made by other CC on behalf
+		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL ||
+			(s->host.s_addr != s->addr.s_addr && isMember(s->host))) continue;
 
 		// is that device already here
 		if ((Device = SearchUDN(UDN)) != NULL) {

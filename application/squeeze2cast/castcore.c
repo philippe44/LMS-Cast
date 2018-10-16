@@ -478,6 +478,13 @@ bool UpdateCastDevice(struct sCastCtx *Ctx, struct in_addr ip, u16_t port)
 
 
 /*----------------------------------------------------------------------------*/
+struct in_addr GetAddr(struct sCastCtx *Ctx)
+{
+	return Ctx->ip;
+}
+
+
+/*----------------------------------------------------------------------------*/
 void DeleteCastDevice(struct sCastCtx *Ctx)
 {
 	pthread_mutex_lock(&Ctx->Mutex);
