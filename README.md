@@ -12,6 +12,8 @@ https://github.com/nanopb/nanopb
 https://github.com/akheron/jansson
 https://github.com/philippe44/mDNS-SD (use fork v2)
 https://sourceforge.net/projects/pupnp (there are a few patches to apply first against 1.6.19)
+
+
 ===========================================================================
 MINIMUM TO READ FOR ADVANCED USE
 ===========================================================================
