@@ -3,8 +3,6 @@ Pre-packaged versions for Windows (XP and above), Linux (x86, x64 and ARM) and O
 
 See support thread here: http://forums.slimdevices.com/showthread.php?104614-Announce-CastBridge-integrate-Chromecast-players-with-LMS-(squeeze2cast)&p=835640&viewfull=1#post835640
 
-=============================================
-
 To re-compile, use makefile (Linux only, need some mods for OSX and Windows) using:
 https://github.com/nanopb/nanopb
 https://github.com/akheron/jansson
