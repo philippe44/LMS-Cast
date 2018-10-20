@@ -170,6 +170,18 @@ static char usage[] =
 #if WINEVENT
 		   " WINEVENT"
 #endif
+#if FFMPEG
+		   " FFMPEG"
+#endif
+#if RESAMPLE
+		   " RESAMPLE"
+#endif
+#if CODECS
+		   " CODECS"
+#endif
+#if LINKALL
+		   " LINKALL"
+#endif
 		   "\n\n";
 
 static char license[] =
