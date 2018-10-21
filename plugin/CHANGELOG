@@ -1,5 +1,6 @@
 1.6.1
  - CODECS flags to allow compilation in thru mode only
+ - add SO_REUSEPORT except for Windows
  
 1.6.0
  - add m4a to adts decoding in 'thru' mode
