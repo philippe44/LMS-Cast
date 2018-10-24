@@ -290,7 +290,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			// got it, don't need to send it more than once ...
 			if (Device->sqState == SQ_PLAY) break;
 
-			if (Device->Config.VolumeOnPlay == 1)
+			if (Device->Config.VolumeOnPlay == 1 && Device->Volume != -1)
 				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 
 			CastPlay(Device->CastCtx);
@@ -300,7 +300,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			// got it, don't need to send it more than once ...
 			if (Device->sqState == SQ_PLAY) break;
 
-			if (Device->Config.VolumeOnPlay == 1)
+			if (Device->Config.VolumeOnPlay == 1 && Device->Volume != -1)
 				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 
 			CastPlay(Device->CastCtx);
@@ -814,7 +814,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	// optional
 	Device->sqStamp = 0;
 	Device->CastCtx = NULL;
-	Device->Volume = 0;
+	Device->Volume = -1;
 #if !defined(REPOS_TIME)
 	Device->StartTime = 0;
 #endif

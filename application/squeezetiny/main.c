@@ -756,8 +756,7 @@ bool sq_run_device(sq_dev_handle_t handle, sq_dev_param_t *param)
 
 	memcpy(&ctx->config, param, sizeof(sq_dev_param_t));
 
-
-#if !CODECS
+#if !CODECS
 	strcpy(ctx->config.mode, "thru");
 #endif
 
