@@ -19,8 +19,6 @@
 # Compiled Static libraries
 *.lai
 *.la
-*.a
-*.lib
 
 # Executables
 #*.exe
@@ -93,7 +91,9 @@ config.xml
 tests/
 sonos/
 misc/
-application/bin
+application/bin/Win32/Debug
+application/bin/*.xml*
+*.o??
 bin.old/
 #plugin/Bin
 /repo*.xml
@@ -101,5 +101,3 @@ bin.old/
 alpha/
 _backup/
 application - 1.x/
-*.xml
-
