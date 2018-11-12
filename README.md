@@ -5,7 +5,7 @@ Pre-packaged versions for Windows (XP and above), Linux (x86, x64 and ARM) and O
 
 See support thread here: http://forums.slimdevices.com/showthread.php?104614-Announce-CastBridge-integrate-Chromecast-players-with-LMS-(squeeze2cast)&p=835640&viewfull=1#post835640
 
-# To re-compile, use makefiles and following libraries/packaged
+# To re-compile, use makefiles and following libraries/packages
  - pthread for Windows: https://www.sourceware.org/pthreads-win32
  - libupnp: https://sourceforge.net/projects/pupnp
  - nanopb: https://github.com/nanopb/nanopb
@@ -17,4 +17,5 @@ See support thread here: http://forums.slimdevices.com/showthread.php?104614-Ann
  - libflac: https://xiph.org/flac/
  - libsoxr: https://sourceforge.net/p/soxr/wiki/Home/
  - libogg & libvorbis: https://xiph.org/vorbis/
+ - shine: https://github.com/philippe44/shine
 
