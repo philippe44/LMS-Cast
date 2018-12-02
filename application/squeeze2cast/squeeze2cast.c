@@ -60,7 +60,6 @@ tMRConfig			glMRConfig = {
 							true,	// enabled
 							false,  // roon_mode
 							false,	// stop_receiver
-							"",		// name
 							1,      // volume_on_play
 							true,	// send_metadata
 							true,   // send_coverart
@@ -651,7 +650,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 					}
 				}
 				if (Remove) {
-					LOG_INFO("[%p]: removing renderer (%s) %d", Device, Device->Config.Name);
+					LOG_INFO("[%p]: removing renderer (%s) %d", Device, Device->FriendlyName);
 					sq_delete_device(Device->SqueezeHandle);
 					RemoveCastDevice(Device);
 				}
@@ -1196,7 +1195,7 @@ int main(int argc, char *argv[])
 				if (!Locked) pthread_mutex_unlock(&p->Mutex);
 				if (!p->Running && !all) continue;
 				printf("%20.20s [r:%u] [l:%u] [s:%u] [%p::%p]\n",
-						p->Config.Name, p->Running, Locked, p->State,
+						p->FriendlyName, p->Running, Locked, p->State,
 						p, sq_get_ptr(p->SqueezeHandle));
 			}
 		}
