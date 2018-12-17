@@ -728,7 +728,7 @@ static void *CastSocketThread(void *args)
 				if (Ctx->stopReceiver) {
 					json_decref(root);
 					forward = false;
-                }
+				}
 			}
 
 			// respond to device ping

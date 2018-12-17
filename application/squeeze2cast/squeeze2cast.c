@@ -645,7 +645,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 						} else {
 							struct sGroupMember *Member = Device->GroupMaster;
 							while (Member && (Member->Host.s_addr != s->host.s_addr)) Member = Member->Next;
-							free(remove_item((list_t*) Member, (list_t**) &Device->GroupMaster));
+							if (Member) free(remove_item((list_t*) Member, (list_t**) &Device->GroupMaster));
 						}
 					}
 				}

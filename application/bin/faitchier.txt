@@ -1,0 +1,291 @@
+[01:49:51.924] main:1112 Starting squeeze2cast version: v1.7.5 (Dec 14 2018 @ 17:47:18)
+[01:49:51.987] Start:899 Binding to 192.168.2.10:49152
+[01:49:52.342] AddCastDevice:821 [00486BA0]: adding renderer (Fireplace)
+[01:49:52.390] AddCastDevice:821 [00487658]: adding renderer (Cuisine)
+[01:49:52.424] slimproto:845 squeezelite [004A3B94] <=> player [00486BA0]
+[01:49:52.424] slimproto:846 [004A3B94] connecting to 192.168.2.129:3483
+[01:49:52.835] slimproto:845 squeezelite [004AB764] <=> player [00488110]
+[01:49:52.835] slimproto:846 [004AB764] connecting to 192.168.2.129:3483
+[01:49:52.835] slimproto:845 squeezelite [004AF54C] <=> player [00488BC8]
+[01:49:52.835] slimproto:846 [004AF54C] connecting to 192.168.2.129:3483
+[01:49:52.835] slimproto:845 squeezelite [004A797C] <=> player [00487658]
+[01:49:52.835] slimproto:846 [004A797C] connecting to 192.168.2.129:3483
+[01:49:52.839] slimproto:876 [004A797C] connected
+[01:49:52.839] slimproto:876 [004A3B94] connected
+[01:49:52.839] sendHELO:127 [004A797C] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,aac,ogg,flc,alc,pcm,aif,mp3
+[01:49:52.839] sendHELO:127 [004A3B94] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,aac,ogg,flc,alc,pcm,aif,mp3
+[01:49:52.839] slimproto:876 [004AB764] connected
+[01:49:52.839] sendHELO:127 [004AB764] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,aac,ogg,flc,alc,pcm,aif,mp3
+[01:49:52.839] slimproto:845 squeezelite [004B3334] <=> player [00489680]
+[01:49:52.840] slimproto:846 [004B3334] connecting to 192.168.2.129:3483
+[01:49:52.849] slimproto:876 [004AF54C] connected
+[01:49:52.849] sendHELO:127 [004AF54C] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,aac,ogg,flc,alc,pcm,aif,mp3
+[01:49:52.852] sq_callback:234 [00486BA0]: device set ON
+[01:49:52.854] slimproto:876 [004B3334] connected
+[01:49:52.854] sendHELO:127 [004B3334] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,aac,ogg,flc,alc,pcm,aif,mp3
+[01:49:52.855] sq_callback:234 [00487658]: device set ON
+[01:49:52.913] sq_callback:234 [00488110]: device set ON
+[01:49:52.918] sq_callback:234 [00488BC8]: device set ON
+[01:49:52.943] CastConnect:368 [00486BA0]: SSL connection opened [0078D3A8]
+[01:49:52.943] sq_callback:332 Volume 67
+[01:49:52.952] CastConnect:368 [00487658]: SSL connection opened [0078E200]
+[01:49:52.952] sq_callback:332 Volume 45
+[01:49:52.953] sq_callback:234 [00489680]: device set ON
+[01:49:53.020] CastConnect:368 [00488BC8]: SSL connection opened [04600278]
+[01:49:53.020] sq_callback:332 Volume 20
+[01:49:53.023] CastConnect:368 [00488110]: SSL connection opened [0078F410]
+[01:49:53.024] sq_callback:332 Volume 30
+[01:49:53.026] CastConnect:368 [00489680]: SSL connection opened [04600FE8]
+[01:49:53.026] sq_callback:332 Volume 50
+[01:49:59.248] AddCastDevice:821 [0048A138]: adding renderer (ChromecastAudio0185)
+[01:49:59.435] slimproto:845 squeezelite [004B711C] <=> player [0048A138]
+[01:49:59.435] slimproto:846 [004B711C] connecting to 192.168.2.129:3483
+[01:49:59.437] slimproto:876 [004B711C] connected
+[01:49:59.437] sendHELO:127 [004B711C] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,aac,ogg,flc,alc,pcm,aif,mp3
+[01:49:59.447] sq_callback:234 [0048A138]: device set ON
+[01:49:59.520] CastConnect:368 [0048A138]: SSL connection opened [04651200]
+[01:49:59.520] SendCastMessage:238 [04651200]: Cast sending: {"type":"CONNECT"}
+[01:50:05.602] CastStop:260 [00489680]: Stop w/o session or connect
+[01:50:05.681] sq_callback:332 Volume 50
+[01:50:05.681] process_strm:229 [004B3334] strm command s
+[01:50:05.681] process_strm:298 [004B3334], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[01:50:05.681] sendSTAT:160 [004B3334]: STAT:[STMf] msplayed 0
+[01:50:05.684] cli_open_socket:181 [004B3334]: opened CLI socket 1748
+[01:50:05.696] output_start:82 [004B3334]: start thread 0
+[01:50:05.696] sq_callback:268 [00489680]:
+	artist:Idealism
+	album:Chillhop Raw Cuts 2
+	title:Both of Us
+	genre:
+	duration:113.000
+	size:0
+	cover:https://i.scdn.co/image/24ed37770972eb75f697dcc6af3e3820ee2413e8
+	offset:0
+[01:50:05.758] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"LAUNCH","requestId":1,"appId":"CC1AD845"}
+[01:50:05.758] LaunchReceiver:315 [00489680]: Launching receiver 1
+[01:50:05.758] CastLoad:174 [00489680]: Queuing LOAD
+[01:50:06.003] sq_callback:284 [00489680]: current URI http://192.168.2.10:49152/bridge-1.wav
+[01:50:06.003] process_start:1158 [004B3334]: codec:p, ch:2, s:16, r:44100
+[01:50:06.003] stream_sock:397 [004B3334] connecting to 192.168.2.129:9000
+[01:50:06.006] stream_sock:426 [004B3334] header: GET /stream.mp3?player=cc:cc:93:0b:1c:cc HTTP/1.0[01:50:06.006] sendSTAT:160 [004B3334]: STAT:[STMc] msplayed 0
+[01:50:06.006] sq_callback:332 Volume 50
+[01:50:06.063] stream_thread:190 [004B3334] headers: len: 115
+HTTP/1.1 200 OKServer: Logitech Media Server (7.9.2 - 1543217632)Connection: closeContent-Type: audio/L16[01:50:06.884] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:1)
+[01:50:06.884] CastSocketThread:777 [00489680]: Receiver launched
+[01:50:06.884] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"CONNECT","origin":{}}
+[01:50:06.884] ProcessQueue:595 [00489680]: Processing LOAD (id:2)
+[01:50:06.884] SendCastMessage:238 [04600FE8]: Cast sending: {
+ "type": "LOAD",
+ "autoplay": false,
+ "requestId": 2,
+ "sessionId": "b811a534-f2a6-4156-86e8-3cf1242d851e",
+ "currentTime": 0.0,
+ "media": {
+  "contentId": "http://192.168.2.10:49152/bridge-1.wav",
+  "metadata": {
+   "metadataType": 3,
+   "images": [
+    {
+     "url": "https://i.scdn.co/image/24ed37770972eb75f697dcc6af3e3820ee2413e8"
+    }
+   ],
+   "artist": "Idealism",
+   "albumName": "Chillhop Raw Cuts 2",
+   "albumArtist": "Idealism",
+   "title": "Both of Us",
+   "trackNumber": 0
+  },
+  "streamType": "BUFFERED",
+  "contentType": "audio/wav",
+  "duration": 113.0
+ }
+}
+[01:50:06.918] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:0) (null)
+[01:50:06.953] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:0) IDLE
+[01:50:06.979] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:0)
+[01:50:07.052] output_http_thread:135 [004B3334]: got HTTP connection 1792
+[01:50:07.966] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:0) BUFFERING
+[01:50:08.024] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"SET_VOLUME","requestId":3,"volume":{"level":0.5000}}
+[01:50:08.025] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"SET_VOLUME","requestId":4,"volume":{"muted":false}}
+[01:50:08.025] CastSetDeviceVolume:310 [00489680]: Immediate VOLUME (id:4)
+[01:50:08.025] CastSimple:210 [00489680]: Queuing PLAY
+[01:50:08.058] resample_newstream:247 [004B3334]: disable resampling - rates match 44100
+[01:50:08.058] process_newstream:121 [004B3334]: processing: inactive
+[01:50:08.066] _output_new_stream:415 [004B3334]: PCM encoding r:44100 s:16 f:w
+[01:50:08.066] _output_new_stream:416 [004B3334]: HTTP -1, estimated len 19933244
+[01:50:08.066] output_http_thread:164 [004B3334]: drain is 2621440 (waited 2308)
+[01:50:08.069] handle_http:458 [004B3334]: received GET /bridge-1.wav HTTP/1.1
+[01:50:08.069] handle_http:461 [004B3334]: HTTP headers
+Host: 192.168.2.10:49152Connection: keep-aliveAccept-Encoding: identity;q=1, *;q=0User-Agent: Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.17 Safari/537.36 CrKey/1.28.130012Range: bytes=0-chrome-proxy: frfrAccept: */*Accept-Language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7CAST-DEVICE-CAPABILITIES: {"bluetooth_supported":true,"display_supported":false,"hi_res_audio_supported":true}[01:50:08.069] handle_http:469 [004B3334]: Chromecast mode
+[01:50:08.069] handle_http:546 [004B3334]: responding:
+HTTP/1.1 200 OKServer: squeezebox-bridgeConnection: closeContent-Type: audio/wav[01:50:08.069] _output_fill:185 [004B3334] PCM header sent (44 bytes)
+[01:50:08.069] gain_and_fade:908 [004B3334]: track start rate:44100 gain:65536
+[01:50:08.239] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:2) PAUSED
+[01:50:08.240] CastSocketThread:793 [00489680]: Media session id 1
+[01:50:08.240] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"SET_VOLUME","requestId":5,"mediaSessionId":1,"volume":{"level":0.5000,"muted":false}}
+[01:50:08.302] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:5) PAUSED
+[01:50:08.302] ProcessQueue:576 [00489680]: Processing PLAY (id:6)
+[01:50:08.303] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"PLAY","requestId":6,"mediaSessionId":1}
+[01:50:08.347] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:6) PLAYING
+[01:50:08.347] _SyncNotifyState:401 [00489680]: Cast playing
+[01:50:08.347] sq_notify:556 [004B3334] play notification
+[01:50:09.080] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:3)
+[01:50:09.080] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":7,"mediaSessionId":1}
+[01:50:09.080] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:4)
+[01:50:09.105] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:7) PLAYING
+[01:50:09.105] sq_notify:675 [004B3334] track 1 started at 114277097
+[01:50:09.105] sendSTAT:160 [004B3334]: STAT:[STMs] msplayed 0
+[01:50:10.105] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":8,"mediaSessionId":1}
+[01:50:10.150] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:8) PLAYING
+[01:50:11.150] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS"
+[01:50:18.132] slimproto_run:564 [004B3334] Closing CLI socket 1748
+[01:50:18.532] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":16,"mediaSessionId":1}
+[01:50:18.579] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:16) PLAYING
+[01:51:04.702] stream_thread:264 [004B3334] end of stream (t:19933952)
+[01:51:04.741] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":60,"mediaSessionId":1}
+[01:51:04.793] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:60) PLAYING
+[01:51:17.100] decode_thread:96 decode complete
+[01:51:17.344] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":72,"mediaSessionId":1}
+[01:51:17.400] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:72) PLAYING
+[01:51:23.432] output_http_thread:284 [004B3334]: draining (19464192 bytes)
+[01:51:28.925] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":83,"mediaSessionId":1}
+[01:51:28.974] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:83) PLAYING
+[01:51:29.182] output_http_thread:236 [004B3334]: self-exit 
+[01:51:29.183] output_http_thread:366 [004B3334]: end thread 0 (19933996 bytes)
+[01:51:29.974] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":84,"mediaSessionId":1}
+[01:51:29.986] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:84) PLAYING
+[01:51:47.124] sendSTAT:160 [004B3334]: STAT:[STMd] msplayed 98160
+[01:51:47.190] process_strm:229 [004B3334] strm command s
+[01:51:47.190] process_strm:298 [004B3334], strm s autostart: 1 transition period: 10 transition type: 0 codec: p
+[01:51:47.190] sendSTAT:160 [004B3334]: STAT:[STMf] msplayed 98160
+[01:51:47.202] cli_open_socket:181 [004B3334]: opened CLI socket 1788
+[01:51:47.216] output_start:82 [004B3334]: start thread 0
+[01:51:47.216] sq_callback:268 [00489680]:
+	artist:Apfel
+	album:Instru / Mentals
+	title:Ich vergess - Instrumental
+	genre:
+	duration:130.000
+	size:0
+	cover:https://i.scdn.co/image/77eb7c17cafe5503eea3be5e6eb7069ca160d8aa
+	offset:1
+[01:51:47.270] sq_callback:276 [00489680]: next URI http://192.168.2.10:49152/bridge-2.wav
+[01:51:47.270] process_start:1158 [004B3334]: codec:p, ch:2, s:16, r:44100
+[01:51:47.270] stream_sock:397 [004B3334] connecting to 192.168.2.129:9000
+[01:51:47.285] stream_sock:426 [004B3334] header: GET /stream.mp3?player=cc:cc:93:0b:1c:cc HTTP/1.0[01:51:47.285] sendSTAT:160 [004B3334]: STAT:[STMc] msplayed 98160
+[01:51:47.285] sq_callback:332 Volume 50
+[01:51:47.285] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"SET_VOLUME","requestId":101,"volume":{"level":0.5000}}
+[01:51:47.285] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"SET_VOLUME","requestId":102,"volume":{"muted":false}}
+[01:51:47.285] CastSetDeviceVolume:310 [00489680]: Immediate VOLUME (id:102)
+[01:51:47.379] stream_thread:190 [004B3334] headers: len: 115
+HTTP/1.1 200 OKServer: Logitech Media Server (7.9.2 - 1543217632)Connection: closeContent-Type: audio/L16[01:51:47.790] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":103,"mediaSessionId":1}
+[01:51:47.806] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:103) PLAYING
+[01:51:48.336] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:101)
+[01:51:48.336] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:102)
+[01:51:48.836] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":104,"mediaSessionId":1}
+[01:51:48.883] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:104) PLAYING
+[01:51:49.884] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":105,"mediaSessionId":1}
+[01:51:49.934] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:105) PLAYING
+[01:51:49.970] resample_newstream:247 [004B3334]: disable resampling - rates match 44100
+[01:51:49.970] process_newstream:121 [004B3334]: processing: inactive
+[01:51:50.934] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":106,"mediaSessionId":1}
+[01:51:50.983] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:106) PLAYING
+[01:51:58.127] slimproto_run:564 [004B3334] Closing CLI socket 1788
+[01:51:58.288] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":113,"mediaSessionId":1}
+[01:51:58.345] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:113) PLAYING
+[01:51:59.345] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":114,"mediaSessionId":1}
+[01:51:59.392] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:114) PLAYING
+[01:52:00.392] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":115,"mediaSessionId":1}
+[01:52:00.452] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:115) PLAYING
+[01:52:01.317] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:0)
+[01:52:01.319] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:0) IDLE
+[01:52:01.319] _SyncNotifyState:377 [00489680]: Cast stop
+[01:52:01.320] SendCastMessage:238 [04600FE8]: Cast sending: {
+ "type": "LOAD",
+ "autoplay": false,
+ "requestId": 116,
+ "sessionId": "b811a534-f2a6-4156-86e8-3cf1242d851e",
+ "currentTime": 0.0,
+ "media": {
+  "contentId": "http://192.168.2.10:49152/bridge-2.wav",
+  "metadata": {
+   "metadataType": 3,
+   "images": [
+    {
+     "url": "https://i.scdn.co/image/77eb7c17cafe5503eea3be5e6eb7069ca160d8aa"
+    }
+   ],
+   "artist": "Apfel",
+   "albumName": "Instru / Mentals",
+   "albumArtist": "Apfel",
+   "title": "Ich vergess - Instrumental",
+   "trackNumber": 0
+  },
+  "streamType": "BUFFERED",
+  "contentType": "audio/wav",
+  "duration": 130.0
+ }
+}
+[01:52:01.320] CastLoad:162 [00489680]: Immediate LOAD (id:116)
+[01:52:01.320] CastSimple:210 [00489680]: Queuing PLAY
+[01:52:01.320] _SyncNotifyState:385 [00489680]: gapped transition http://192.168.2.10:49152/bridge-2.wav
+[01:52:01.384] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:0) IDLE
+[01:52:01.384] sq_notify:675 [004B3334] track 2 started at 114389371
+[01:52:01.385] sendSTAT:160 [004B3334]: STAT:[STMs] msplayed 0
+[01:52:01.403] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:0)
+[01:52:01.429] output_http_thread:135 [004B3334]: got HTTP connection 1788
+[01:52:01.430] _output_new_stream:415 [004B3334]: PCM encoding r:44100 s:16 f:w
+[01:52:01.430] _output_new_stream:416 [004B3334]: HTTP -1, estimated len 22932044
+[01:52:01.430] output_http_thread:164 [004B3334]: drain is 2621440 (waited 14149)
+[01:52:01.432] handle_http:458 [004B3334]: received GET /bridge-2.wav HTTP/1.1
+[01:52:01.433] handle_http:461 [004B3334]: HTTP headers
+Host: 192.168.2.10:49152Connection: keep-aliveAccept-Encoding: identity;q=1, *;q=0User-Agent: Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.17 Safari/537.36 CrKey/1.28.130012Range: bytes=0-chrome-proxy: frfrAccept: */*Accept-Language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7CAST-DEVICE-CAPABILITIES: {"bluetooth_supported":true,"display_supported":false,"hi_res_audio_supported":true}[01:52:01.433] handle_http:469 [004B3334]: Chromecast mode
+[01:52:01.433] handle_http:546 [004B3334]: responding:
+HTTP/1.1 200 OKServer: squeezebox-bridgeConnection: closeContent-Type: audio/wav[01:52:01.433] _output_fill:185 [004B3334] PCM header sent (44 bytes)
+[01:52:01.433] gain_and_fade:908 [004B3334]: track start rate:44100 gain:65536
+[01:52:01.586] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:116) PAUSED
+[01:52:01.586] CastSocketThread:793 [00489680]: Media session id 2
+[01:52:01.586] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"SET_VOLUME","requestId":117,"mediaSessionId":2,"volume":{"level":0.5000,"muted":false}}
+[01:52:01.662] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:117) PAUSED
+[01:52:01.662] ProcessQueue:576 [00489680]: Processing PLAY (id:118)
+[01:52:01.662] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"PLAY","requestId":118,"mediaSessionId":2}
+[01:52:01.753] CastSocketThread:714 [00489680]: type:MEDIA_STATUS (id:118) PLAYING
+[01:52:01.753] _SyncNotifyState:401 [00489680]: Cast playing
+[01:52:01.753] sq_notify:561 [004B3334] play ignored
+[01:52:02.669] read_line:550 fd: 1788 read error: 10054 Unknown error
+[01:52:02.669] http_parse:474 cannot read method
+[01:52:02.669] handle_http:453 [004B3334]: http parsing error (null)
+[01:52:02.669] output_http_thread:187 [004B3334]: HTTP close 1788 (bytes 4096000) (n:2 res:0)
+[01:52:02.693] CastSocketThread:717 [00489680]: type:RECEIVER_STATUS (id:0)
+[01:52:02.693] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"GET_STATUS","requestId":119,"mediaSessionId":2}
+[01:52:02.711] CastSocketThread:717 [00489680]: type:CLOSE (id:0)
+[01:52:02.711] sq_notify:592 [004B3334] forced STOP
+[01:52:02.717] CastSocketThread:717 [00489680]: type:CLOSE (id:0)
+[01:52:02.726] cli_open_socket:181 [004B3334]: opened CLI socket 1788
+[01:52:02.733] stream_thread:264 [004B3334] end of stream (t:8294912)
+[01:52:02.769] output_http_thread:366 [004B3334]: end thread 0 (4096000 bytes)
+[01:52:02.801] SendCastMessage:238 [04600FE8]: Cast sending: {"type":"STOP","requestId":120,"mediaSessionId":2}
+[01:52:02.801] CastStop:244 [00489680]: Immediate STOP (id:120)
+[01:52:02.849] CastSocketThread:717 [00489680]: type:CLOSE (id:0)
+[01:52:02.849] sq_notify:592 [004B3334] forced STOP
+[01:52:03.354] sq_notify:592 [004B3334] forced STOP
+[01:52:03.855] cli_send_cmd:242 [004B3334]: Timeout waiting for CLI reponse (cc%3acc%3a93%3a0b%3a1c%3acc stop)
+[01:52:18.127] slimproto_run:564 [004B3334] Closing CLI socket 1788
+[01:55:22.088] UpdateCastDevice:468 [02394720]: changed ip:port 192.168.2.167:42099
+[01:55:22.088] read_bytes:184 [s-0078D3A8]: SSL error code 5 (err:0)
+[01:55:22.088] CastSocketThread:696 [02394720]: SSL connection closed
+[01:56:15.047] mDNSsearchCallback:653 [00486BA0]: removing renderer (Fireplace) 50134036
+[01:56:15.047] slimproto_close:917 [004A3B94] slimproto stop for Fireplace
+[01:56:15.193] output_close:576 [004A3B94] close media renderer
+[01:56:15.274] stream_close:337 [004A3B94] close stream
+[01:56:15.677] DeleteCastDevice:499 [00486BA0]: Cast device stopped
+[01:56:15.678] AddCastDevice:821 [00486BA0]: adding renderer (Fireplace)
+[01:56:15.832] resample_init:345 [004A3B94]: resampling sync recipe: 0x00, flags: 0x00, scale: 0.89, precision: 0.0, passband_end: 0.00000, stopband_begin: 0.00000, phase_response: -1.0
+[01:56:15.835] slimproto:845 squeezelite [004A3B94] <=> player [00486BA0]
+[01:56:15.835] slimproto:846 [004A3B94] connecting to 192.168.2.129:3483
+[01:56:15.848] slimproto:876 [004A3B94] connected
+[01:56:15.848] sendHELO:127 [004A3B94] cap: Model=squeezelite,ModelName=SqueezeLite,AccuratePlayPoints=0,HasDigitalOut=1,MaxSampleRate=96000,aac,ogg,flc,alc,pcm,aif,mp3
+[01:56:15.893] sq_callback:234 [00486BA0]: device set ON
+[01:56:15.980] CastConnect:368 [00486BA0]: SSL connection opened [046308F0]
+[01:56:15.981] SendCastMessage:238 [046308F0]: Cast sending: {"type":"CONNECT"}
+[01:56:15.981] sq_callback:332 Volume 67
