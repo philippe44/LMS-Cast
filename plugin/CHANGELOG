@@ -1,3 +1,9 @@
+1.8.0
+ - add a timeout option to remove renderers
+ 
+1.7.7
+- Search for available HTTP port must be 2x MAX_PLAYERS
+
 1.7.6
  - Group update could free NULL pointer
  

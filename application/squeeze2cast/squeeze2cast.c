@@ -65,6 +65,7 @@ tMRConfig			glMRConfig = {
 							true,   // send_coverart
 							false,	// autoplay
 							0.5,	// media_volume
+							900,	// remove_timeout
 					};
 
 static u8_t LMSVolumeMap[101] = {
@@ -594,6 +595,8 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 {
 	struct sMR *Device;
 	mDNSservice_t *s;
+	u32_t now = gettime_ms();
+	int j;
 
 	if (*loglevel == lDEBUG) {
 		LOG_DEBUG("----------------- round ------------------", NULL);
@@ -621,7 +624,6 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		char *Model;
 		bool Group;
 		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", NULL };
-		int j;
 
 		// is the mDNS record usable announce made by other CC on behalf
 		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL ||
@@ -630,6 +632,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		// is that device already here
 		if ((Device = SearchUDN(UDN)) != NULL) {
 			// a service is being removed
+			Device->Expired = 0;
 			if (s->expired) {
 				bool Remove = true;
 				// groups need to find if the removed service is the master
@@ -650,12 +653,19 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 					}
 				}
 				if (Remove) {
-					LOG_INFO("[%p]: removing renderer (%s) %d", Device, Device->FriendlyName);
-					sq_delete_device(Device->SqueezeHandle);
-					RemoveCastDevice(Device);
+					if (!Device->Config.RemoveTimeout) {
+						LOG_INFO("[%p]: removing renderer (%s) %d", Device, Device->FriendlyName);
+						sq_delete_device(Device->SqueezeHandle);
+						RemoveCastDevice(Device);
+					} else {
+						LOG_INFO("[%p]: keeping missing renderer (%s)", Device, Device->FriendlyName);
+						Device->Expired = now ? now : 1;
+					}
 				}
 			// device update - when playing ChromeCast update their TXT records
 			} else {
+				LOG_INFO("[%p]: refreshing renderer (%s)", Device, Device->FriendlyName);
+
 				// new master in election, update and put it in the queue
 				if (Device->Group && Device->GroupMaster->Host.s_addr != s->addr.s_addr) {
 					struct sGroupMember *Member = calloc(1, sizeof(struct sGroupMember));
@@ -711,6 +721,21 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 
 		NFREE(UDN);
 		NFREE(Name);
+	}
+
+	// walk through the list for device that expire on timeout
+	for (j = 0; j < MAX_RENDERERS; j++) {
+
+		Device = glMRDevices + j;
+
+		if (!Device->Running || Device->Config.RemoveTimeout <= 0 || !Device->Expired ||
+
+			now < Device->Expired + Device->Config.RemoveTimeout*1000) continue;
+
+
+		LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
+		sq_delete_device(Device->SqueezeHandle);
+		RemoveCastDevice(Device);
 	}
 
 	if (glAutoSaveConfigFile || glDiscovery) {
