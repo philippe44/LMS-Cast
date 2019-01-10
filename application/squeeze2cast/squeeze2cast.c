@@ -65,7 +65,7 @@ tMRConfig			glMRConfig = {
 							true,   // send_coverart
 							false,	// autoplay
 							0.5,	// media_volume
-							900,	// remove_timeout
+							0,		// remove_timeout
 					};
 
 static u8_t LMSVolumeMap[101] = {
@@ -725,15 +725,11 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 
 	// walk through the list for device that expire on timeout
 	for (j = 0; j < MAX_RENDERERS; j++) {
+		Device = glMRDevices + j;
+		if (!Device->Running || Device->Config.RemoveTimeout <= 0 || !Device->Expired ||
+			now < Device->Expired + Device->Config.RemoveTimeout*1000) continue;
 
-		Device = glMRDevices + j;
-
-		if (!Device->Running || Device->Config.RemoveTimeout <= 0 || !Device->Expired ||
-
-			now < Device->Expired + Device->Config.RemoveTimeout*1000) continue;
-
-
-		LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
+		LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
 		sq_delete_device(Device->SqueezeHandle);
 		RemoveCastDevice(Device);
 	}
