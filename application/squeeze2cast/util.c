@@ -181,9 +181,12 @@ void QueueFlush(tQueue *queue)
 	while (list->item) {
 		struct sQueue_e *next = list->next;
 		if (queue->cleanup)	(*(queue->cleanup))(list->item);
-		list = list->next;
-		NFREE(next);
+		if (list != &queue->list) { NFREE(list); }
+		list = next;
 	}
+
+	if (list != &queue->list) { NFREE(list); }
+	queue->list.item = NULL;
 
 	if (queue->mutex) {
 		pthread_mutex_unlock(queue->mutex);
@@ -191,7 +194,6 @@ void QueueFlush(tQueue *queue)
 		free(queue->mutex);
 	}
 }
-
 
 /*----------------------------------------------------------------------------*/
 /* 																			  */
