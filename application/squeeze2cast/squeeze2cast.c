@@ -58,7 +58,6 @@ log_level	cast_loglevel = lINFO;
 
 tMRConfig			glMRConfig = {
 							true,	// enabled
-							false,  // roon_mode
 							false,	// stop_receiver
 							1,      // volume_on_play
 							true,	// send_metadata
@@ -99,8 +98,9 @@ sq_dev_param_t glDeviceParam = {
 #ifdef RESAMPLE
 					"",						// resample_options
 #endif
-					{ 	true,	// use_cli
-						"" },   // server
+					false, 					// roon_mode
+					{ 	true,				// use_cli
+						"" },   			// server
 				} ;
 
 /*----------------------------------------------------------------------------*/
@@ -826,7 +826,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 
 	memset(&Device->NextMetaData, 0, sizeof(metadata_t));
 
-	if (Device->Config.RoonMode) {
+	if (Device->sq_config.roon_mode) {
 		Device->on = true;
 		Device->sq_config.dynamic.use_cli = false;
 	} else Device->on = false;

@@ -1,3 +1,7 @@
+1.8.2
+ - (1) add DSD support in thru mode
+ - (2) move Roon Mode to squeezelite config size as Roon does report LMS version 7.7.5 but does not have tha AIFF header issue
+ 
 1.8.1
   - QueueFlush correction
  
@@ -11,7 +15,7 @@
  - Group update could free NULL pointer
  
 1.7.5
- - Move mutex and cli_mutex creation/deletion out of the slimprot thread as Volume detection to make sure cli_send_cmd (volume) is not called before
+ - Move mutex and cli_mutex creation/deletion out of the slimproto thread as Volume detection to make sure cli_send_cmd (volume) is not called before
  - cli_sock initialization must be done beofre slimproto thread starts (running set) and reset when switching/losing server must be mutex_protected
  
 1.7.4
@@ -22,7 +26,7 @@
 
 1.7.2
  - mad and flac correction, following squeezelite
- - encpde mode was disabled in Windows version (compiled without CODECS flag)
+ - encode mode was disabled in Windows version (compiled without CODECS flag)
 
 1.7.1
  - sparc and ppc compiler required kernel > 3.2.0 due to glibc being 2.23+ ==> moved back cross-compiler to use glibc 2.19 (need OBSOLETE enabled)
@@ -43,7 +47,7 @@
 1.6.0
  - add m4a to adts decoding in 'thru' mode
  - few alac issue correction
- - exit output_thread on streaming error only when HTTP connection is closed, no bytes sent and decoding completed (noy in the select/accept waiting loop)
+ - exit output_thread on streaming error only when HTTP connection is closed, no bytes sent and decoding completed (not in the select/accept waiting loop)
  
 1.5.1
  - accept announces from other hosts as long as they are not a CC device themselves (mDNS relay)

@@ -48,7 +48,6 @@ enum 	eMRstate { STOPPED, BUFFERING, PLAYING, PAUSED };
 typedef struct sMRConfig
 {
 	bool		Enabled;
-	bool		RoonMode;
 	bool		StopReceiver;
 	int 		VolumeOnPlay;		// change only volume when playing has started or disable volume commands
 	bool		SendMetaData;
