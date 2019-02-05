@@ -81,7 +81,7 @@ static u8_t LMSVolumeMap[101] = {
 			};
 
 sq_dev_param_t glDeviceParam = {
-					HTTP_INFINITE, 	 		// stream_length
+					HTTP_NO_LENGTH, 	 		// stream_length
 					 // both are multiple of 3*4(2) for buffer alignement on sample
 					STREAMBUF_SIZE,			// stream_buffer_size
 					OUTPUTBUF_SIZE,			// output_buffer_size
@@ -99,6 +99,7 @@ sq_dev_param_t glDeviceParam = {
 					"",						// resample_options
 #endif
 					false, 					// roon_mode
+					"",						// store_prefix
 					{ 	true,				// use_cli
 						"" },   			// server
 				} ;
@@ -1010,7 +1011,7 @@ bool ParseArgs(int argc, char **argv) {
 
 	while (optind < argc && strlen(argv[optind]) >= 2 && argv[optind][0] == '-') {
 		char *opt = argv[optind] + 1;
-		if (strstr("stxdfpib", opt) && optind < argc - 1) {
+		if (strstr("stxdfpibc", opt) && optind < argc - 1) {
 			optarg = argv[optind + 1];
 			optind += 2;
 		} else if (strstr("tzZIk", opt)) {
@@ -1022,6 +1023,9 @@ bool ParseArgs(int argc, char **argv) {
 		}
 
 		switch (opt[0]) {
+		case 'c':
+			strcpy(glDeviceParam.store_prefix, optarg);
+			break;
 		case 's':
 			strcpy(glDeviceParam.server, optarg);
 			break;

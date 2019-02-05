@@ -1,16 +1,16 @@
 <?xml version='1.0' standalone='yes'?>
 <extensions>
-  <version>1.8.2.1</version>
-  <name>PLUGIN_CASTBRIDGE</name>
-  <defaultState>enabled</defaultState>
   <email>philippe_44@outlook.com</email>
-  <description>PLUGIN_CASTBRIDGE_DESC</description>
+  <optionsURL>plugins/CastBridge/settings/basic.html</optionsURL>
   <targetApplication>
     <minVersion>7.7</minVersion>
-    <maxVersion>*.*</maxVersion>
     <id>SlimServer</id>
+    <maxVersion>*.*</maxVersion>
   </targetApplication>
-  <creator>Philippe</creator>
-  <optionsURL>plugins/CastBridge/settings/basic.html</optionsURL>
+  <version>1.8.2.2</version>
   <module>Plugins::CastBridge::Plugin</module>
+  <creator>Philippe</creator>
+  <defaultState>enabled</defaultState>
+  <description>PLUGIN_CASTBRIDGE_DESC</description>
+  <name>PLUGIN_CASTBRIDGE</name>
 </extensions>

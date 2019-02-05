@@ -586,6 +586,7 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "send_icy")) sq_conf->send_icy = atol(val);
 	if (!strcmp(name, "enabled")) Conf->Enabled = atol(val);
 	if (!strcmp(name, "roon_mode")) sq_conf->roon_mode = atol(val);
+	if (!strcmp(name, "store_prefix")) strcpy(sq_conf->store_prefix, val);			//RO
 	if (!strcmp(name, "stop_receiver")) Conf->StopReceiver = atol(val);
 	if (!strcmp(name, "codecs")) strcpy(sq_conf->codecs, val);
 	if (!strcmp(name, "mode")) strcpy(sq_conf->mode, val);
