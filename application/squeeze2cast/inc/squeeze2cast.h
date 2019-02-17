@@ -78,6 +78,7 @@ struct sMR {
 #endif
 	unsigned		TrackPoll;
 	bool			TimeOut;
+	s32_t			IdleTimer;
 	int	 			SqueezeHandle;
 	void*			CastCtx;
 	pthread_mutex_t Mutex;

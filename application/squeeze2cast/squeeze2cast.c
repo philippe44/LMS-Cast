@@ -38,7 +38,8 @@
 #include "cast_parse.h"
 #include "mdnssd-itf.h"
 
-#define DISCOVERY_TIME 20
+#define DISCOVERY_TIME 	20
+#define MAX_IDLE_TIME	(30*1000)
 
 /*----------------------------------------------------------------------------*/
 /* globals 																	  */
@@ -364,7 +365,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 	DEVICE MUTEX IS LOCKED
 	*/
 
-	if (!strcasecmp(State, "CLOSED")) {
+	if (!strcasecmp(State, "CLOSED") && Device->State != STOPPED) {
 		Device->State = STOPPED;
 		Param = true;
 		Event = SQ_STOP;
@@ -485,7 +486,10 @@ static void *MRThread(void *args)
 
 				if (state && !strcasecmp(state, "IDLE")) {
 					const char *cause = GetMediaItem_S(data, 0, "idleReason");
-					if (cause) _SyncNotifyState("STOPPED", p);
+					if (cause) {
+						if (p->State != STOPPED) p->IdleTimer = 0;
+						_SyncNotifyState("STOPPED", p);
+					}
 				}
 
 				/*
@@ -545,6 +549,15 @@ static void *MRThread(void *args)
 			p->TrackPoll = 0;
 			if (p->State != STOPPED) CastGetMediaStatus(p->CastCtx);
 		}
+
+		if (p->State == STOPPED && p->IdleTimer != -1) {
+			p->IdleTimer += elapsed;
+			if (p->IdleTimer > MAX_IDLE_TIME) {
+				p->IdleTimer = -1;
+				CastRelease(p->CastCtx);
+				LOG_INFO("[%p]: Idle timeout, releasing cast device", p);
+			}
+        }
 
 		pthread_mutex_unlock(&p->Mutex);
 		last = gettime_ms();
@@ -665,8 +678,6 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 				}
 			// device update - when playing ChromeCast update their TXT records
 			} else {
-				LOG_INFO("[%p]: refreshing renderer (%s)", Device, Device->FriendlyName);
-
 				// new master in election, update and put it in the queue
 				if (Device->Group && Device->GroupMaster->Host.s_addr != s->addr.s_addr) {
 					struct sGroupMember *Member = calloc(1, sizeof(struct sGroupMember));
@@ -674,7 +685,10 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 					Member->Port = s->port;
 					push_item((list_t*) Member, (list_t**) &Device->GroupMaster);
 				}
-				UpdateCastDevice(Device->CastCtx, s->addr, s->port);
+
+				if (UpdateCastDevice(Device->CastCtx, s->addr, s->port)) {
+					LOG_INFO("[%p]: refreshing renderer (%s)", Device, Device->FriendlyName);
+				}
 			}
 			NFREE(UDN);
 			continue;
@@ -807,6 +821,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 
 	Device->Magic 			= MAGIC;
 	Device->TimeOut			= false;
+	Device->IdleTimer		= -1;
 	Device->SqueezeHandle 	= 0;
 	Device->Running 		= true;
 	Device->sqState 		= SQ_STOP;
