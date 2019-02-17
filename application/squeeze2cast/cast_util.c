@@ -267,8 +267,7 @@ void CastStop(struct sCastCtx *Ctx)
 /*----------------------------------------------------------------------------*/
 void CastPowerOff(struct sCastCtx *Ctx)
 {
-	SendCastMessage(Ctx, CAST_RECEIVER, NULL,
-					"{\"type\":\"STOP\",\"requestId\":%d}", Ctx->waitId);
+	CastRelease(Ctx);
 	CastDisconnect(Ctx);
 }
 
@@ -283,9 +282,11 @@ void CastPowerOn(struct sCastCtx *Ctx)
 /*----------------------------------------------------------------------------*/
 void CastRelease(struct sCastCtx *Ctx)
 {
+	pthread_mutex_lock(&Ctx->Mutex);
 	SendCastMessage(Ctx, CAST_RECEIVER, NULL,
-					"{\"type\":\"STOP\",\"requestId\":%d}", Ctx->waitId);
+					"{\"type\":\"STOP\",\"requestId\":%d}", Ctx->reqId++);
 	Ctx->Status = CAST_CONNECTED;
+	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
 

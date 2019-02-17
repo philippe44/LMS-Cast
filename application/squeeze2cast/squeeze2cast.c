@@ -242,7 +242,10 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			if (Device->Config.AutoPlay) sq_notify(Device->SqueezeHandle, Device, SQ_PLAY, NULL, &Device->on);
 		} else {
 			// cannot disconnect when LMS is configured for pause when OFF
-			if (Device->sqState == SQ_STOP) CastPowerOff(Device->CastCtx);
+			if (Device->sqState == SQ_STOP) {
+				Device->IdleTimer = -1;
+				CastPowerOff(Device->CastCtx);
+            }
 		}
 	}
 
