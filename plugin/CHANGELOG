@@ -1,3 +1,7 @@
+1.9.1
+ - backport UPnPBridge modifications for ICY (no impact)
+ - use translation from strings.txt for Yes/No - 
+ 
 1.9.0
  - unload receiver after 30s of stopped and on power off (if already stopped) to release player fro other controllers
  - log refreshing renderer only when parameters actually changed

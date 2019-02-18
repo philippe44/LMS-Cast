@@ -95,14 +95,21 @@ sq_dev_param_t glDeviceParam = {
 					FLAC_NORMAL_HEADER,	    // flac_header
 					"",			// name
 					{ 0x00,0x00,0x00,0x00,0x00,0x00 },
-					false,					// send_icy
 #ifdef RESAMPLE
 					"",						// resample_options
 #endif
 					false, 					// roon_mode
 					"",						// store_prefix
-					{ 	true,				// use_cli
-						"" },   			// server
+#if !WIN
+					{
+#endif
+						true,				// use_cli
+						"",     			// server
+						ICY_NONE,           // icy mode
+#if !WIN
+					 },
+#endif
+
 				} ;
 
 /*----------------------------------------------------------------------------*/
@@ -347,7 +354,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			strcpy(Device->sq_config.name, param);
 			break;
 		case SQ_SETSERVER:
-			strcpy(Device->sq_config.dynamic.server, inet_ntoa(*(struct in_addr*) param));
+			strcpy(Device->sq_config.set_server, inet_ntoa(*(struct in_addr*) param));
 			break;
 		default:
 			break;
@@ -847,7 +854,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 
 	if (Device->sq_config.roon_mode) {
 		Device->on = true;
-		Device->sq_config.dynamic.use_cli = false;
+		Device->sq_config.use_cli = false;
 	} else Device->on = false;
 
 	// optional
