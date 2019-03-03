@@ -475,7 +475,13 @@ static void *MRThread(void *args)
 		// need to protect against events from CC threads, not from deletion
 		pthread_mutex_lock(&p->Mutex);
 
-		LOG_SDEBUG("[%p]: Cast thread timer %d %d", p, elapsed, wakeTimer);
+		// need to check status there, protected
+		if (!p->Running) {
+			pthread_mutex_unlock(&p->Mutex);
+			break;
+		}
+
+		LOG_INFO("[%p]: Cast thread timer %d %d", p, elapsed, wakeTimer);
 
 		// a message has been received
 		if (data) {
@@ -911,14 +917,15 @@ static void FlushCastDevices(void)
 static void RemoveCastDevice(struct sMR *Device)
 {
 	pthread_mutex_lock(&Device->Mutex);
-	sq_free_metadata(&Device->NextMetaData);
 	Device->Running = false;
 	pthread_mutex_unlock(&Device->Mutex);
+
+	DeleteCastDevice(Device->CastCtx);
+
 	pthread_join(Device->Thread, NULL);
 
 	clear_list((list_t**) &Device->GroupMaster, free);
-
-	DeleteCastDevice(Device->CastCtx);
+	sq_free_metadata(&Device->NextMetaData);
 	NFREE(Device->NextURI);
 }
 

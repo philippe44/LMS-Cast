@@ -1,6 +1,7 @@
-1.10.0.1
+1.10.0
  - (1) move all strings from basic.html to strings<.txt
  - (1) remove sleep timers for conditions
+ - (2) removing device was not waking up main thread
  
 1.9.1
  - backport UPnPBridge modifications for ICY (no impact)
