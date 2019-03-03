@@ -46,6 +46,12 @@ typedef struct list_s {
 	struct list_s *next;
 } list_t;
 
+void 		InitUtils(void);
+void		EndUtils(void);
+
+void		WakeableSleep(u32_t ms);
+void		WakeAll(void);
+
 list_t*		push_item(list_t *item, list_t **list);
 list_t*		add_tail_item(list_t *item, list_t **list);
 list_t*		add_ordered_item(list_t *item, list_t **list, int (*compare)(void *a, void *b));

@@ -129,8 +129,6 @@ static struct mDNShandle_s	*glmDNSsearchHandle = NULL;
 static char					*glLogFile;
 static bool					glDiscovery = false;
 static bool					glAutoSaveConfigFile = false;
-static pthread_mutex_t		glMainMutex;
-static pthread_cond_t		glMainCond;
 static bool					glInteractive = true;
 static char					*glPidFile = NULL;
 static bool					glGracefullShutdown = true;
@@ -465,15 +463,19 @@ static void *MRThread(void *args)
 
 	while (p->Running) {
 		double Volume = -1;
+		int wakeTimer;
+
+		if (p->State == STOPPED && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
+		else wakeTimer = TRACK_POLL;
 
 		// context is valid until this thread ends, no deletion issue
-		data = GetTimedEvent(p->CastCtx, 500);
+		data = GetTimedEvent(p->CastCtx, wakeTimer);
 		elapsed = gettime_ms() - last;
 
 		// need to protect against events from CC threads, not from deletion
 		pthread_mutex_lock(&p->Mutex);
 
-		LOG_SDEBUG("Cast thread timer %d", elapsed);
+		LOG_SDEBUG("[%p]: Cast thread timer %d %d", p, elapsed, wakeTimer);
 
 		// a message has been received
 		if (data) {
@@ -555,9 +557,12 @@ static void *MRThread(void *args)
 
 		// get track position & CurrentURI
 		p->TrackPoll += elapsed;
-		if (p->TrackPoll > TRACK_POLL) {
+		if (p->TrackPoll >= TRACK_POLL) {
 			p->TrackPoll = 0;
-			if (p->State != STOPPED) CastGetMediaStatus(p->CastCtx);
+			if (p->State != STOPPED) {
+				CastGetMediaStatus(p->CastCtx);
+				wakeTimer = TRACK_POLL;
+            }
 		}
 
 		if (p->State == STOPPED && p->IdleTimer != -1) {
@@ -567,7 +572,7 @@ static void *MRThread(void *args)
 				CastRelease(p->CastCtx);
 				LOG_INFO("[%p]: Idle timeout, releasing cast device", p);
 			}
-        }
+		}
 
 		pthread_mutex_unlock(&p->Mutex);
 		last = gettime_ms();
@@ -785,9 +790,8 @@ static void *MainThread(void *args)
 {
 	while (glMainRunning) {
 
-		pthread_mutex_lock(&glMainMutex);
-		pthread_cond_reltimedwait(&glMainCond, &glMainMutex, 30*1000);
-		pthread_mutex_unlock(&glMainMutex);
+		WakeableSleep(30*1000);
+		if (!glMainRunning) break;
 
 		if (glLogFile && glLogLimit != - 1) {
 			u32_t size = ftell(stderr);
@@ -946,10 +950,9 @@ static bool Start(void)
 	LOG_INFO("Binding to %s:%d", IPaddr, Port);
 
 	// init mutex & cond no matter what
-	pthread_mutex_init(&glMainMutex, 0);
-	pthread_cond_init(&glMainCond, 0);
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
+	InitUtils();
 	InitSSL();
 
 	/* start the mDNS devices discovery thread */
@@ -984,14 +987,14 @@ static bool Stop(void)
 	LOG_INFO("stopping Cast devices ...", NULL);
 	FlushCastDevices();
 
+	WakeAll();
+
 	LOG_DEBUG("terminate main thread ...", NULL);
-	pthread_cond_signal(&glMainCond);
 	pthread_join(glMainThread, NULL);
-	pthread_mutex_destroy(&glMainMutex);
-	pthread_cond_destroy(&glMainCond);
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_destroy(&glMRDevices[i].Mutex);
 
 	EndSSL();
+	EndUtils();
 
 	if (glConfigID) ixmlDocument_free(glConfigID);
 

@@ -44,6 +44,23 @@ extern log_level	cast_loglevel;
 /*----------------------------------------------------------------------------*/
 extern log_level 	util_loglevel;
 static log_level 	*loglevel = &util_loglevel;
+static pthread_mutex_t	wakeMutex;
+static pthread_cond_t	wakeCond;
+
+
+/*----------------------------------------------------------------------------*/
+void InitUtils(void) {
+	pthread_mutex_init(&wakeMutex, 0);
+	pthread_cond_init(&wakeCond, 0);
+}
+
+
+/*----------------------------------------------------------------------------*/
+void EndUtils(void) {
+	pthread_mutex_destroy(&wakeMutex);
+	pthread_cond_destroy(&wakeCond);
+}
+
 
 #if WIN
 /*----------------------------------------------------------------------------*/
@@ -64,6 +81,34 @@ void winsock_close(void) {
 }
 #endif
 
+
+/*----------------------------------------------------------------------------*/
+/* 																			  */
+/* system-wide sleep & wakeup												  */
+/* 																			  */
+/*----------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------*/
+void WakeableSleep(u32_t ms) {
+	pthread_mutex_lock(&wakeMutex);
+	if (ms) pthread_cond_reltimedwait(&wakeCond, &wakeMutex, ms);
+	else pthread_cond_wait(&wakeCond, &wakeMutex);
+	pthread_mutex_unlock(&wakeMutex);
+}
+
+/*----------------------------------------------------------------------------*/
+void WakeAll(void) {
+	pthread_mutex_lock(&wakeMutex);
+	pthread_cond_broadcast(&wakeCond);
+	pthread_mutex_unlock(&wakeMutex);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* 																			  */
+/* pthread utils															  */
+/* 																			  */
+/*----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
 int pthread_cond_reltimedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, u32_t msWait)

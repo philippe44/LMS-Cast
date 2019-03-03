@@ -198,8 +198,8 @@
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_VOLUMEMGMT" desc="PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC" %]
 		[% "PLUGIN_CASTBRIDGE_VOLUMEONPLAY" | string %]&nbsp<select class="stdedit" name="volume_on_play" id="volume_on_play">
-		[% FOREACH entry IN [ ['',''], ['ignore all changes','-1'], ['transparent forward','0'] ['only when playing','1'] ] %]
-			<option [% IF entry.1 == volume_on_play %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
+		[% FOREACH entry IN [ ['',''], ['PLUGIN_CASTBRIDGE_VOLUMEWHENPLAYING','1'], ['PLUGIN_CASTBRIDGE_VOLUMEIGNORE','-1'], ['PLUGIN_CASTBRIDGE_VOLUMEFORWARD','0'] ] %]
+			<option [% IF entry.1 == volume_on_play %]selected[% END %] value="[% entry.1 %]">[% entry.0 | string %]</option>
 		[% END %]
 		</select>
 		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_MEDIAVOLUME" | string %]
