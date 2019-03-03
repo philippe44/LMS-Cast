@@ -481,7 +481,7 @@ static void *MRThread(void *args)
 			break;
 		}
 
-		LOG_INFO("[%p]: Cast thread timer %d %d", p, elapsed, wakeTimer);
+		LOG_SDEBUG("[%p]: Cast thread timer %d %d", p, elapsed, wakeTimer);
 
 		// a message has been received
 		if (data) {
