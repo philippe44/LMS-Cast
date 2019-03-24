@@ -739,7 +739,10 @@ static void slimproto_run(struct thread_ctx_s *ctx) {
 					ctx->status.stream_state == STREAMING_FILE) {
 					_stream_disconnect = true;
 				}
-
+				// remote party closed the connection while still streaming
+				if (_sendSTMu) {
+					LOG_WARN("[%p]: stream closed before end of track (%d/%d)", ctx, ctx->status.ms_played, ctx->status.duration);
+				}
 			}
 
 			UNLOCK_D;
@@ -992,6 +995,13 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 
 	// get metadata - they must be freed by callee whenever he wants
 	sq_get_metadata(ctx->self, &info.metadata, info.offset);
+
+	// skip tracks that are too short
+	if (info.offset && info.metadata.duration && info.metadata.duration < SHORT_TRACK) {
+		LOG_WARN("[%p]: track too short (%d)", ctx, info.metadata.duration);
+		sq_free_metadata(&info.metadata);
+		return false;
+	}
 
 	// set key parameters
 	out->completed = false;
