@@ -40,6 +40,8 @@ decoder is running at that time
 #include "squeezelite.h"
 #include "slimproto.h"
 
+#define SHORT_TRACK	(2*1000)
+
 #define PORT 3483
 #define MAXBUF 4096
 
@@ -728,7 +730,7 @@ static void slimproto_run(struct thread_ctx_s *ctx) {
 			if ((ctx->decode.state == DECODE_COMPLETE && ctx->canSTMdu && ctx->status.output_ready &&
 				(ctx->output.encode.flow || !ctx->output.remote ||
 				 (ctx->status.duration && ctx->status.duration - ctx->status.ms_played < STREAM_DELAY))) ||
-				ctx->decode.state == DECODE_ERROR) {
+				ctx->decode.state == DECODE_ERROR || _sendSTMu) {
 
 				if (ctx->decode.state == DECODE_COMPLETE) _sendSTMd = true;
 				if (ctx->decode.state == DECODE_ERROR)    _sendSTMn = true;

@@ -41,6 +41,8 @@
 #define DISCOVERY_TIME 	20
 #define MAX_IDLE_TIME	(30*1000)
 
+#define SHORT_TRACK		(10*1000)
+
 /*----------------------------------------------------------------------------*/
 /* globals 																	  */
 /*----------------------------------------------------------------------------*/
@@ -279,22 +281,33 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 					p->metadata.artwork ? p->metadata.artwork : "", p->offset);
 
 			if (p->offset) {
-				// to know what is expected next
-				strcpy(Device->NextMime, p->mimetype);
-				// this is a structure copy, pointers remains valid
-				Device->NextMetaData = p->metadata;
-				Device->NextURI = strdup(p->uri);
-				LOG_INFO("[%p]: next URI %s", Device, Device->NextURI);
+				if (Device->State == STOPPED) {
+					// could not get next URI before track stopped, restart
+					Device->ShortTrackWait = 0;
+					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
+					CastPlay(Device->CastCtx);
+#if !defined(REPOS_TIME)
+					Device->StartTime = 0;
+#endif
+					sq_free_metadata(&p->metadata);
+					LOG_WARN("[%p]: next URI (stopped) (s:%u) %s", Device, Device->ShortTrack, p->uri);
+				 } else {
+					strcpy(Device->NextMime, p->mimetype);
+					// this is a structure copy, pointers remains valid
+					Device->NextMetaData = p->metadata;
+					Device->NextURI = strdup(p->uri);
+					LOG_INFO("[%p]: next URI (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
+				 }
 			} else {
-				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (
-							  Device->Config.SendMetaData) ? &p->metadata : NULL);
+				if (p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
+				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
 #if !defined(REPOS_TIME)
 				Device->StartTime = sq_get_time(Device->SqueezeHandle);
 #endif
 				sq_free_metadata(&p->metadata);
-				LOG_INFO("[%p]: current URI %s", Device, p->uri);
+				LOG_INFO("[%p]: current URI (s:%u) %s", Device, Device->ShortTrack, p->uri);
 			}
- 			break;
+			break;
 		}
 		case SQ_UNPAUSE:
 			// got it, don't need to send it more than once ...
@@ -322,6 +335,8 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			NFREE(Device->NextURI);
 			sq_free_metadata(&Device->NextMetaData);
 			Device->sqState = action;
+			Device->ShortTrack = false;
+			Device->ShortTrackWait = 0;
 			break;
 		case SQ_PAUSE:
 			CastPause(Device->CastCtx);
@@ -388,18 +403,25 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 		LOG_INFO("[%p]: Cast stop", Device);
 		if (Device->NextURI) {
 			// fake a "SETURI" and a "PLAY" request
+			if (Device->NextMetaData.duration < SHORT_TRACK) Device->ShortTrack = true;
+			else Device->ShortTrack = false;
+
 			CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime,
 					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL);
 
 			CastPlay(Device->CastCtx);
 
-			LOG_INFO("[%p]: gapped transition %s", Device, Device->NextURI);
+			LOG_INFO("[%p]: gapped transition (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
 
 			sq_free_metadata(&Device->NextMetaData);
 			NFREE(Device->NextURI);
 #if !defined(REPOS_TIME)
 			Device->StartTime = 0;
 #endif
+		} else if (Device->ShortTrack) {
+			// might not even have received next LMS's request, wait a bit
+			Device->ShortTrackWait = 5000;
+			LOG_WARN("[%p]: stop on short track (wait %hd ms for next URI)", Device, Device->ShortTrackWait);
 		} else {
 			// Can be a user stop, an error or a normal stop
 			Event = SQ_STOP;
@@ -465,7 +487,8 @@ static void *MRThread(void *args)
 		double Volume = -1;
 		int wakeTimer;
 
-		if (p->State == STOPPED && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
+		if (p->ShortTrack) wakeTimer = TRACK_POLL / 4;
+		else if (p->State == STOPPED && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
 		else wakeTimer = TRACK_POLL;
 
 		// context is valid until this thread ends, no deletion issue
@@ -530,8 +553,11 @@ static void *MRThread(void *args)
 					sq_notify(p->SqueezeHandle, p, SQ_TIME, NULL, &elapsed);
 				}
 
-				url = GetMediaInfoItem_S(data, 0, "contentId");
-				if (url) sq_notify(p->SqueezeHandle, p, SQ_TRACK_INFO, NULL, (void*) url);
+				// LOAD sets the url but we should wait till we are PLAYING
+				if (p->State == PLAYING) {
+					url = GetMediaInfoItem_S(data, 0, "contentId");
+					if (url) sq_notify(p->SqueezeHandle, p, SQ_TRACK_INFO, NULL, (void*) url);
+				}
 
 			}
 
@@ -560,6 +586,12 @@ static void *MRThread(void *args)
 			json_decref(data);
 		}
 
+		// was just waiting for a short track to end
+		if (p->ShortTrackWait > 0 && ((p->ShortTrackWait -= elapsed) < 0)) {
+			LOG_WARN("[%p]: stopping on short track timeout", p);
+			p->ShortTrack = false;
+			sq_notify(p->SqueezeHandle, p, SQ_STOP, NULL, &p->ShortTrack);
+		}
 
 		// get track position & CurrentURI
 		p->TrackPoll += elapsed;

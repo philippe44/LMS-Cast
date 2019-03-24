@@ -71,6 +71,8 @@ struct sMR {
 	char*			NextURI;
 	char			NextMime[_STR_LEN_];
 	metadata_t		NextMetaData;
+	bool			ShortTrack;
+	s16_t			ShortTrackWait;
 	sq_action_t		sqState;
 	u32_t			sqStamp;
 #if !defined(REPOS_TIME)
