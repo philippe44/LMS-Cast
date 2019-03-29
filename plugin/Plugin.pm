@@ -10,6 +10,8 @@ use base qw(Slim::Plugin::Base);
 use Slim::Utils::Prefs;
 use Slim::Utils::Log;
 
+use Plugins::CastBridge::Queries;
+
 my $prefs = preferences('plugin.castbridge');
 
 $prefs->init({ autorun => 0, opts => '', debugs => '', logging => 0, bin => undef, configfile => "castbridge.xml", profilesURL => initProfilesURL(), autosave => 1, eraselog => 0});
@@ -24,6 +26,8 @@ sub initPlugin {
 	my $class = shift;
 
 	$class->SUPER::initPlugin(@_);
+	
+	Plugins::CastBridge::Queries::initQueries();
 		
 	require Plugins::CastBridge::Squeeze2cast;		
 	
