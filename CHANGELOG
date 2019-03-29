@@ -8,7 +8,8 @@
  - (3) add repeatingstream option
  - (3) when url is missing fqdn, test "http" instead of IMAGE_PROXY and do not replace .png by .jpg
  - (3) remove superfluous send_icy_metadata
- - (3) if STMu is received when Stmd not sent yet but should have, flush player and ignore STMu (this should trigger restart hopefully)
+ - (3) if STMu is received when STMd not sent yet but should have, flush player and ignore STMu (this should trigger restart hopefully)
+ - (3) undo right above mod as it's player's duty to restart
  
 1.10.0
  - move all strings from basic.html to strings<.txt
