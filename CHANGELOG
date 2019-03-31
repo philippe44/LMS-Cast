@@ -10,6 +10,9 @@
  - (3) remove superfluous send_icy_metadata
  - (3) if STMu is received when STMd not sent yet but should have, flush player and ignore STMu (this should trigger restart hopefully)
  - (3) undo right above mod as it's player's duty to restart
+ - (4) do not use the "repeating" metadata gathering for icy update (add -1 as offest option)
+ - (4) remove SQ_SEEK in both domain as it's not used
+ - (4) HTTP 2 sockets backport from UPnP version (should have no impact here)
  
 1.10.0
  - move all strings from basic.html to strings<.txt

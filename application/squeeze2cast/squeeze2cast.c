@@ -345,8 +345,6 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			break;
 		case SQ_NEXT:
 			break;
-		case SQ_SEEK:
-			break;
 		case SQ_VOLUME: {
 			u16_t Volume = *(u16_t*)p;
 			u32_t now = gettime_ms();
