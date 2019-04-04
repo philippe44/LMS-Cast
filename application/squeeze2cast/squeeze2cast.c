@@ -299,7 +299,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 					LOG_INFO("[%p]: next URI (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
 				 }
 			} else {
-				if (p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
+				if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
 				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
 #if !defined(REPOS_TIME)
 				Device->StartTime = sq_get_time(Device->SqueezeHandle);
@@ -401,7 +401,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 		LOG_INFO("[%p]: Cast stop", Device);
 		if (Device->NextURI) {
 			// fake a "SETURI" and a "PLAY" request
-			if (Device->NextMetaData.duration < SHORT_TRACK) Device->ShortTrack = true;
+			if (Device->NextMetaData.duration && Device->NextMetaData.duration < SHORT_TRACK) Device->ShortTrack = true;
 			else Device->ShortTrack = false;
 
 			CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime,
