@@ -3,12 +3,20 @@ package Plugins::CastBridge::Queries;
 use strict;
 
 use Slim::Utils::Log;
-use Slim::Web::ImageProxy qw(proxiedImage);
 
 my $log = logger('plugin.castbridge');
 my $statusHandler;
+my $imageProxy = 1;
 
 sub initQueries {
+	eval { 
+		require Slim::Web::ImageProxy;
+		Slim::Web::ImageProxy->import( qw(proxiedImage) );
+	};
+	if ($@) {
+		$log->error("Unable to load ImageProxy, consider moving to >7.8");
+		undef $imageProxy;
+	}
 	Slim::Control::Request::addDispatch(['repeatingsonginfo'], [1, 1, 1, \&repeatingSonginfoQuery]);
 	$statusHandler = Slim::Control::Request::addDispatch(['status', '_index', '_quantity'], [1, 1, 1, \&statusQuery]);
 }	
@@ -159,7 +167,7 @@ sub _songData {
 			}
 
 			# we might need to proxy the image request to resize it
-			if ($tag eq 'K' && $value) {
+			if ($imageProxy && $tag eq 'K' && $value) {
 				$value = proxiedImage($value);
 			}
 
