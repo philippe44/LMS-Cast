@@ -347,7 +347,6 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			break;
 		case SQ_VOLUME: {
 			u16_t Volume = *(u16_t*)p;
-			u32_t now = gettime_ms();
 			int i;
 
 			for (i = 100; Volume < LMSVolumeMap[i] && i; i--);
@@ -355,9 +354,14 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			Device->Volume = (double) i / 100;
 			LOG_INFO("Volume %d", i);
 
-			if (((Device->VolumeStamp + 1000) - now > 1000) &&
-				(!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)))
-				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
+			if (!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)) {
+				u32_t now = gettime_ms();
+
+				if (now > Device->VolumeStampRx + 1000) {
+					CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
+					Device->VolumeStampTx = now;
+				}
+			}
 
 			break;
 		}
@@ -484,6 +488,7 @@ static void *MRThread(void *args)
 	while (p->Running) {
 		double Volume = -1;
 		int wakeTimer;
+		u32_t now;
 
 		if (p->ShortTrack) wakeTimer = TRACK_POLL / 4;
 		else if (p->State == STOPPED && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
@@ -491,7 +496,8 @@ static void *MRThread(void *args)
 
 		// context is valid until this thread ends, no deletion issue
 		data = GetTimedEvent(p->CastCtx, wakeTimer);
-		elapsed = gettime_ms() - last;
+		now = gettime_ms();
+		elapsed = now - last;
 
 		// need to protect against events from CC threads, not from deletion
 		pthread_mutex_lock(&p->Mutex);
@@ -570,9 +576,9 @@ static void *MRThread(void *args)
 			}
 
 			// now apply the volume change if any
-			if (Volume != -1 && fabs(Volume - p->Volume) >= 0.01) {
+			if (Volume != -1 && fabs(Volume - p->Volume) >= 0.01 && now > p->VolumeStampTx + 1000) {
 				u16_t VolFix = Volume * 100 + 0.5;
-				p->VolumeStamp = gettime_ms();
+				p->VolumeStampRx = now;
 				LOG_INFO("[%p]: Volume local change %u (%0.4lf)", p, VolFix, Volume);
 				// candidate for busyraise/drop as it's using cli
 				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &VolFix);
@@ -876,7 +882,8 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->Running 		= true;
 	Device->sqState 		= SQ_STOP;
 	Device->State 			= STOPPED;
-	Device->VolumeStamp    	= Device->TrackPoll = 0;
+	Device->TrackPoll 		= 0;
+	Device->VolumeStampRx = Device->VolumeStampTx = gettime_ms() - 2000;
 	Device->NextMime[0]	 	= '\0';
 	Device->NextURI 		= NULL;
 	Device->Group 			= group;
