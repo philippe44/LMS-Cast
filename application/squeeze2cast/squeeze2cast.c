@@ -284,6 +284,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 				if (Device->State == STOPPED) {
 					// could not get next URI before track stopped, restart
 					Device->ShortTrackWait = 0;
+					if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
 					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
 					CastPlay(Device->CastCtx);
 #if !defined(REPOS_TIME)
