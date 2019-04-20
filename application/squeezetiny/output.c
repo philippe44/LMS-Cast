@@ -910,7 +910,7 @@ void _checkfade(bool start, struct thread_ctx_s *ctx) {
 			// max of 90% of outputbuf as we consume additional buffer during crossfade
 			bytes = min(bytes, (9 * ctx->outputbuf->size) / 10);
 			bytes = (bytes / BYTES_PER_FRAME) * BYTES_PER_FRAME;
-			LOG_INFO("[%p]: CROSSFADE: %u frames", ctx, bytes / BYTES_PER_FRAME);
+			LOG_INFO("[%p]: CROSSFADE: %u frames (%ums)", ctx, bytes / BYTES_PER_FRAME, ((bytes * 1000) / BYTES_PER_FRAME) / out->encode.sample_rate);
 			out->fade = FADE_DUE;
 			out->fade_dir = FADE_CROSS;
 			out->fade_start = ctx->outputbuf->writep - bytes;
