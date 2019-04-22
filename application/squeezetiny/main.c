@@ -369,7 +369,7 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 	// use -1 to avoid repeating stream request
 	if (offset == -1) offset = 0;
 
-	sprintf(cmd, "%s status - %d tags:xcfldatgrKNoITH", ctx->cli_id, offset + 1);
+	sprintf(cmd, "%s status - %d tags:xcfldatgrKNoITHE", ctx->cli_id, offset + 1);
 	rsp = cli_send_cmd(cmd, false, false, ctx);
 
 	if (!rsp || !*rsp) {
@@ -387,7 +387,7 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 	if (repeating) {
 		free(rsp);
 
-		sprintf(cmd, "%s repeatingsonginfo tags:xcfldatgrKNoITH", ctx->cli_id);
+		sprintf(cmd, "%s repeatingsonginfo tags:xcfldatgrKNoITHE", ctx->cli_id);
 		rsp = cli_send_cmd(cmd, false, false, ctx);
 
 		if (!rsp || !*rsp) {
@@ -469,7 +469,12 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 			free(p);
 		}
 
-		metadata->artwork = cli_find_tag(cur, "artwork_url");
+		// remote_title is present, webradio if not repeating
+		if (metadata->remote_title) {
+			if (!repeating) metadata->duration = 0;
+			metadata->artwork = cli_find_tag(cur, "browse_icon");
+		} else metadata->artwork = cli_find_tag(cur, "artwork_url");
+
 		if (!metadata->artwork || !strlen(metadata->artwork)) {
 			NFREE(metadata->artwork);
 			if ((p = cli_find_tag(cur, "coverid")) != NULL) {

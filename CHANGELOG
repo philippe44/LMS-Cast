@@ -1,3 +1,6 @@
+1.14.0
+ - add 'E' tag parameter to get the browse url
+ 
 1.13.0
  - (1) if track ends up earlier than expected and next track is short, ShortTrack was not set
  - (1) crossfade all we can at every step (don't need the whole fade buffer) and make room for process
