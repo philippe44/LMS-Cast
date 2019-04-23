@@ -877,7 +877,6 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	if (!Device->Config.Enabled) return false;
 
 	Device->Magic 			= MAGIC;
-	Device->TimeOut			= false;
 	Device->IdleTimer		= -1;
 	Device->SqueezeHandle 	= 0;
 	Device->Running 		= true;

@@ -61,32 +61,31 @@ typedef struct sMRConfig
 struct sMR {
 	u32_t Magic;
 	bool  Running;
-	u32_t Expired;
 	tMRConfig Config;
 	sq_dev_param_t	sq_config;
 	bool on;
 	char UDN			[RESOURCE_LENGTH];
 	char FriendlyName	[RESOURCE_LENGTH];
 	enum eMRstate 	State;
-	char*			NextURI;
-	char			NextMime[_STR_LEN_];
-	metadata_t		NextMetaData;
-	bool			ShortTrack;
-	s16_t			ShortTrackWait;
+	char*			NextURI;				// gapped next URI
+	char			NextMime[_STR_LEN_];    // gapped next mimetype
+	metadata_t		NextMetaData;           // gapped next metadata
+	bool			ShortTrack;				// current or next track is short
+	s16_t			ShortTrackWait;			// stop timeout when short track is last track
 	sq_action_t		sqState;
-	u32_t			sqStamp;
+	u32_t			sqStamp;				// timestamp of slimproto state change to filter fast pause/play
 #if !defined(REPOS_TIME)
-	u32_t			StartTime;
+	u32_t			StartTime;				//	flac reposition issue (offset)
 #endif
-	unsigned		TrackPoll;
-	bool			TimeOut;
-	s32_t			IdleTimer;
+	u32_t			TrackPoll;
+	s32_t			IdleTimer;				// idle timer to disconnect SSL connection
+	u32_t 			Expired;				// timestamp when device was missing (used to keep it for a while)
 	int	 			SqueezeHandle;
 	void*			CastCtx;
 	pthread_mutex_t Mutex;
 	pthread_t 		Thread;
 	double			Volume;
-	u32_t			VolumeStampRx, VolumeStampTx;
+	u32_t			VolumeStampRx, VolumeStampTx;	// timestamps to filter volume loopbacks
 	bool			Group;
 	struct sGroupMember {
 		struct sGroupMember	*Next;
