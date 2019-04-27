@@ -1,3 +1,6 @@
+1.15.0
+ - add SSL support
+
 1.14.1
  - remove some unsued variables in main context
 

@@ -24,9 +24,11 @@
 #include <sys/stat.h>
 
 #include "squeezedefs.h"
+
 #if WIN
 #include <process.h>
 #endif
+
 #include "squeeze2cast.h"
 #include "upnpdebug.h"
 #include "upnptools.h"
@@ -187,6 +189,9 @@ static char usage[] =
 #endif
 #if CODECS
 		   " CODECS"
+#endif
+#if USE_SSL
+		   " SSL"
 #endif
 #if LINKALL
 		   " LINKALL"
