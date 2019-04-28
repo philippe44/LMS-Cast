@@ -881,6 +881,9 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	LoadMRConfig(glConfigID, UDN, &Device->Config, &Device->sq_config);
 	if (!Device->Config.Enabled) return false;
 
+	delta_options(glDeviceParam.codecs, Device->sq_config.codecs);
+	delta_options(glDeviceParam.raw_audio_format, Device->sq_config.raw_audio_format);
+
 	Device->Magic 			= MAGIC;
 	Device->IdleTimer		= -1;
 	Device->SqueezeHandle 	= 0;
