@@ -778,7 +778,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 
 		// if model is a group
 		Model = GetmDNSAttribute(s->attr, s->attr_count, "md");
-		if (Model && !stristr(Model, "Group")) Group = false;
+		if (Model && !strcasestr(Model, "Group")) Group = false;
 		else Group = true;
 		NFREE(Model);
 
