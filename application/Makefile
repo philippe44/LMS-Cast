@@ -56,13 +56,13 @@ SOURCES = slimproto.c buffer.c tinyutils.c output_http.c main.c \
 		  hashtable_seed.c load.c memory.c pack_unpack.c strbuffer.c utf.c value.c \
 	  	  mdnssd-min.c
 		
-SOURCES_LIBS = flac.c mad.c faad.c vorbis.c output.c
+SOURCES_LIBS = flac.c mad.c faad.c vorbis.c output.c sslsym.c
 		
 OBJECTS 		= $(patsubst %.c,$(OBJ)/%.o,$(filter %.c,$(SOURCES))) $(patsubst %.cpp,$(OBJ)/%.o,$(filter %.cpp,$(SOURCES))) $(patsubst %.c,$(OBJ)/%.o,$(SOURCES_LIBS)) 
 OBJECTS_STATIC 	= $(patsubst %.c,$(OBJ)/%.o,$(filter %.c,$(SOURCES))) $(patsubst %.cpp,$(OBJ)/%.o,$(filter %.cpp,$(SOURCES))) $(patsubst %.c,$(OBJ)/%-static.o,$(SOURCES_LIBS)) 
 
 LIBRARY 	= $(OBJ)/libixml.a $(OBJ)/libsoxr.a $(OBJ)/libshine.a
-LIBRARY_STATIC 	= $(LIBRARY) $(OBJ)/libfaad.a $(OBJ)/libFLAC.a $(OBJ)/libmad.a $(OBJ)/libvorbisfile.a $(OBJ)/libvorbis.a $(OBJ)/libogg.a 
+LIBRARY_STATIC 	= $(LIBRARY) $(OBJ)/libfaad.a $(OBJ)/libFLAC.a $(OBJ)/libmad.a $(OBJ)/libvorbisfile.a $(OBJ)/libvorbis.a $(OBJ)/libogg.a -lssl -lcrypto
 
 all: $(EXECUTABLE) $(EXECUTABLE_STATIC)
 

@@ -39,6 +39,7 @@
 #include "castitf.h"
 #include "cast_parse.h"
 #include "mdnssd-itf.h"
+#include "sslsym.h"
 
 #define DISCOVERY_TIME 	20
 #define MAX_IDLE_TIME	(30*1000)
@@ -982,6 +983,12 @@ static bool Start(void)
 	unsigned Port = 0;
 	int i;
 
+	// manually load openSSL symbols to accept multiple versions
+	if (!load_ssl_symbols()) {
+		LOG_ERROR("Cannot load SSL libraries", NULL);
+		return false;
+	}
+
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
@@ -1053,6 +1060,8 @@ static bool Stop(void)
 #if WIN
 	winsock_close();
 #endif
+
+	free_ssl_symbols();
 
 	return true;
 }
