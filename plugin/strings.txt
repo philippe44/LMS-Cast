@@ -241,7 +241,7 @@ PLUGIN_CASTBRIDGE_MDNSMGMT_DESC
 	EN	<br>- For the default list newly discovered players can be automatically added to LMS 
 	EN	<br>– For individual players a player can be enabled or disabled
 	EN	<br>- Force LMS server (? for auto-discovery)
-	EN	<br>- Remove timeout sets the time (ms) to keep a player in LMS after is has disconnected (-1 = never, 0 = automatic)
+	EN	<br>- Remove timeout sets the time (s) to keep a player in LMS after is has disconnected (-1 = never, 0 = automatic)
 
 PLUGIN_CASTBRIDGE_ENABLEDEFS
 	EN	Player is enabled

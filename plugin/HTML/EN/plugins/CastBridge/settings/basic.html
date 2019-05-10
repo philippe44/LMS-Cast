@@ -50,7 +50,7 @@
 		&nbsp<input name="delconfig" type="submit" value=[% "PLUGIN_CASTBRIDGE_DELCONFIG" | string %]>
 	[% END %]
 	
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_UPNPSOCKET" desc="PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC" %]
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CASTUPNPSOCKET" desc="PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC" %]
 		<input [% IF useLMSsocket || !xmlparams %] disabled [% END %] type="text" class="stdedit" name="upnp_socket" id="upnp_socket" value="[% upnp_socket %]" size="20">
 		&nbsp<input name="useLMSsocket" type="checkbox" [% IF useLMSsocket %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_USELMSSOCKET" | string %]
 	[% END %]
@@ -192,7 +192,7 @@
 			<option [% IF entry.1 == enabled %]selected[% END %] value="[% entry.1 %]">[% entry.0 | string %]</option>
 		[% END %]
 		</select>
-		&nbsp&nbsp[% "PLUGIN_RAOPBRIDGE_REMOVETIMEOUT" | string %]
+		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_REMOVETIMEOUT" | string %]
 		<input type="text" class="stdedit" name="remove_timeout" id="remove_timeout" value="[% remove_timeout %]" size="2">
 	[% END %]
 	

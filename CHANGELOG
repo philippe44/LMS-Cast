@@ -1,3 +1,8 @@
+1.18.0
+ - align with UPnP version
+ - minor correction in basic.html (RAOP identifier)
+ - (P) return if query is missing client
+ 
 1.17.0
  - openSSL loaded manually for compatibility 
  
