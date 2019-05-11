@@ -1262,9 +1262,8 @@ int main(int argc, char *argv[])
 	}
 
 	if (!Start()) {
-
-		LOG_ERROR("Cannot start uPnP", NULL);
-		strcpy(resp, "exit");
+		LOG_ERROR("Cannot start, exiting", NULL);
+		exit(0);
 	}
 
 	while (strcmp(resp, "exit")) {
