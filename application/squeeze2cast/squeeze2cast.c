@@ -1069,6 +1069,15 @@ static bool Stop(void)
 /*---------------------------------------------------------------------------*/
 static void sighandler(int signum) {
 	int i;
+	static bool quit = false;
+
+	// give it some time to finish ...
+	if (quit) {
+		LOG_INFO("Please wait for clean exit!", NULL);
+		return;
+	}
+
+	quit = true;
 
 	if (!glGracefullShutdown) {
 		for (i = 0; i < MAX_RENDERERS; i++) {
