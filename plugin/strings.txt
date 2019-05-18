@@ -136,13 +136,13 @@ PLUGIN_CASTBRIDGE_AUTOSAVECONFIG
 PLUGIN_CASTBRIDGE_DELCONFIG
 	EN	Erase
 	
-PLUGIN_CASTBRIDGE_UPNPSOCKET
+PLUGIN_CASTBRIDGE_SOCKET
 	EN	Network socket to use
 	
 PLUGIN_CASTBRIDGE_USELMSSOCKET
 	EN	Use LMS' network interface
 
-PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC
+PLUGIN_CASTBRIDGE_SOCKET_DESC
 	EN	The socket (IP:port) used by the bridge. This is especially useful if you have a computer with multiple network interfaces.
 	EN	Use "?" (without ") to let the bridge decide or check "use LMS' network interface" to make sure the Bridge uses the same
 	EN	network as LMS

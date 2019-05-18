@@ -50,7 +50,7 @@
 		&nbsp<input name="delconfig" type="submit" value=[% "PLUGIN_CASTBRIDGE_DELCONFIG" | string %]>
 	[% END %]
 	
-	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CASTUPNPSOCKET" desc="PLUGIN_CASTBRIDGE_UPNPSOCKET_DESC" %]
+	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_SOCKET" desc="PLUGIN_CASTBRIDGE_SOCKET_DESC" %]
 		<input [% IF useLMSsocket || !xmlparams %] disabled [% END %] type="text" class="stdedit" name="upnp_socket" id="upnp_socket" value="[% upnp_socket %]" size="20">
 		&nbsp<input name="useLMSsocket" type="checkbox" [% IF useLMSsocket %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_USELMSSOCKET" | string %]
 	[% END %]
