@@ -1,3 +1,8 @@
+1.18.3
+ - (P) socket string correction
+ - loopack option
+ - free_ssl_symbol() does not do anything when LINAKLL set to avoid dlclose() link error
+ 
 1.18.2
  - do nothing in sighandler when already stopping threads
  
