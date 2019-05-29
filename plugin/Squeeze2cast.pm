@@ -23,25 +23,25 @@ sub binaries {
 	if ($os->{'os'} eq 'Linux') {
 
 		if ($os->{'osArch'} =~ /x86_64/) {
-			return qw(squeeze2cast-x86-64 squeeze2cast-x86-64-static);
+			return qw(squeeze2cast-x86-64-static squeeze2cast-x86-64);
 		}
 		if ($os->{'binArch'} =~ /i386/) {
-			return qw(squeeze2cast-x86 squeeze2cast-x86-static);
+			return qw(squeeze2cast-x86-static squeeze2cast-x86);
 		}
 		if ($os->{'osArch'} =~ /aarch64/) {
-			return qw(squeeze2cast-aarch64 squeeze2cast-aarch64_static squeeze2cast-armv6hf squeeze2cast-armv6hf-static);
+			return qw( squeeze2cast-aarch64_static squeeze2cast-aarch64 squeeze2cast-armv6hf-static squeeze2cast-armv6hf);
 		}
 		if ($os->{'binArch'} =~ /armhf/) {
-			return qw(squeeze2cast-armv6hf squeeze2cast-armv6hf-static);
+			return qw(squeeze2cast-armv6hf-static squeeze2cast-armv6hf);
 		}
 		if ($os->{'binArch'} =~ /arm/) {
-			return qw(squeeze2cast-armv5te squeeze2cast-armv5te-static);
+			return qw(squeeze2cast-armv5te-static squeeze2cast-armv5te);
 		}
 		if ($os->{'binArch'} =~ /powerpc/) {
-			return qw(squeeze2cast-ppc squeeze2cast-ppc-static);
+			return qw(squeeze2cast-ppc-static squeeze2cast-ppc);
 		}
 		if ($os->{'binArch'} =~ /sparc/) {
-			return qw(squeeze2cast-sparc squeeze2cast-sparc-static);
+			return qw(squeeze2cast-sparc-static squeeze2cast-sparc);
 		}
 		
 		# fallback to offering all linux options for case when architecture detection does not work
@@ -50,22 +50,12 @@ sub binaries {
 	}
 	
 	if ($os->{'os'} eq 'Darwin') {
-		return qw(squeeze2cast-osx-multi squeeze2cast-osx-multi-static);
+		return qw(squeeze2cast-osx-multi-static squeeze2cast-osx-multi);
 	}
 	
 	if ($os->{'os'} eq 'Windows') {
 		return qw(squeeze2cast-win.exe);
 	}	
-	
-=comment	
-		if ($os->{'isWin6+'} ne '') {
-			return qw(squeeze2cast-win.exe);
-		} else {
-			return qw(squeeze2cast-winxp.exe);
-		}	
-	}
-=cut	
-	
 }
 
 sub bin {
