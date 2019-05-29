@@ -62,6 +62,11 @@
 #define USE_SSL 0
 #endif
 
+#if defined(LOOPBACK)
+#undef LOOPBACK
+#define LOOPBACK 1
+#endif
+
 #if LINUX || OSX || FREEBSD
 #include <sys/types.h>
 #include <unistd.h>
