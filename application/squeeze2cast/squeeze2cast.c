@@ -73,18 +73,18 @@ tMRConfig			glMRConfig = {
 							0,		// remove_timeout
 					};
 
-static u8_t LMSVolumeMap[101] = {
-				0, 1, 1, 1, 2, 2, 2, 3,  3,  4,
-				5, 5, 6, 6, 7, 8, 9, 9, 10, 11,
-				12, 13, 14, 15, 16, 16, 17, 18, 19, 20,
-				22, 23, 24, 25, 26, 27, 28, 29, 30, 32,
-				33, 34, 35, 37, 38, 39, 40, 42, 43, 44,
-				46, 47, 48, 50, 51, 53, 54, 56, 57, 59,
-				60, 61, 63, 65, 66, 68, 69, 71, 72, 74,
-				75, 77, 79, 80, 82, 84, 85, 87, 89, 90,
-				92, 94, 96, 97, 99, 101, 103, 104, 106, 108, 110,
-				112, 113, 115, 117, 119, 121, 123, 125, 127, 128
-			};
+static u8_t LMSVolumeMap[129] = {
+			100, 99, 98, 97, 96, 96, 95, 95, 94, 94, 93, 93, 92, 92,
+			91, 91, 90, 89, 89, 88, 88, 87, 87, 86, 86, 85, 84, 84,
+			83, 83, 82, 82, 81, 80, 80, 79, 79, 78, 78, 77, 76, 76,
+			75, 75, 74, 73, 73, 72, 72, 71, 70, 70, 69, 69, 68,
+			67, 67, 66, 65, 65, 64, 63, 63, 62, 61, 61, 60, 60, 59,
+			58, 57, 57, 56, 55, 55, 54, 53, 53, 52, 51, 51, 50, 49,
+			48, 48, 47, 46, 45, 45, 44, 43, 42, 41, 41, 40, 39, 38,
+			37, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 28, 27, 26,
+			25, 24, 22, 21, 20, 19, 18, 17, 16, 14, 13, 12, 10, 8,
+			7, 6, 3, 0
+		};
 
 sq_dev_param_t glDeviceParam = {
 					HTTP_NO_LENGTH, 	 		// stream_length
@@ -356,13 +356,8 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 		case SQ_NEXT:
 			break;
 		case SQ_VOLUME: {
-			u16_t Volume = *(u16_t*)p;
-			int i;
-
-			for (i = 100; Volume < LMSVolumeMap[i] && i; i--);
-
-			Device->Volume = (double) i / 100;
-			LOG_INFO("Volume %d", i);
+			Device->Volume = (double) LMSVolumeMap[*(u16_t*)p] / 100;
+			LOG_INFO("Volume %d", (int) Device->Volume);
 
 			if (!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)) {
 				u32_t now = gettime_ms();
