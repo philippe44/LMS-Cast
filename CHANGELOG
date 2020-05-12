@@ -1,3 +1,6 @@
+1.22.0
+ - Forward Google player name change to LMS except when LMS has set a different name
+ 
 1.21.1
  - clear SSL context on shutdown
 

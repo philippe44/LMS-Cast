@@ -130,6 +130,7 @@ static bool					glDaemonize = false;
 #endif
 static bool					glMainRunning = true;
 static pthread_t 			glMainThread, glmDNSsearchThread;
+static pthread_mutex_t 		glUpdateMutex;
 static struct mDNShandle_s	*glmDNSsearchHandle = NULL;
 static char					*glLogFile;
 static bool					glDiscovery = false;
@@ -372,6 +373,11 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 		}
 		case SQ_SETNAME:
 			strcpy(Device->sq_config.name, param);
+			 if (glAutoSaveConfigFile) {
+				pthread_mutex_lock(&glUpdateMutex);
+				SaveConfig(glConfigName, glConfigID, false);
+				pthread_mutex_unlock(&glUpdateMutex);
+			}
 			break;
 		case SQ_SETSERVER:
 			strcpy(Device->sq_config.set_server, inet_ntoa(*(struct in_addr*) param));
@@ -740,6 +746,8 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 				}
 			// device update - when playing ChromeCast update their TXT records
 			} else {
+				char *Name = GetmDNSAttribute(s->attr, s->attr_count, "fn");
+
 				// new master in election, update and put it in the queue
 				if (Device->Group && Device->GroupMaster->Host.s_addr != s->addr.s_addr) {
 					struct sGroupMember *Member = calloc(1, sizeof(struct sGroupMember));
@@ -751,6 +759,20 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 				if (UpdateCastDevice(Device->CastCtx, s->addr, s->port)) {
 					LOG_INFO("[%p]: refreshing renderer (%s)", Device, Device->FriendlyName);
 				}
+
+				// update Device name if needed
+				if (Name && strcmp(Name, Device->FriendlyName)) {
+					// only update if LMS has not set its own name
+					if (!strcmp(Device->sq_config.name, Device->FriendlyName)) {
+						// by notifying LMS, we'll get an update later
+						sq_notify(Device->SqueezeHandle, Device, SQ_SETNAME, NULL, Name);
+					}
+
+					LOG_INFO("[%p]: Name update %s => %s (LMS:%s)", Device, Device->FriendlyName, Name, Device->sq_config.name);
+					strcpy(Device->FriendlyName, Name);
+				}
+				NFREE(Name);
+
 			}
 			NFREE(UDN);
 			continue;
@@ -812,9 +834,10 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 	}
 
 	if (glAutoSaveConfigFile || glDiscovery) {
-
+		pthread_mutex_lock(&glUpdateMutex);
 		LOG_DEBUG("Updating configuration %s", glConfigName);
 		SaveConfig(glConfigName, glConfigID, false);
+		pthread_mutex_unlock(&glUpdateMutex);
 	}
 
 	// we have not released the slist
@@ -1018,6 +1041,7 @@ static bool Start(void)
 		return false;
 	}
 
+	pthread_mutex_init(&glUpdateMutex, 0);
 	pthread_create(&glmDNSsearchThread, NULL, &mDNSsearchThread, NULL);
 
 	/* start the main thread */
@@ -1040,6 +1064,7 @@ static bool Stop(void)
 	// this forces an ongoing search to end
 	close_mDNS(glmDNSsearchHandle);
 	pthread_join(glmDNSsearchThread, NULL);
+	pthread_mutex_destroy(&glUpdateMutex);
 
 	LOG_INFO("stopping Cast devices ...", NULL);
 	FlushCastDevices();
