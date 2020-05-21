@@ -91,7 +91,7 @@ sq_dev_param_t glDeviceParam = {
 					 // both are multiple of 3*4(2) for buffer alignement on sample
 					STREAMBUF_SIZE,			// stream_buffer_size
 					OUTPUTBUF_SIZE,			// output_buffer_size
-					"aac,ogg,ops,flc,aif,pcm,mp3",		// codecs
+					"aac,ogg,ops,ogf,flc,aif,pcm,mp3",		// codecs
 					"thru",					// encode
 					"wav",					// raw_audio_format
 					"?",                    // server
@@ -705,7 +705,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 		char *UDN = NULL, *Name = NULL;
 		char *Model;
 		bool Group;
-		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", "audio/ogg;codecs=opus", NULL };
+		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", "audio/ogg;codecs=opus", "audio/ogg;codecs=flac", NULL };
 
 		// is the mDNS record usable announce made by other CC on behalf
 		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL ||
