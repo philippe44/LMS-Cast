@@ -86,7 +86,6 @@ int SendARP(in_addr_t src, in_addr_t dst, u8_t mac[], unsigned long *size);
 char *strlwr(char *str);
 #define _random(x) random()
 char *GetTempPath(u16_t size, char *path);
-int asprintf(char **strp, const char *fmt, ...);
 #define S_ADDR(X) X.s_addr
 
 #endif
