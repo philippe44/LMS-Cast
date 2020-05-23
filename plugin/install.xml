@@ -9,7 +9,7 @@
   <optionsURL>plugins/CastBridge/settings/basic.html</optionsURL>
   <defaultState>enabled</defaultState>
   <creator>Philippe</creator>
-  <version>1.30.0</version>
+  <version>1.31.0</version>
   <name>PLUGIN_CASTBRIDGE</name>
   <description>PLUGIN_CASTBRIDGE_DESC</description>
   <module>Plugins::CastBridge::Plugin</module>

@@ -46,6 +46,8 @@
 
 #define SHORT_TRACK		(10*1000)
 
+#define MODEL_NAME_STRING	"CastBridge"
+
 /*----------------------------------------------------------------------------*/
 /* globals 																	  */
 /*----------------------------------------------------------------------------*/
@@ -140,6 +142,7 @@ static char					*glPidFile = NULL;
 static bool					glGracefullShutdown = true;
 static void					*glConfigID = NULL;
 static char					glConfigName[_STR_LEN_] = "./config.xml";
+static char					glModelName[_STR_LEN_] = MODEL_NAME_STRING;
 
 static char usage[] =
 
@@ -154,6 +157,7 @@ static char usage[] =
 		   "  -f <logfile>\t\tWrite debug to logfile\n"
 		   "  -p <pid file>\t\twrite PID in file\n"
 		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|slimmain|stream|decode|output|main|util|cast, level: error|warn|info|debug|sdebug\n"
+		   "  -M <modelname>\tSet the squeezelite player model name sent to the server (default: " MODEL_NAME_STRING ")\n"
 #if LINUX || FREEBSD
 		   "  -z \t\t\tDaemonize\n"
 #endif
@@ -1025,7 +1029,7 @@ static bool Start(void)
 	if (!Port) Port = HTTP_DEFAULT_PORT;
 
 	// start squeeze piece
-	sq_init(IPaddr, Port);
+	sq_init(IPaddr, Port, glModelName);
 
 	LOG_INFO("Binding to %s:%d", IPaddr, Port);
 
@@ -1132,7 +1136,7 @@ bool ParseArgs(int argc, char **argv) {
 
 	while (optind < argc && strlen(argv[optind]) >= 2 && argv[optind][0] == '-') {
 		char *opt = argv[optind] + 1;
-		if (strstr("stxdfpibc", opt) && optind < argc - 1) {
+		if (strstr("stxdfpibcM", opt) && optind < argc - 1) {
 			optarg = argv[optind + 1];
 			optind += 2;
 		} else if (strstr("tzZIk", opt)) {
@@ -1149,6 +1153,9 @@ bool ParseArgs(int argc, char **argv) {
 			break;
 		case 's':
 			strcpy(glDeviceParam.server, optarg);
+			break;
+		case 'M':
+			strcpy(glModelName, optarg);
 			break;
 		case 'b':
 			strcpy(glUPnPSocket, optarg);
