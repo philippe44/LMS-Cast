@@ -1,3 +1,6 @@
+1.40.1
+ - 'alc' was missing in default codecs list
+ 
 1.40.0
  - add 'wav' codec support
  - add WAV and AIF header parser in PCM

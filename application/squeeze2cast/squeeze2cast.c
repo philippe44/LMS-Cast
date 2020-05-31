@@ -93,7 +93,7 @@ sq_dev_param_t glDeviceParam = {
 					 // both are multiple of 3*4(2) for buffer alignement on sample
 					STREAMBUF_SIZE,			// stream_buffer_size
 					OUTPUTBUF_SIZE,			// output_buffer_size
-					"aac,ogg,ops,ogf,flc,wav,aif,pcm,mp3",		// codecs
+					"aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3",		// codecs
 					"thru",					// encode
 					"wav",					// raw_audio_format
 					"?",                    // server

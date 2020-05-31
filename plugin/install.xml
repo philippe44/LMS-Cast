@@ -9,7 +9,7 @@
   </targetApplication>
   <creator>Philippe</creator>
   <defaultState>enabled</defaultState>
-  <version>1.40.0</version>
+  <version>1.40.1</version>
   <name>PLUGIN_CASTBRIDGE</name>
   <description>PLUGIN_CASTBRIDGE_DESC</description>
   <module>Plugins::CastBridge::Plugin</module>
