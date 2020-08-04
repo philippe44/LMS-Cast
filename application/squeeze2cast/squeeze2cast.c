@@ -252,6 +252,8 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 		return false;
 	}
 
+LOG_INFO("callback for %s (%d)", Device->FriendlyName, action);
+
 	if (action == SQ_ONOFF) {
 		Device->on = *((bool*) param);
 
@@ -270,7 +272,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 		}
 	}
 
-	if (!Device->on && action != SQ_SETNAME && action != SQ_SETSERVER) {
+	if (!Device->on && action != SQ_SETNAME && action != SQ_SETSERVER && Device->sqState != SQ_PLAY) {
 		LOG_DEBUG("[%p]: device off or not controlled by LMS", caller);
 		pthread_mutex_unlock(&Device->Mutex);
 		return false;
