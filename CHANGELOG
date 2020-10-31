@@ -1,5 +1,11 @@
+1.41.0
+ - try SSL when plain fails on non 443
+ 
+1.40.8 (NP)
+ - Roon mode consistency in shared squeezetiny (unused)
+ 
 1.40.7
-- when searching for mad sync, verify that next frame is valid
+ - when searching for mad sync, verify that next frame is valid
 
 1.40.6
  - do not block commands in off mode if we are still playing (volume ramp up/down)
