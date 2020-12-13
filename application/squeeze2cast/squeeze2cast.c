@@ -1020,7 +1020,9 @@ static bool Start(void)
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
-	if (!strstr(glUPnPSocket, "?")) sscanf(glUPnPSocket, "%[^:]:%u", IPaddr, &Port);
+	// Linux can't do a sscanf with an optional %[^:]
+	if (!strstr(glUPnPSocket, "?"))
+		if (!sscanf(glUPnPSocket, "%[^:]:%u", IPaddr, &Port)) sscanf(glUPnPSocket, ":%u", &Port);
 
 	if (*IPaddr) {
 		addr.s_addr = inet_addr(IPaddr);
