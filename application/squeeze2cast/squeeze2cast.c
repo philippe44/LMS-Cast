@@ -52,7 +52,7 @@
 /* globals 																	  */
 /*----------------------------------------------------------------------------*/
 s32_t		glLogLimit = -1;
-char		glUPnPSocket[128] = "?";
+char		glBinding[128] = "?";
 struct sMR	glMRDevices[MAX_RENDERERS];
 
 log_level	slimproto_loglevel = lINFO;
@@ -149,8 +149,8 @@ static char usage[] =
 			VERSION "\n"
 		   "See -t for license terms\n"
 		   "Usage: [options]\n"
-		   "  -s <server[:port]>\tConnect to specified server, otherwise uses autodiscovery to find server\n"
-		   "  -b <address[:port]>]\tNetwork address and port to bind to\n"
+		   "  -s <ip[:port]>\t\tConnect to specified server, otherwise uses autodiscovery to find server\n"
+		   "  -b <ip[:port]>]\t\tNetwork address and port to bind to\n"
 		   "  -x <config file>\tread config from file (default is ./config.xml)\n"
 		   "  -i <config file>\tdiscover players, save <config file> and exit\n"
 		   "  -I \t\t\tauto save config at every network scan\n"
@@ -1008,7 +1008,7 @@ static bool Start(void)
 {
 	struct in_addr addr;
 	char IPaddr[16] = "";
-	unsigned Port = 0;
+	unsigned short Port = 0;
 	int i;
 
 	// manually load openSSL symbols to accept multiple versions
@@ -1020,9 +1020,8 @@ static bool Start(void)
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
-	// Linux can't do a sscanf with an optional %[^:]
-	if (!strstr(glUPnPSocket, "?"))
-		if (!sscanf(glUPnPSocket, "%[^:]:%u", IPaddr, &Port)) sscanf(glUPnPSocket, ":%u", &Port);
+	// sscanf does not capture empty string in %[^:]
+	if (!strstr(glBinding, "?") && !sscanf(glBinding, "%[^:]:%hu", IPaddr, &Port)) sscanf(glBinding, ":%hu", &Port);
 
 	if (*IPaddr) {
 		addr.s_addr = inet_addr(IPaddr);
@@ -1031,12 +1030,10 @@ static bool Start(void)
 		strcpy(IPaddr, inet_ntoa(addr));
 	}
 
-	if (!Port) Port = HTTP_DEFAULT_PORT;
-
-	// start squeeze piece
+	// start squeezebox part
 	sq_init(IPaddr, Port, glModelName);
 
-	LOG_INFO("Binding to %s:%d", IPaddr, Port);
+	LOG_INFO("Binding to %s (http:%hu)", IPaddr, Port);
 
 	// init mutex & cond no matter what
 	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
@@ -1163,7 +1160,7 @@ bool ParseArgs(int argc, char **argv) {
 			strcpy(glModelName, optarg);
 			break;
 		case 'b':
-			strcpy(glUPnPSocket, optarg);
+			strcpy(glBinding, optarg);
 			break;
 		case 'f':
 			glLogFile = optarg;

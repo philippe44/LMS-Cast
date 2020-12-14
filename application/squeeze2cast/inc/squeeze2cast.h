@@ -41,8 +41,6 @@
 #define MAGIC			0xAABBCCDD
 #define RESOURCE_LENGTH	250
 
-#define HTTP_DEFAULT_PORT 49152
-
 enum 	eMRstate { STOPPED, BUFFERING, PLAYING, PAUSED };
 
 typedef struct sMRConfig
@@ -94,7 +92,7 @@ struct sMR {
    } *GroupMaster;
 };
 
-extern char 				glUPnPSocket[];
+extern char 				glBinding[];
 extern s32_t				glLogLimit;
 extern tMRConfig			glMRConfig;
 extern sq_dev_param_t		glDeviceParam;
