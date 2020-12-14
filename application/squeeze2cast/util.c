@@ -47,6 +47,8 @@ static log_level 	*loglevel = &util_loglevel;
 static pthread_mutex_t	wakeMutex;
 static pthread_cond_t	wakeCond;
 
+static void *MigrateConfig(IXML_Document *doc);
+static void *MigrateMRConfig(IXML_Node *device);
 
 /*----------------------------------------------------------------------------*/
 void InitUtils(void) {
@@ -419,22 +421,45 @@ IXML_Node *XMLAddNode(IXML_Document *doc, IXML_Node *parent, char *name, char *f
 /*----------------------------------------------------------------------------*/
 IXML_Node *XMLUpdateNode(IXML_Document *doc, IXML_Node *parent, bool refresh, char *name, char *fmt, ...)
 {
-	char buf[256];
+	char *buf;
 	va_list args;
 	IXML_Node *node = (IXML_Node*) ixmlDocument_getElementById((IXML_Document*) parent, name);
 
 	va_start(args, fmt);
-	vsprintf(buf, fmt, args);
+	vasprintf(&buf, fmt, args);
 
-	if (!node) XMLAddNode(doc, parent, name, buf);
-	else if (refresh) {
-		node = ixmlNode_getFirstChild(node);
-		ixmlNode_setNodeValue(node, buf);
+	if (!node) {
+		XMLAddNode(doc, parent, name, buf);
+	} else if (refresh) {
+		IXML_Node *child = ixmlNode_getFirstChild(node);
+		ixmlNode_setNodeValue(child, buf);
 	}
 
 	va_end(args);
+	free(buf);
 
 	return node;
+}
+
+
+/*----------------------------------------------------------------------------*/
+char *XMLDelNode(IXML_Node *from, char *name)
+{
+	IXML_Node *self, *node;
+	char *value = NULL;
+
+	self = (IXML_Node*) ixmlDocument_getElementById((IXML_Document*) from, name);
+	if (!self) return NULL;
+
+	node = (IXML_Node*) ixmlNode_getParentNode(self);
+	if (node) ixmlNode_removeChild(node, self, &self);
+
+	node = ixmlNode_getFirstChild(self);
+	value = (char*) ixmlNode_getNodeValue(node);
+	if (value) value = strdup(value);
+
+	ixmlNode_free(self);
+	return value;
 }
 
 
@@ -724,8 +749,9 @@ void *LoadMRConfig(void *ref, char *UDN, tMRConfig *Conf, sq_dev_param_t *sq_con
 		if (node_list) ixmlNodeList_free(node_list);
 	}
 
-	return node;
+	return MigrateMRConfig(node);
 }
+
 
 /*----------------------------------------------------------------------------*/
 void *LoadConfig(char *name, tMRConfig *Conf, sq_dev_param_t *sq_conf)
@@ -770,49 +796,34 @@ void *LoadConfig(char *name, tMRConfig *Conf, sq_dev_param_t *sq_conf)
 		if (l1_node_list) ixmlNodeList_free(l1_node_list);
 	}
 
-	return doc;
- }
+	return MigrateConfig(doc);
+}
 
 
-/*----------------------------------------------------------------------------*/
-char *uPNPEvent2String(Upnp_EventType S)
+/*---------------------------------------------------------------------------*/
+static void *MigrateConfig(IXML_Document *doc)
 {
-	switch (S) {
-	/* Discovery */
-	case UPNP_DISCOVERY_ADVERTISEMENT_ALIVE:
-		return "UPNP_DISCOVERY_ADVERTISEMENT_ALIVE";
-	case UPNP_DISCOVERY_ADVERTISEMENT_BYEBYE:
-		return "UPNP_DISCOVERY_ADVERTISEMENT_BYEBYE";
-	case UPNP_DISCOVERY_SEARCH_RESULT:
-		return "UPNP_DISCOVERY_SEARCH_RESULT";
-	case UPNP_DISCOVERY_SEARCH_TIMEOUT:
-		return "UPNP_DISCOVERY_SEARCH_TIMEOUT";
-	/* SOAP */
-	case UPNP_CONTROL_ACTION_REQUEST:
-		return "UPNP_CONTROL_ACTION_REQUEST";
-	case UPNP_CONTROL_ACTION_COMPLETE:
-		return "UPNP_CONTROL_ACTION_COMPLETE";
-	case UPNP_CONTROL_GET_VAR_REQUEST:
-		return "UPNP_CONTROL_GET_VAR_REQUEST";
-	case UPNP_CONTROL_GET_VAR_COMPLETE:
-		return "UPNP_CONTROL_GET_VAR_COMPLETE";
-	case UPNP_EVENT_SUBSCRIPTION_REQUEST:
-		return "UPNP_EVENT_SUBSCRIPTION_REQUEST";
-	case UPNP_EVENT_RECEIVED:
-		return "UPNP_EVENT_RECEIVED";
-	case UPNP_EVENT_RENEWAL_COMPLETE:
-		return "UPNP_EVENT_RENEWAL_COMPLETE";
-	case UPNP_EVENT_SUBSCRIBE_COMPLETE:
-		return "UPNP_EVENT_SUBSCRIBE_COMPLETE";
-	case UPNP_EVENT_UNSUBSCRIBE_COMPLETE:
-		return "UPNP_EVENT_UNSUBSCRIBE_COMPLETE";
-	case UPNP_EVENT_AUTORENEWAL_FAILED:
-		return "UPNP_EVENT_AUTORENEWAL_FAILED";
-	case UPNP_EVENT_SUBSCRIPTION_EXPIRED:
-		return "UPNP_EVENT_SUBSCRIPTION_EXPIRED";
+	char *value;
+	IXML_Node *node;
+
+	if (!doc) return NULL;
+
+	// change "upnp_socket" into "binding"
+	value = XMLDelNode((IXML_Node*) doc, "upnp_socket");
+	if (value) {
+		node = XMLUpdateNode(doc, (IXML_Node*) doc, false, "binding", "%s", value);
+		if (!node) strcpy(glBinding, value);
+		free(value);
 	}
 
-	return "";
+	return doc;
+}
+
+
+/*---------------------------------------------------------------------------*/
+static void *MigrateMRConfig(IXML_Node *device)
+{
+	return device;
 }
 
 
