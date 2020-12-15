@@ -16,6 +16,8 @@ my $prefs = preferences('plugin.castbridge');
 my $log   = logger('plugin.castbridge');
 my @xmlmain = qw(binding log_limit);
 my @xmldevice = qw(name mac sample_rate codecs mode enabled remove_timeout send_metadata volume_on_play send_coverart media_volume server);
+my @prefs_bool  = qw(autorun logging autosave eraselog useLMSsocket);
+my @prefs_other = qw(output bin debugs opts baseport);
 
 sub name { 'PLUGIN_CASTBRIDGE' }
 
@@ -41,8 +43,6 @@ sub handler {
 		print $fh;
 		close $fh;
 	} elsif ($params->{'saveSettings'}) {
-		my @bool  = qw(autorun logging autosave eraselog useLMSsocket);
-		my @other = qw(output bin debugs opts);
 		my $update;
 		
 		$log->debug("save settings required");
@@ -62,7 +62,7 @@ sub handler {
 			}	
 		}
 				
-		for my $param (@bool) {
+		for my $param (@prefs_bool) {
 			my $val = $params->{ $param } ? 1 : 0;
 			
 			if ($val != $prefs->get($param)) {
@@ -73,7 +73,7 @@ sub handler {
 		}
 		
 		# check that the config file name has not changed first
-		for my $param (@other) {
+		for my $param (@prefs_other) {
 			if ($params->{ $param } ne $prefs->get($param)) {
 				$prefs->set($param, $params->{ $param });
 				$update = 1;
@@ -226,7 +226,7 @@ sub handler2 {
 
 	$params->{'binary'}   = Plugins::CastBridge::Squeeze2cast->bin;
 	$params->{'binaries'} = [ Plugins::CastBridge::Squeeze2cast->binaries ];
-	for my $param (qw(autorun output bin opts debugs logging configfile autosave eraselog useLMSsocket)) {
+	for my $param (@prefs_bool, @prefs_other, qw(configfile)) {
 		$params->{ $param } = $prefs->get($param);
 	}
 	

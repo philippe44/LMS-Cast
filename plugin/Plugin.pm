@@ -14,7 +14,18 @@ use Plugins::CastBridge::Queries;
 
 my $prefs = preferences('plugin.castbridge');
 
-$prefs->init({ autorun => 0, opts => '', debugs => '', logging => 0, bin => undef, configfile => "castbridge.xml", profilesURL => initProfilesURL(), autosave => 1, eraselog => 0});
+$prefs->init({ 
+	autorun => 0, 
+	opts => '', 
+	debugs => '', 
+	logging => 0, 
+	bin => undef, 
+	configfile => "castbridge.xml", 
+	profilesURL => initProfilesURL(), 
+	autosave => 1, 
+	eraselog => 0,
+	baseport => '', 
+});
 
 my $log = Slim::Utils::Log->addLogCategory({
 	'category'     => 'plugin.castbridge',

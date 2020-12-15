@@ -136,16 +136,19 @@ PLUGIN_CASTBRIDGE_AUTOSAVECONFIG
 PLUGIN_CASTBRIDGE_DELCONFIG
 	EN	Erase
 	
-PLUGIN_CASTBRIDGE_SOCKET
-	EN	Network socket to use
+PLUGIN_CASTBRIDGE_BINDING
+	EN	Network binding and port
 	
-PLUGIN_CASTBRIDGE_USELMSSOCKET
-	EN	Use LMS' network interface
+PLUGIN_CASTBRIDGE_BASEPORT
+	EN	and start from port
 
-PLUGIN_CASTBRIDGE_SOCKET_DESC
-	EN	The socket (IP:port) used by the bridge. This is especially useful if you have a computer with multiple network interfaces.
-	EN	Use "?" (without ") to let the bridge decide or check "use LMS' network interface" to make sure the Bridge uses the same
-	EN	network as LMS
+PLUGIN_CASTBRIDGE_USELMSBINDING
+	EN	Use LMS interface
+
+PLUGIN_CASTBRIDGE_BINDING_DESC
+	EN	The network ip interface and base port to be used (format [ip][:port]. This is needed if you have a computer with multiple network interfaces.
+	EN	Use ? to let the bridge decide or check "use LMS interface" to make sure the bridge uses the same network as LMS and add an optional baseport
+	EN	The bridge will use up to 64 ports from the base port. When not set, random values are used.
 	
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
