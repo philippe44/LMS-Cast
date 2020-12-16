@@ -29,7 +29,7 @@ sub binaries {
 			return qw(squeeze2cast-x86-static squeeze2cast-x86);
 		}
 		if ($os->{'osArch'} =~ /aarch64/) {
-			return qw( squeeze2cast-aarch64_static squeeze2cast-aarch64 squeeze2cast-armv6hf-static squeeze2cast-armv6hf);
+			return qw( squeeze2cast-aarch64-static squeeze2cast-aarch64 squeeze2cast-armv6hf-static squeeze2cast-armv6hf);
 		}
 		if ($os->{'binArch'} =~ /armhf/) {
 			return qw(squeeze2cast-armv6hf-static squeeze2cast-armv6hf);
