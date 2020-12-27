@@ -733,7 +733,6 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 						if (Device->GroupMaster->Host.s_addr == s->host.s_addr) {
 							free(pop_item((list_t**) &Device->GroupMaster));
 							UpdateCastDevice(Device->CastCtx, Device->GroupMaster->Host, Device->GroupMaster->Port);
-							Remove = false;
 						} else {
 							struct sGroupMember *Member = Device->GroupMaster;
 							while (Member && (Member->Host.s_addr != s->host.s_addr)) Member = Member->Next;
@@ -742,13 +741,13 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 					}
 				}
 				if (Remove) {
-					if (!Device->Config.RemoveTimeout) {
+					if (!Device->Config.RemoveTimeout && !CastIsConnected(Device->CastCtx)) {
 						LOG_INFO("[%p]: removing renderer (%s) %d", Device, Device->FriendlyName);
 						sq_delete_device(Device->SqueezeHandle);
 						RemoveCastDevice(Device);
 					} else {
 						LOG_INFO("[%p]: keeping missing renderer (%s)", Device, Device->FriendlyName);
-						Device->Expired = now ? now : 1;
+						Device->Expired = now | 0x01;
 					}
 				}
 			// device update - when playing ChromeCast update their TXT records
@@ -832,8 +831,10 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 	// walk through the list for device that expire on timeout
 	for (j = 0; j < MAX_RENDERERS; j++) {
 		Device = glMRDevices + j;
-		if (!Device->Running || Device->Config.RemoveTimeout <= 0 || !Device->Expired ||
-			now < Device->Expired + Device->Config.RemoveTimeout*1000) continue;
+		if (!Device->Running || Device->Config.RemoveTimeout < 0 || !Device->Expired ||
+			now < Device->Expired + Device->Config.RemoveTimeout*1000 ||
+			(!Device->Config.RemoveTimeout && CastIsConnected(Device->CastCtx)))
+			continue;
 
 		LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
 		sq_delete_device(Device->SqueezeHandle);
