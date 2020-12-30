@@ -16,6 +16,6 @@ See support thread here: http://forums.slimdevices.com/showthread.php?104614-Ann
  - libmad: https://www.underbit.com/products/mad/
  - libflac: https://xiph.org/flac/
  - libsoxr: https://sourceforge.net/p/soxr/wiki/Home/
- - libogg & libvorbis: https://xiph.org/vorbis/
+ - libogg, libopus & libvorbis: https://xiph.org/vorbis/
  - shine: https://github.com/philippe44/shine
 
