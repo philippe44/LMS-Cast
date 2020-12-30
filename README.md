@@ -11,7 +11,7 @@ See support thread here: http://forums.slimdevices.com/showthread.php?104614-Ann
  - nanopb: https://github.com/nanopb/nanopb
  - jansson: https://github.com/akheron/jansson
  - mDNS-SD (my fork) https://github.com/philippe44/mDNS-SD (use fork v2)
- - ALAC codec: https://github.com/macosforge/alac
+ - ALAC codec: https://github.com/philippe44/alac
  - faad2: http://www.audiocoding.com/
  - libmad: https://www.underbit.com/products/mad/
  - libflac: https://xiph.org/flac/
