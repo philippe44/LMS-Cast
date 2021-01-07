@@ -583,6 +583,7 @@ void SaveConfig(char *name, void *ref, bool full)
 	XMLUpdateNode(doc, common, false, "roon_mode", "%d", (int) glDeviceParam.roon_mode);
 	XMLUpdateNode(doc, common, false, "send_icy", "%d", (int) glDeviceParam.send_icy);
 	XMLUpdateNode(doc, common, false, "volume_on_play", "%d", (int) glMRConfig.VolumeOnPlay);
+	XMLUpdateNode(doc, common, false, "volume_feedback", "%d", (int) glMRConfig.VolumeFeedback);
 	XMLUpdateNode(doc, common, false, "media_volume", "%d", (int) (glMRConfig.MediaVolume * 100));
 	XMLUpdateNode(doc, common, false, "remove_timeout", "%d", (int) glMRConfig.RemoveTimeout);
 	XMLUpdateNode(doc, common, false, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
@@ -663,6 +664,7 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "sample_rate"))sq_conf->sample_rate = atol(val);
 	if (!strcmp(name, "flac_header"))sq_conf->flac_header = atol(val);
 	if (!strcmp(name, "volume_on_play")) Conf->VolumeOnPlay = atol(val);
+	if (!strcmp(name, "volume_feedback")) Conf->VolumeFeedback = atol(val);
 	if (!strcmp(name, "media_volume")) Conf->MediaVolume = atof(val) / 100;
 	if (!strcmp(name, "remove_timeout")) Conf->RemoveTimeout = atol(val);
 	if (!strcmp(name, "auto_play")) Conf->AutoPlay = atol(val);

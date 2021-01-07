@@ -216,6 +216,12 @@
 		</select>
 		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_MEDIAVOLUME" | string %]
 		<input type="text" class="stdedit" name="media_volume" id="media_volume" value="[% media_volume %]" size="3">
+		&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_VOLUMEFEEDBACK" | string %]&nbsp
+		<select class="stdedit" name="volume_feedback" id="volume_feedback">
+		[% FOREACH entry IN YESNOBOX %] 
+			<option [% IF entry.1 == volume_feedback %]selected[% END %] value="[% entry.1 %]">[% entry.0 | string %]</option>
+		[% END %]
+		</select>
 	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_SENDMETADATA" desc="PLUGIN_CASTBRIDGE_SENDMETADATA_DESC" %]

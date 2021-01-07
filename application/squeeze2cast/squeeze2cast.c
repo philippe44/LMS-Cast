@@ -68,6 +68,7 @@ tMRConfig			glMRConfig = {
 							true,	// enabled
 							false,	// stop_receiver
 							1,      // volume_on_play
+							true,	// volume_feedback
 							true,	// send_metadata
 							true,   // send_coverart
 							false,	// autoplay
@@ -584,7 +585,7 @@ static void *MRThread(void *args)
 			}
 
 			// check for volume at the receiver level, but only record the change
-			if (type && !strcasecmp(type, "RECEIVER_STATUS")) {
+			if (type && p->Config.VolumeFeedback && !strcasecmp(type, "RECEIVER_STATUS")) {
 				double volume;
 				bool muted;
 

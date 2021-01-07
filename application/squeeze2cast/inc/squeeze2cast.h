@@ -48,6 +48,7 @@ typedef struct sMRConfig
 	bool		Enabled;
 	bool		StopReceiver;
 	int 		VolumeOnPlay;		// change only volume when playing has started or disable volume commands
+	bool		VolumeFeedback;
 	bool		SendMetaData;
 	bool		SendCoverArt;
 	bool		AutoPlay;

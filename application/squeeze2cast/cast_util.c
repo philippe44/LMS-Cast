@@ -32,9 +32,8 @@ extern log_level cast_loglevel;
 static log_level *loglevel = &cast_loglevel;
 
 /*----------------------------------------------------------------------------*/
-bool CastIsConnected(void *p)
+bool CastIsConnected(struct sCastCtx *Ctx)
 {
-	tCastCtx *Ctx = (tCastCtx*) p;
 	bool status;
 
 	if (!Ctx) return false;
@@ -47,9 +46,8 @@ bool CastIsConnected(void *p)
 
 
 /*----------------------------------------------------------------------------*/
-bool CastIsMediaSession(void *p)
+bool CastIsMediaSession(struct sCastCtx *Ctx)
 {
-	tCastCtx *Ctx = (tCastCtx*) p;
 	bool status;
 
 	if (!Ctx) return false;

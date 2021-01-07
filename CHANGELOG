@@ -1,3 +1,6 @@
+1.46.0
+ - allow volume feedback management
+ 
 1.45.0 
  - aac buffer wrap only when needed
  - don't remove player that is still in cast connected state
