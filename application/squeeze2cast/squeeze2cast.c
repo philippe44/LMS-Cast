@@ -254,8 +254,6 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 		return false;
 	}
 
-LOG_INFO("callback for %s (%d)", Device->FriendlyName, action);
-
 	if (action == SQ_ONOFF) {
 		Device->on = *((bool*) param);
 
@@ -743,7 +741,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 				}
 				if (Remove) {
 					if (!Device->Config.RemoveTimeout && !CastIsConnected(Device->CastCtx)) {
-						LOG_INFO("[%p]: removing renderer (%s) %d", Device, Device->FriendlyName);
+						LOG_INFO("[%p]: removing renderer (%s)", Device, Device->FriendlyName);
 						sq_delete_device(Device->SqueezeHandle);
 						RemoveCastDevice(Device);
 					} else {

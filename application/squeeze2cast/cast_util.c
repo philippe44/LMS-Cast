@@ -27,6 +27,7 @@
 #include "util.h"
 #include "castcore.h"
 #include "cast_util.h"
+#include "castitf.h"
 
 extern log_level cast_loglevel;
 static log_level *loglevel = &cast_loglevel;
@@ -283,9 +284,11 @@ void CastPowerOn(struct sCastCtx *Ctx)
 void CastRelease(struct sCastCtx *Ctx)
 {
 	pthread_mutex_lock(&Ctx->Mutex);
-	SendCastMessage(Ctx, CAST_RECEIVER, NULL,
-					"{\"type\":\"STOP\",\"requestId\":%d}", Ctx->reqId++);
-	Ctx->Status = CAST_CONNECTED;
+	if (Ctx->Status != CAST_DISCONNECTED) {
+		SendCastMessage(Ctx, CAST_RECEIVER, NULL,
+						"{\"type\":\"STOP\",\"requestId\":%d}", Ctx->reqId++);
+		Ctx->Status = CAST_CONNECTED;
+	}
 	pthread_mutex_unlock(&Ctx->Mutex);
 }
 
