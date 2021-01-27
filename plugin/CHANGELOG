@@ -1,3 +1,7 @@
+1.48.1
+ - HTTP mode -2 was not sending content-length for large files
+ - make kd_add a variadic
+ 
 1.48.0
   - less aggressive CLI timeout
  
