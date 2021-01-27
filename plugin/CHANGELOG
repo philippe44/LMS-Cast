@@ -1,3 +1,6 @@
+1.48.0
+  - less aggressive CLI timeout
+ 
 1.47.0
  - openssl dynamic load compatible with 1.1.x
  
