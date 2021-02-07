@@ -1,3 +1,6 @@
+1.49.2
+ - (P) remove "outputChannels" option from audio settings
+ 
 1.49.1
  - SNI must be w/o any leading space or trailing garbage now that LMS excludes port
  

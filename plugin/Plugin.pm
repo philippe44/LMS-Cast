@@ -13,6 +13,7 @@ use Slim::Utils::Log;
 use Plugins::CastBridge::Queries;
 
 my $prefs = preferences('plugin.castbridge');
+my $hasOutputChannels;
 
 $prefs->init({ 
 	autorun => 0, 
@@ -33,8 +34,18 @@ my $log = Slim::Utils::Log->addLogCategory({
 	'description'  => Slim::Utils::Strings::string('PLUGIN_CASTBRIDGE'),
 }); 
 
+sub hasOutputChannels {
+	my ($self) = @_;
+	return $hasOutputChannels->(@_) unless $self->modelName =~ /CastBridge/;
+	return 0;
+}
+
 sub initPlugin {
 	my $class = shift;
+
+	# this is hacky but I won't redefine a whole player model just for this	
+	$hasOutputChannels = \&Slim::Player::SqueezePlay::hasOutputChannels;
+	*Slim::Player::SqueezePlay::hasOutputChannels = \&hasOutputChannels;
 
 	$class->SUPER::initPlugin(@_);
 	
