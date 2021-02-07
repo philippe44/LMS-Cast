@@ -1,3 +1,6 @@
+1.49.4
+ - must require Squeezebox2 to be loaded
+ 
 1.49.3
  - recurse in hasOutputChannels
 
