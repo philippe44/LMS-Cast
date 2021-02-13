@@ -1,3 +1,6 @@
+1.49.6
+ - delay STMd by one cycle when STMu is required as well (for Sonos, so just backported to keep versions identical)
+ 
 1.49.4
  - must require Squeezebox2 to be loaded
  
