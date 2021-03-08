@@ -1,3 +1,8 @@
+1.49.9
+ - order correctly STMu & STMd
+  - STREAM_DELAY is now a runtime parameter
+ - move back CLI buffer to 4kB (allocated)
+
 1.49.6
  - delay STMd by one cycle when STMu is required as well (for Sonos, so just backported to keep versions identical)
  

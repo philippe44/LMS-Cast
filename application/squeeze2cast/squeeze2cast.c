@@ -95,7 +95,8 @@ sq_dev_param_t glDeviceParam = {
 					STREAMBUF_SIZE,			// stream_buffer_size
 					OUTPUTBUF_SIZE,			// output_buffer_size
 					"aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3",		// codecs
-					"thru",					// encode
+					"thru",					// mode
+					15,						// next_delay
 					"wav",					// raw_audio_format
 					"?",                    // server
 					SQ_RATE_96000,          // sample_rate
