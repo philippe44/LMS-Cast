@@ -1,6 +1,9 @@
+1.49.11
+ - allow ICY for repeating streams as some BBC channels use repeating for programs and ICY inside for titles
+
 1.49.9
  - order correctly STMu & STMd
-  - STREAM_DELAY is now a runtime parameter
+ - STREAM_DELAY is now a runtime parameter
  - move back CLI buffer to 4kB (allocated)
 
 1.49.6
