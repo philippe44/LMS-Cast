@@ -115,7 +115,7 @@ static void sendHELO(bool reconnect, struct thread_ctx_s *ctx) {
 	char *base_cap;
 	struct HELO_packet pkt;
 
-	asprintf(&base_cap,
+	(void) !asprintf(&base_cap,
 #if USE_SSL
 	"CanHTTPS=1,"
 #endif
@@ -398,7 +398,7 @@ static void process_aude(u8_t *pkt, int len, struct thread_ctx_s *ctx) {
 /*---------------------------------------------------------------------------*/
 static void process_audg(u8_t *pkt, int len, struct thread_ctx_s *ctx) {
 	struct audg_packet *audg = (struct audg_packet *)pkt;
-	u16_t  gain;
+	int gain;
 
 	audg->old_gainL = unpackN(&audg->old_gainL);
 	audg->old_gainR = unpackN(&audg->old_gainR);

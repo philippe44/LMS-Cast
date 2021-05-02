@@ -1,3 +1,6 @@
+1.50.0
+ - align squeezetiny with UPnP (include coveart resizing parameter - hidden)
+ 
 1.49.13
  - fix sslsym.c macros that were still incorrect
  

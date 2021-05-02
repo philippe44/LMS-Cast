@@ -109,6 +109,7 @@ sq_dev_param_t glDeviceParam = {
 #endif
 					false, 					// roon_mode
 					"",						// store_prefix
+					"",						// coveart resolution
 #if !WIN
 					{
 #endif
