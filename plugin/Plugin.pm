@@ -9,11 +9,11 @@ use base qw(Slim::Plugin::Base);
 
 use Slim::Utils::Prefs;
 use Slim::Utils::Log;
-
-use Plugins::CastBridge::Queries;
+use Slim::Control::Request;
 
 my $prefs = preferences('plugin.castbridge');
 my $hasOutputChannels;
+my $statusHandler = Slim::Control::Request::addDispatch(['status', '_index', '_quantity'], [1, 1, 1, \&statusQuery]);
 
 $prefs->init({ 
 	autorun => 0, 
@@ -78,6 +78,21 @@ sub shutdownPlugin {
 	if ($prefs->get('autorun')) {
 		Plugins::CastBridge::Squeeze2cast->stop;
 	}
+}
+
+sub statusQuery {
+	my ($request) = @_;
+	my $song = $request->client->playingSong if $request->client;
+
+	$statusHandler->($request);
+	
+	my $song = $request->client->playingSong if $request->client;
+	return unless $song;
+	
+	my $handler = $song->currentTrackHandler;
+	return unless $handler;
+	
+	$request->addResult("repeating_stream", 1) if $handler->can('isRepeatingStream') && $handler->isRepeatingStream($song);
 }
 
 1;
