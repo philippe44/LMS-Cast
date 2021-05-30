@@ -50,8 +50,6 @@ sub initPlugin {
 
 	$class->SUPER::initPlugin(@_);
 	
-	Plugins::CastBridge::Queries::initQueries();
-		
 	require Plugins::CastBridge::Squeeze2cast;		
 	
 	if ($prefs->get('autorun')) {
