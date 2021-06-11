@@ -23,25 +23,25 @@ sub binaries {
 	if ($os->{'os'} eq 'Linux') {
 
 		if ($os->{'osArch'} =~ /x86_64/) {
-			return qw(squeeze2cast-x86-64-static squeeze2cast-x86-64);
+			return qw(squeeze2cast-x86-64-static squeeze2cast-x86-64 );
 		}
 		if ($os->{'binArch'} =~ /i386/) {
-			return qw(squeeze2cast-x86-static squeeze2cast-x86);
+			return qw(squeeze2cast-x86-static squeeze2cast-x86 );
 		}
 		if ($os->{'osArch'} =~ /aarch64/) {
-			return qw( squeeze2cast-aarch64-static squeeze2cast-aarch64 squeeze2cast-armv6hf-static squeeze2cast-armv6hf);
+			return qw( squeeze2cast-aarch64-static squeeze2cast-aarch64 squeeze2cast-armv6hf-static squeeze2cast-armv6hf );
 		}
 		if ($os->{'binArch'} =~ /armhf/) {
-			return qw(squeeze2cast-armv6hf-static squeeze2cast-armv6hf);
+			return qw(squeeze2cast-armv6hf-static squeeze2cast-armv6hf );
 		}
 		if ($os->{'binArch'} =~ /arm/) {
-			return qw(squeeze2cast-armv5te-static squeeze2cast-armv5te);
+			return qw(squeeze2cast-armv5te-static squeeze2cast-armv5te );
 		}
 		if ($os->{'binArch'} =~ /powerpc/) {
-			return qw(squeeze2cast-ppc-static squeeze2cast-ppc);
+			return qw(squeeze2cast-ppc-static squeeze2cast-ppc );
 		}
 		if ($os->{'binArch'} =~ /sparc/) {
-			return qw(squeeze2cast-sparc-static squeeze2cast-sparc);
+			return qw(squeeze2cast-sparc-static squeeze2cast-sparc );
 		}
 		
 		# fallback to offering all linux options for case when architecture detection does not work
@@ -50,7 +50,7 @@ sub binaries {
 	}
 	
 	if ($os->{'os'} eq 'Darwin') {
-		return qw(squeeze2cast-osx-multi-static squeeze2cast-osx-multi);
+		return qw(squeeze2cast-osx-multi-static squeeze2cast-osx-multi );
 	}
 	
 	if ($os->{'os'} eq 'Windows') {
@@ -63,10 +63,6 @@ sub bin {
 
 	my @binaries = $class->binaries;
 
-	if (scalar @binaries == 1) {
-		return $binaries[0];
-	}
-
 	if (my $b = $prefs->get("bin")) {
 		for my $bin (@binaries) {
 			if ($bin eq $b) {
@@ -75,7 +71,7 @@ sub bin {
 		}
 	}
 
-	return $binaries[0] =~ /squeeze2cast-osx/ ? $binaries[0] : undef;
+	return $binaries[0];
 }
 
 sub start {

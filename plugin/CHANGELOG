@@ -1,3 +1,9 @@
+1.62.0
+ - align squeezetiny with UPnP 
+ 
+1.61.0
+ - autorun by default and use static version
+ 
 1.60.0
  - refactor metadata handling, including removing need for 'E' tag (always use artwork_url seems fine now) and associated special query 
  
