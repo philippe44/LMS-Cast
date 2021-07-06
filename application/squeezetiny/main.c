@@ -457,7 +457,7 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 		}
 
 		// remote_title is present, it's a webradio if not repeating
-		if (metadata->remote_title && metadata->repeating != -1) metadata->duration = 0;
+		if (metadata->remote_title && metadata->repeating == -1) metadata->duration = 0;
 
 		if (!metadata->artwork || !strlen(metadata->artwork)) {
 			NFREE(metadata->artwork);
