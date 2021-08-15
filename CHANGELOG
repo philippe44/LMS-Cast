@@ -1,3 +1,6 @@
+1.64.2
+ - add freebsd version
+ 
 1.64.1
  - (P) callbackargs is an array
  
