@@ -90,7 +90,7 @@ static u8_t LMSVolumeMap[129] = {
 		};
 
 sq_dev_param_t glDeviceParam = {
-					HTTP_NO_LENGTH, 	 		// stream_length
+					HTTP_NO_LENGTH, 	 	// stream_length
 					 // both are multiple of 3*4(2) for buffer alignement on sample
 					STREAMBUF_SIZE,			// stream_buffer_size
 					OUTPUTBUF_SIZE,			// output_buffer_size
@@ -101,8 +101,8 @@ sq_dev_param_t glDeviceParam = {
 					"?",                    // server
 					SQ_RATE_96000,          // sample_rate
 					L24_PACKED_LPCM,		// L24_format
-					FLAC_NORMAL_HEADER,	    // flac_header
-					"",			// name
+					FLAC_DEFAULT_HEADER,	// flac_header
+					"",						// name
 					{ 0x00,0x00,0x00,0x00,0x00,0x00 },
 #ifdef RESAMPLE
 					"",						// resample_options
