@@ -49,6 +49,14 @@ sub binaries {
 		squeeze2cast-sparc squeeze2cast-sparc-static squeeze2cast-aarch64 squeeze2cast-aarch64_static);
 	}
 	
+	if ($os->{'os'} eq 'Unix') {
+	
+		if ($os->{'osName'} =~ /freebsd/) {
+			return qw(  squeeze2cast-bsd-x64-static squeeze2cast-bsd-x64 );
+		}
+		
+	}	
+	
 	if ($os->{'os'} eq 'Darwin') {
 		return qw(squeeze2cast-osx-multi-static squeeze2cast-osx-multi );
 	}

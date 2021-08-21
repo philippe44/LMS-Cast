@@ -305,9 +305,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 					if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
 					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
 					CastPlay(Device->CastCtx);
-#if !defined(REPOS_TIME)
 					Device->StartTime = 0;
-#endif
 					sq_free_metadata(&p->metadata);
 					LOG_WARN("[%p]: next URI (stopped) (s:%u) %s", Device, Device->ShortTrack, p->uri);
 				 } else {
@@ -320,9 +318,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			} else {
 				if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
 				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
-#if !defined(REPOS_TIME)
 				Device->StartTime = sq_get_time(Device->SqueezeHandle);
-#endif
 				sq_free_metadata(&p->metadata);
 				LOG_INFO("[%p]: current URI (s:%u) %s", Device, Device->ShortTrack, p->uri);
 			}
@@ -436,9 +432,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 
 			sq_free_metadata(&Device->NextMetaData);
 			NFREE(Device->NextURI);
-#if !defined(REPOS_TIME)
 			Device->StartTime = 0;
-#endif
 		} else if (Device->ShortTrack) {
 			// might not even have received next LMS's request, wait a bit
 			Device->ShortTrackWait = 5000;
@@ -557,22 +551,21 @@ static void *MRThread(void *args)
 				}
 
 				/*
-				Discard any time info unless we are confirmed playing. Cast
-				devices seems to report time according to seekpoint, so in case
-				difference is too large, it means that we have a LMS repositioning
+				Discard any time info unless we are confirmed playing. For FLAC encoding Cast devices
+				use frame number to estimate the elapsed time, so when LMS sends a file from a given
+				byte offset, we will see a time offset that we need to remove as LMS expects a report
+				from 0
 				*/
 				if (p->State == PLAYING && p->sqState == SQ_PLAY && CastIsMediaSession(p->CastCtx)) {
 					u32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
 					s32_t gap = elapsed - sq_self_time(p->SqueezeHandle);
 
 					LOG_DEBUG("elapsed %u, self %u, gap %u", elapsed, sq_self_time(p->SqueezeHandle), abs(gap));
-#if !defined(REPOS_TIME)
 					// no time correction in case of flow ... huh
 					if (!strstr(p->sq_config.mode, "flow") && p->StartTime > 500 && abs(gap) > 2000) {
 						if (elapsed > p->StartTime)	elapsed -= p->StartTime;
 						else elapsed = 0;
 					}
-#endif
 					sq_notify(p->SqueezeHandle, p, SQ_TIME, NULL, &elapsed);
 				}
 
@@ -947,9 +940,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->sqStamp = 0;
 	Device->CastCtx = NULL;
 	Device->Volume = -1;
-#if !defined(REPOS_TIME)
 	Device->StartTime = 0;
-#endif
 
 	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
 

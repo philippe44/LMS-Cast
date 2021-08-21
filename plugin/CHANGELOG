@@ -1,3 +1,7 @@
+1.71.00
+ - remove REPOS_TIME flag as it is understood why it is needed for flac
+ - (P) add freebsd
+ 
 1.70.0
  - always release obuf when exiting output_thread 
  - abort current output thread when codec/process start fails

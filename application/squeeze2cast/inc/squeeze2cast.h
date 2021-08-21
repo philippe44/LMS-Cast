@@ -73,9 +73,7 @@ struct sMR {
 	s16_t			ShortTrackWait;			// stop timeout when short track is last track
 	sq_action_t		sqState;
 	u32_t			sqStamp;				// timestamp of slimproto state change to filter fast pause/play
-#if !defined(REPOS_TIME)
-	u32_t			StartTime;				//	flac reposition issue (offset)
-#endif
+	u32_t			StartTime;				// for flac reposition issue (offset)
 	u32_t			TrackPoll;
 	s32_t			IdleTimer;				// idle timer to disconnect SSL connection
 	u32_t 			Expired;				// timestamp when device was missing (used to keep it for a while)
