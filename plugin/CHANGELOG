@@ -1,4 +1,7 @@
-1.71.00
+1.80.0
+ - add "null" transcoding mode to send silence low bitrate mp3 frames
+ 
+1.71.0
  - remove REPOS_TIME flag as it is understood why it is needed for flac
  - (P) add freebsd
  

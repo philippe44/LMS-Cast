@@ -196,7 +196,8 @@ PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC
 	EN	improves compatibility by sending controlled format and allows replay gain as well as fading in and out. It's also 
 	EN	possible to send audio in a continuous flow of data instead of tracks one-bye-one to enable true gapless and 
 	EN	cross-fading. See user's guide for more details
-	EN	<br><i>- Transcode:</i> format sent to player. When left empty or set to 'none', audio is simply passed through to player
+	EN	<br><i>- Transcode:</i> format sent to player. When left empty or set to 'none', audio is simply passed through to player.
+	EN	Use 'null' to send mp3 silent frames and use the player for display only (don't maintain sync)
 	EN	<br><i>- Flow:</i> enable "flow" mode where playlists are sent as a continuous audio stream.
 	EN	<br><i>- Flac compression:</i> in flac mode, set the compression level. 0 = lowest compression & CPU load
 	EN	<br><i>- MP3 bitrate:</i> in mp3 mode, set bitrate
