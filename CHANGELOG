@@ -1,3 +1,6 @@
+1.80.1
+ - tweak settings UI
+ 
 1.80.0
  - add "null" transcoding mode to send silence low bitrate mp3 frames
  
