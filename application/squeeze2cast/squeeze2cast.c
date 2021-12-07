@@ -504,7 +504,7 @@ static void *MRThread(void *args)
 		u32_t now;
 
 		if (p->ShortTrack) wakeTimer = TRACK_POLL / 4;
-		else if (p->State == STOPPED && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
+		else if (p->sqState == SQ_STOP && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
 		else wakeTimer = TRACK_POLL;
 
 		// context is valid until this thread ends, no deletion issue
