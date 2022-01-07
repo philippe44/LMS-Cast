@@ -26,7 +26,7 @@
 #include <pb_encode.h>
 #include <pb_decode.h>
 #include "jansson.h"
-#include "castmessage.pb.h"
+#include "CastMessage.pb.h"
 
 void InitSSL(void);
 void EndSSL(void);

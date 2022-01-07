@@ -52,7 +52,7 @@ SOURCES = slimproto.c buffer.c tinyutils.c output_http.c main.c \
 		  flac_thru.c m4a_thru.c thru.c \
 		  ag_dec.c ALACBitUtilities.c ALACDecoder.cpp dp_dec.c EndianPortable.c matrix_dec.c \
 		  util_common.c cast_util.c util.c log_util.c \
-		  castcore.c cast_parse.c castmessage.pb.c squeeze2cast.c \
+		  castcore.c cast_parse.c CastMessage.pb.c squeeze2cast.c \
 		  pb_common.c pb_decode.c pb_encode.c dump.c error.c hashtable.c strconv.c \
 		  hashtable_seed.c load.c memory.c pack_unpack.c strbuffer.c utf.c value.c \
 	  	  mdnssd-min.c

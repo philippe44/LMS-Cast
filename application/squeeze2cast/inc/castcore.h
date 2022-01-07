@@ -38,7 +38,7 @@
 #include <pb_encode.h>
 #include <pb_decode.h>
 #include "jansson.h"
-#include "castmessage.pb.h"
+#include "CastMessage.pb.h"
 
 #define CAST_BEAT "urn:x-cast:com.google.cast.tp.heartbeat"
 #define CAST_RECEIVER "urn:x-cast:com.google.cast.receiver"

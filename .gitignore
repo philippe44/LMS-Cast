@@ -101,3 +101,4 @@ bin.old/
 alpha/
 _backup/
 application - 1.x/
+*.vrc
