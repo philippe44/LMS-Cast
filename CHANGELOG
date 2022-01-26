@@ -1,3 +1,9 @@
+1.81.3
+ - output_http thread should wait for new_stream to be unset not for track_start as the latter can be missed if gain_and_fade is called while we sleep
+ 
+1.81.2 (NP)
+ - align with UPnP 
+ 
 1.81.1
  - update to nanopb 4.x
  
