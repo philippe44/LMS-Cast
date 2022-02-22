@@ -63,6 +63,7 @@ log_level	output_loglevel = lWARN;
 log_level	main_loglevel = lINFO;
 log_level	util_loglevel = lWARN;
 log_level	cast_loglevel = lINFO;
+bool		log_cmdline = false;
 
 tMRConfig			glMRConfig = {
 							true,	// enabled
@@ -1186,6 +1187,7 @@ bool ParseArgs(int argc, char **argv) {
 				char *v = strtok(NULL, "=");
 				log_level new = lWARN;
 				if (l && v) {
+					log_cmdline = true;
 					if (!strcmp(v, "error"))  new = lERROR;
 					if (!strcmp(v, "warn"))   new = lWARN;
 					if (!strcmp(v, "info"))   new = lINFO;

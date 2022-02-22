@@ -38,6 +38,7 @@ extern log_level	output_loglevel;
 extern log_level	main_loglevel;
 extern log_level	util_loglevel;
 extern log_level	cast_loglevel;
+extern bool 		log_cmdline;
 
 /*----------------------------------------------------------------------------*/
 /* locals */
@@ -562,14 +563,17 @@ void SaveConfig(char *name, void *ref, bool full)
 	}
 
 	XMLUpdateNode(doc, root, false, "binding", glBinding);
-	XMLUpdateNode(doc, root, false, "slimproto_log", level2debug(slimproto_loglevel));
-	XMLUpdateNode(doc, root, false, "slimmain_log", level2debug(slimmain_loglevel));
-	XMLUpdateNode(doc, root, false, "stream_log", level2debug(stream_loglevel));
-	XMLUpdateNode(doc, root, false, "output_log", level2debug(output_loglevel));
-	XMLUpdateNode(doc, root, false, "decode_log", level2debug(decode_loglevel));
-	XMLUpdateNode(doc, root, false, "main_log",level2debug(main_loglevel));
-	XMLUpdateNode(doc, root, false, "cast_log",level2debug(cast_loglevel));
-	XMLUpdateNode(doc, root, false, "util_log",level2debug(util_loglevel));
+	// do not save loglevel when set from cmd line
+	if (!log_cmdline) {
+		XMLUpdateNode(doc, root, false, "slimproto_log", level2debug(slimproto_loglevel));
+		XMLUpdateNode(doc, root, false, "slimmain_log", level2debug(slimmain_loglevel));
+		XMLUpdateNode(doc, root, false, "stream_log", level2debug(stream_loglevel));
+		XMLUpdateNode(doc, root, false, "output_log", level2debug(output_loglevel));
+		XMLUpdateNode(doc, root, false, "decode_log", level2debug(decode_loglevel));
+		XMLUpdateNode(doc, root, false, "main_log",level2debug(main_loglevel));
+		XMLUpdateNode(doc, root, false, "cast_log",level2debug(cast_loglevel));
+		XMLUpdateNode(doc, root, false, "util_log",level2debug(util_loglevel));
+	}
 	XMLUpdateNode(doc, root, false, "log_limit", "%d", (s32_t) glLogLimit);
 	XMLUpdateNode(doc, common, false, "streambuf_size", "%d", (u32_t) glDeviceParam.streambuf_size);
 	XMLUpdateNode(doc, common, false, "output_size", "%d", (u32_t) glDeviceParam.outputbuf_size);
