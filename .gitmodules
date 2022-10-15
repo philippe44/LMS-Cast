@@ -1,0 +1,24 @@
+[submodule "application/crosstools"]
+	path = application/crosstools
+	url = http://github.com/philippe44/crosstools
+[submodule "application/libjansson"]
+	path = application/libjansson
+	url = http://github.com/philippe44/libjansson
+[submodule "application/libcodecs"]
+	path = application/libcodecs
+	url = http://github.com/philippe44/libcodecs
+[submodule "application/libmdns"]
+	path = application/libmdns
+	url = http://github.com/philippe44/libmdns
+[submodule "application/libpupnp"]
+	path = application/libpupnp
+	url = http://github.com/philippe44/libpupnp
+[submodule "application/pthreads4w"]
+	path = application/pthreads4w
+	url = http://github.com/philippe44/pthreads4w
+[submodule "application/libopenssl"]
+	path = application/libopenssl
+	url = http://github.com/philippe44/libopenssl
+[submodule "application/nanopb"]
+	path = application/nanopb
+	url = https://github.com/nanopb/nanopb

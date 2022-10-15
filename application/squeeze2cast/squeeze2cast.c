@@ -1,20 +1,9 @@
 /*
- *  Squeeze2cast - LMS to Cast gateway
+ *  Squeeze2cast - LMS to Cast bridge
  *
- *  (c) Philippe 2016-2017, philippe_44@outlook.com
+ *  (c) Philippe, philippe_44@outlook.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  See LICENSE
  *
  */
 
@@ -23,23 +12,29 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "squeezedefs.h"
+#include "platform.h"
 
 #if WIN
 #include <process.h>
 #endif
 
+#include "mdnssd.h"
+#include "ixml.h"
+
+#include "cross_util.h"
+#include "cross_log.h"
+#include "cross_net.h"
+#include "cross_ssl.h"
+#include "cross_thread.h"
+
+#include "squeezedefs.h"
 #include "squeeze2cast.h"
-#include "upnpdebug.h"
-#include "upnptools.h"
-#include "util_common.h"
-#include "log_util.h"
-#include "util.h"
-#include "cast_util.h"
+
 #include "castitf.h"
+#include "cast_util.h"
 #include "cast_parse.h"
-#include "mdnssd-itf.h"
-#include "sslsym.h"
+#include "config_cast.h"
+
 
 #define DISCOVERY_TIME 	20
 #define MAX_IDLE_TIME	(30*1000)
@@ -51,7 +46,7 @@
 /*----------------------------------------------------------------------------*/
 /* globals 																	  */
 /*----------------------------------------------------------------------------*/
-s32_t		glLogLimit = -1;
+int32_t		glLogLimit = -1;
 char		glBinding[128] = "?";
 struct sMR	glMRDevices[MAX_RENDERERS];
 
@@ -77,7 +72,7 @@ tMRConfig			glMRConfig = {
 							0,		// remove_timeout
 					};
 
-static u8_t LMSVolumeMap[129] = {
+static uint8_t LMSVolumeMap[129] = {
 			0, 3, 6, 7, 8, 10, 12, 13, 14, 16, 17, 18, 19, 20,
 			21, 22, 24, 25, 26, 27, 28, 28, 29, 30, 31, 32, 33,
 			34, 35, 36, 37, 37, 38, 39, 40, 41, 41, 42, 43, 44,
@@ -100,7 +95,7 @@ sq_dev_param_t glDeviceParam = {
 					15,						// next_delay
 					"wav",					// raw_audio_format
 					"?",                    // server
-					SQ_RATE_96000,          // sample_rate
+					96000,					// sample_rate
 					L24_PACKED_LPCM,		// L24_format
 					FLAC_DEFAULT_HEADER,	// flac_header
 					"",						// name
@@ -145,8 +140,8 @@ static bool					glInteractive = true;
 static char					*glPidFile = NULL;
 static bool					glGracefullShutdown = true;
 static void					*glConfigID = NULL;
-static char					glConfigName[_STR_LEN_] = "./config.xml";
-static char					glModelName[_STR_LEN_] = MODEL_NAME_STRING;
+static char					glConfigName[STR_LEN] = "./config.xml";
+static char					glModelName[STR_LEN] = MODEL_NAME_STRING;
 
 static char usage[] =
 
@@ -227,7 +222,7 @@ static char license[] =
 #define SET_LOGLEVEL(log) 		    \
 	if (!strcmp(resp, #log"dbg")) { \
 		char level[20];           	\
-		i = scanf("%s", level);   	\
+		(void)! scanf("%s", level);   	\
 		log ## _loglevel = debug2level(level); \
 	}
 
@@ -236,13 +231,14 @@ static char license[] =
 /*----------------------------------------------------------------------------*/
 static void	RemoveCastDevice(struct sMR *Device);
 static void *MRThread(void *args);
-static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool Group, struct in_addr ip, u16_t port);
+static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool Group, struct in_addr ip, uint16_t port);
+static void DeltaOptions(char* ref, char* src);
 
 // functions prefixed with _ require device's mutex to be locked
 static void _SyncNotifyState(const char *State, struct sMR* Device);
 
 /*----------------------------------------------------------------------------*/
-bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t *cookie, void *param)
+bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8_t *cookie, void *param)
 {
 	struct sMR *Device = caller;
 	char *p = (char*) param;
@@ -289,14 +285,13 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 			struct track_param *p = (struct track_param*) param;
 
 			NFREE(Device->NextURI);
-			sq_free_metadata(&Device->NextMetaData);
-			if (!Device->Config.SendCoverArt) NFREE(p->metadata.artwork);
+			metadata_free(&Device->NextMetaData);
 
 			LOG_INFO("[%p]:\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n\tgenre:%s\n"
 					 "\tduration:%d.%03d\n\tsize:%d\n\tcover:%s\n\toffset:%u", Device,
 					p->metadata.artist, p->metadata.album, p->metadata.title,
 					p->metadata.genre, div(p->metadata.duration, 1000).quot,
-					div(p->metadata.duration,1000).rem, p->metadata.file_size,
+					div(p->metadata.duration,1000).rem, p->metadata.size,
 					p->metadata.artwork ? p->metadata.artwork : "", p->offset);
 
 			if (p->offset) {
@@ -307,7 +302,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
 					CastPlay(Device->CastCtx);
 					Device->StartTime = 0;
-					sq_free_metadata(&p->metadata);
+					metadata_free(&p->metadata);
 					LOG_WARN("[%p]: next URI (stopped) (s:%u) %s", Device, Device->ShortTrack, p->uri);
 				 } else {
 					strcpy(Device->NextMime, p->mimetype);
@@ -320,7 +315,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 				if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
 				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
 				Device->StartTime = sq_get_time(Device->SqueezeHandle);
-				sq_free_metadata(&p->metadata);
+				metadata_free(&p->metadata);
 				LOG_INFO("[%p]: current URI (s:%u) %s", Device, Device->ShortTrack, p->uri);
 			}
 			break;
@@ -349,7 +344,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 		case SQ_STOP:
 			CastStop(Device->CastCtx);
 			NFREE(Device->NextURI);
-			sq_free_metadata(&Device->NextMetaData);
+			metadata_free(&Device->NextMetaData);
 			Device->sqState = action;
 			Device->ShortTrack = false;
 			Device->ShortTrackWait = 0;
@@ -362,11 +357,11 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, u8_t 
 		case SQ_NEXT:
 			break;
 		case SQ_VOLUME: {
-			Device->Volume = (double) LMSVolumeMap[*(u16_t*)p] / 100;
+			Device->Volume = (double) LMSVolumeMap[*(uint16_t*)p] / 100;
 			LOG_INFO("Volume %d", (int) (Device->Volume * 100));
 
 			if (!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)) {
-				u32_t now = gettime_ms();
+				uint32_t now = gettime_ms();
 
 				if (now > Device->VolumeStampRx + 1000) {
 					CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
@@ -431,7 +426,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 
 			LOG_INFO("[%p]: gapped transition (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
 
-			sq_free_metadata(&Device->NextMetaData);
+			metadata_free(&Device->NextMetaData);
 			NFREE(Device->NextURI);
 			Device->StartTime = 0;
 		} else if (Device->ShortTrack) {
@@ -502,7 +497,7 @@ static void *MRThread(void *args)
 	while (p->Running) {
 		double Volume = -1;
 		int wakeTimer;
-		u32_t now;
+		uint32_t now;
 
 		if (p->ShortTrack) wakeTimer = TRACK_POLL / 4;
 		else if (p->sqState == SQ_STOP && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
@@ -558,8 +553,8 @@ static void *MRThread(void *args)
 				from 0
 				*/
 				if (p->State == PLAYING && p->sqState == SQ_PLAY && CastIsMediaSession(p->CastCtx)) {
-					u32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
-					s32_t gap = elapsed - sq_self_time(p->SqueezeHandle);
+					uint32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
+					int32_t gap = elapsed - sq_self_time(p->SqueezeHandle);
 
 					LOG_DEBUG("elapsed %u, self %u, gap %u", elapsed, sq_self_time(p->SqueezeHandle), abs(gap));
 					// no time correction in case of flow ... huh
@@ -590,7 +585,7 @@ static void *MRThread(void *args)
 
 			// now apply the volume change if any
 			if (Volume != -1 && fabs(Volume - p->Volume) >= 0.01 && now > p->VolumeStampTx + 1000) {
-				u16_t VolFix = Volume * 100 + 0.5;
+				uint16_t VolFix = Volume * 100 + 0.5;
 				p->VolumeStampRx = now;
 				LOG_INFO("[%p]: Volume local change %u (%0.4lf)", p, VolFix, Volume);
 				// candidate for busyraise/drop as it's using cli
@@ -679,7 +674,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 {
 	struct sMR *Device;
 	mDNSservice_t *s;
-	u32_t now = gettime_ms();
+	uint32_t now = gettime_ms();
 	int j;
 
 	if (*loglevel == lDEBUG) {
@@ -726,12 +721,12 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 						Remove = false;
 						// changing the master, so need to update cast params
 						if (Device->GroupMaster->Host.s_addr == s->host.s_addr) {
-							free(pop_item((list_t**) &Device->GroupMaster));
+							free(list_pop((list_t**) &Device->GroupMaster));
 							UpdateCastDevice(Device->CastCtx, Device->GroupMaster->Host, Device->GroupMaster->Port);
 						} else {
 							struct sGroupMember *Member = Device->GroupMaster;
 							while (Member && (Member->Host.s_addr != s->host.s_addr)) Member = Member->Next;
-							if (Member) free(remove_item((list_t*) Member, (list_t**) &Device->GroupMaster));
+							if (Member) free(list_remove((list_t*) Member, (list_t**) &Device->GroupMaster));
 						}
 					}
 				}
@@ -754,7 +749,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 					struct sGroupMember *Member = calloc(1, sizeof(struct sGroupMember));
 					Member->Host = s->host;
 					Member->Port = s->port;
-					push_item((list_t*) Member, (list_t**) &Device->GroupMaster);
+					list_push((list_t*) Member, (list_t**) &Device->GroupMaster);
 				}
 
 				if (UpdateCastDevice(Device->CastCtx, s->addr, s->port)) {
@@ -825,13 +820,19 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 
 	// walk through the list for device that expire on timeout
 	for (j = 0; j < MAX_RENDERERS; j++) {
-		Device = glMRDevices + j;
-		if (!Device->Running || Device->Config.RemoveTimeout < 0 || !Device->Expired ||
-			now < Device->Expired + Device->Config.RemoveTimeout*1000 ||
-			(!Device->Config.RemoveTimeout && CastIsConnected(Device->CastCtx)))
-			continue;
 
-		LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
+		Device = glMRDevices + j;
+
+		if (!Device->Running || Device->Config.RemoveTimeout < 0 || !Device->Expired ||
+
+			now < Device->Expired + Device->Config.RemoveTimeout*1000 ||
+
+			(!Device->Config.RemoveTimeout && CastIsConnected(Device->CastCtx)))
+
+			continue;
+
+
+		LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
 		sq_delete_device(Device->SqueezeHandle);
 		RemoveCastDevice(Device);
 	}
@@ -857,21 +858,20 @@ static void *mDNSsearchThread(void *args)
 	return NULL;
 }
 
-
 /*----------------------------------------------------------------------------*/
 static void *MainThread(void *args)
 {
 	while (glMainRunning) {
 
-		WakeableSleep(30*1000);
+		crossthreads_sleep(30*1000);
 		if (!glMainRunning) break;
 
 		if (glLogFile && glLogLimit != - 1) {
-			u32_t size = ftell(stderr);
+			uint32_t size = ftell(stderr);
 
 			if (size > glLogLimit*1024*1024) {
-				u32_t Sum, BufSize = 16384;
-				u8_t *buf = malloc(BufSize);
+				uint32_t Sum, BufSize = 16384;
+				uint8_t *buf = malloc(BufSize);
 
 				FILE *rlog = fopen(glLogFile, "rb");
 				FILE *wlog = fopen(glLogFile, "r+b");
@@ -894,20 +894,16 @@ static void *MainThread(void *args)
 	return NULL;
 }
 
-
 /*----------------------------------------------------------------------------*/
-static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group, struct in_addr ip, u16_t port)
-{
-	unsigned long mac_size = 6;
-
+static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group, struct in_addr ip, uint16_t port) {
 	// read parameters from default then config file
 	memcpy(&Device->Config, &glMRConfig, sizeof(tMRConfig));
 	memcpy(&Device->sq_config, &glDeviceParam, sizeof(sq_dev_param_t));
 	LoadMRConfig(glConfigID, UDN, &Device->Config, &Device->sq_config);
 	if (!Device->Config.Enabled) return false;
 
-	delta_options(glDeviceParam.codecs, Device->sq_config.codecs);
-	delta_options(glDeviceParam.raw_audio_format, Device->sq_config.raw_audio_format);
+	DeltaOptions(glDeviceParam.codecs, Device->sq_config.codecs);
+	DeltaOptions(glDeviceParam.raw_audio_format, Device->sq_config.raw_audio_format);
 
 	Device->Magic 			= MAGIC;
 	Device->IdleTimer		= -1;
@@ -943,35 +939,34 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->Volume = -1;
 	Device->StartTime = 0;
 
-	LOG_INFO("[%p]: adding renderer (%s)", Device, Name);
-
-	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", mac_size)) {
+	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", 6)) {
+		uint32_t mac_size = 6;
 		if (group || SendARP(ip.s_addr, INADDR_ANY, Device->sq_config.mac, &mac_size)) {
-			u32_t hash = hash32(UDN);
-
-			LOG_ERROR("[%p]: creating MAC %x", Device, Device->FriendlyName, hash);
-			memcpy(Device->sq_config.mac + 2, &hash, 4);
+			*(uint32_t*)(Device->sq_config.mac + 2) = hash32(Device->UDN);
+			LOG_INFO("[%p]: creating MAC", Device);
 		}
 		memset(Device->sq_config.mac, 0xcc, 2);
 	}
 
 	// virtual players duplicate mac address
-	MakeMacUnique(Device);
+	for (int i = 0; i < MAX_RENDERERS; i++) {
+		if (glMRDevices[i].Running && Device != glMRDevices + i && !memcmp(glMRDevices[i].sq_config.mac, Device->sq_config.mac, 6)) {
+			memset(Device->sq_config.mac, 0xcc, 2);
+			*(uint32_t*)(Device->sq_config.mac + 2) = hash32(Device->UDN);
+			LOG_INFO("[%p]: duplicated mac ... updating", Device);
+		}
+	}
 
+	LOG_INFO("[%p]: adding renderer (%s) with mac %hx%x", Device, Name, *(uint16_t*)Device->sq_config.mac, *(uint32_t*)(Device->sq_config.mac + 2));
 	Device->CastCtx = CreateCastDevice(Device, Device->Group, Device->Config.StopReceiver, ip, port, Device->Config.MediaVolume);
-
 	pthread_create(&Device->Thread, NULL, &MRThread, Device);
 
 	return true;
 }
 
-
 /*----------------------------------------------------------------------------*/
-static void FlushCastDevices(void)
-{
-	int i;
-
-	for (i = 0; i < MAX_RENDERERS; i++) {
+static void FlushCastDevices(void) {
+	for (int i = 0; i < MAX_RENDERERS; i++) {
 		struct sMR *p = &glMRDevices[i];
 		if (p->Running) {
 			if (p->sqState == SQ_PLAY || p->sqState == SQ_PAUSE) CastStop(p->CastCtx);
@@ -980,10 +975,8 @@ static void FlushCastDevices(void)
 	}
 }
 
-
 /*----------------------------------------------------------------------------*/
-static void RemoveCastDevice(struct sMR *Device)
-{
+static void RemoveCastDevice(struct sMR *Device) {
 	pthread_mutex_lock(&Device->Mutex);
 	Device->Running = false;
 	pthread_mutex_unlock(&Device->Mutex);
@@ -992,27 +985,25 @@ static void RemoveCastDevice(struct sMR *Device)
 
 	pthread_join(Device->Thread, NULL);
 
-	clear_list((list_t**) &Device->GroupMaster, free);
-	sq_free_metadata(&Device->NextMetaData);
+	list_clear((list_t**) &Device->GroupMaster, free);
+	metadata_free(&Device->NextMetaData);
 	NFREE(Device->NextURI);
 }
 
 /*----------------------------------------------------------------------------*/
-static bool Start(void)
-{
+static bool Start(void) {
 	struct in_addr addr;
 	char IPaddr[16] = "";
 	unsigned short Port = 0;
-	int i;
-
+	
 	// manually load openSSL symbols to accept multiple versions
-	if (!load_ssl_symbols()) {
+	if (!cross_ssl_load()) {
 		LOG_ERROR("Cannot load SSL libraries", NULL);
 		return false;
 	}
 
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
-	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
+	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
 	// sscanf does not capture empty string in %[^:]
 	if (!strstr(glBinding, "?") && !sscanf(glBinding, "%[^:]:%hu", IPaddr, &Port)) sscanf(glBinding, ":%hu", &Port);
@@ -1020,7 +1011,7 @@ static bool Start(void)
 	if (*IPaddr) {
 		addr.s_addr = inet_addr(IPaddr);
 	} else {
-		addr.s_addr = get_localhost(NULL);
+		get_interface(&addr);
 		strcpy(IPaddr, inet_ntoa(addr));
 	}
 
@@ -1030,10 +1021,7 @@ static bool Start(void)
 	LOG_INFO("Binding to %s (http:%hu)", IPaddr, Port);
 
 	// init mutex & cond no matter what
-	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
-
-	InitUtils();
-	InitSSL();
+	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
 	/* start the mDNS devices discovery thread */
 	if ((glmDNSsearchHandle = init_mDNS(false, addr)) == NULL) {
@@ -1051,10 +1039,7 @@ static bool Start(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static bool Stop(void)
-{
-	int i;
-
+static bool Stop(void) {
 	LOG_INFO("stopping squeezelite devices ...", NULL);
 	sq_stop();
 
@@ -1069,29 +1054,21 @@ static bool Stop(void)
 	LOG_INFO("stopping Cast devices ...", NULL);
 	FlushCastDevices();
 
-	WakeAll();
+	crossthreads_wake();
 
 	LOG_DEBUG("terminate main thread ...", NULL);
 	pthread_join(glMainThread, NULL);
-	for (i = 0; i < MAX_RENDERERS; i++) pthread_mutex_destroy(&glMRDevices[i].Mutex);
-
-	EndSSL();
-	EndUtils();
-
+	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_destroy(&glMRDevices[i].Mutex);
 	if (glConfigID) ixmlDocument_free(glConfigID);
 
-#if WIN
-	winsock_close();
-#endif
-
-	free_ssl_symbols();
+	netsock_close();
+	cross_ssl_free();
 
 	return true;
 }
 
 /*---------------------------------------------------------------------------*/
 static void sighandler(int signum) {
-	int i;
 	static bool quit = false;
 
 	// give it some time to finish ...
@@ -1103,7 +1080,7 @@ static void sighandler(int signum) {
 	quit = true;
 
 	if (!glGracefullShutdown) {
-		for (i = 0; i < MAX_RENDERERS; i++) {
+		for (int i = 0; i < MAX_RENDERERS; i++) {
 			struct sMR *p = &glMRDevices[i];
 			if (p->Running && p->sqState == SQ_PLAY) CastStop(p->CastCtx);
 		}
@@ -1112,17 +1089,46 @@ static void sighandler(int signum) {
 	}
 
 	Stop();
+
 	exit(EXIT_SUCCESS);
 }
 
+/*---------------------------------------------------------------------------*/
+static void DeltaOptions(char* ref, char* src) {
+	char item[4], * p;
+
+	if (!strchr(src, '+') && !strchr(src, '-')) return;
+	ref = strdup(ref);
+
+	for (p = src; *p && (p = strchr(p, '+')) != NULL; p++) {
+		if (sscanf(p, "+%3[^,]", item) <= 0) break;
+		if (!strstr(ref, item)) {
+			strcat(ref, ",");
+			strcat(ref, item);
+		}
+	}
+
+	for (p = src; *p && (p = strchr(p, '-')) != NULL; p++) {
+		char* pos;
+		if (sscanf(p, "-%3[^,]", item) <= 0) break;
+		if ((pos = strstr(ref, item)) != NULL) {
+			int n = strlen(item);
+			if (pos[n]) n++;
+			memmove(pos, pos + n, strlen(pos + n) + 1);
+		}
+	}
+
+	strcpy(src, ref);
+	free(ref);
+}
 
 /*---------------------------------------------------------------------------*/
 bool ParseArgs(int argc, char **argv) {
 	char *optarg = NULL;
-	int i, optind = 1 ;
+	int optind = 1 ;
 	char cmdline[256] = "";
 
-	for (i = 0; i < argc && (strlen(argv[i]) + strlen(cmdline) + 2 < sizeof(cmdline)); i++) {
+	for (int i = 0; i < argc && (strlen(argv[i]) + strlen(cmdline) + 2 < sizeof(cmdline)); i++) {
 		strcat(cmdline, argv[i]);
 		strcat(cmdline, " ");
 	}
@@ -1222,11 +1228,7 @@ bool ParseArgs(int argc, char **argv) {
 /*----------------------------------------------------------------------------*/
 /*																			  */
 /*----------------------------------------------------------------------------*/
-int main(int argc, char *argv[])
-{
-	int i;
-	char resp[20] = "";
-
+int main(int argc, char *argv[]) {
 	signal(SIGINT, sighandler);
 	signal(SIGTERM, sighandler);
 #if defined(SIGQUIT)
@@ -1236,12 +1238,10 @@ int main(int argc, char *argv[])
 	signal(SIGHUP, sighandler);
 #endif
 
-#if WIN
-	winsock_init();
-#endif
+	netsock_init();
 
 	// first try to find a config file on the command line
-	for (i = 1; i < argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-x")) {
 			strcpy(glConfigName, argv[i+1]);
 		}
@@ -1302,15 +1302,17 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 
+	char resp[20] = "";
+	
 	while (strcmp(resp, "exit")) {
 
 #if LINUX || FREEBSD
 		if (!glDaemonize && glInteractive)
-			i = scanf("%s", resp);
+			(void)! = scanf("%s", resp);
 		else pause();
 #else
 		if (glInteractive)
-			i = scanf("%s", resp);
+			(void)! scanf("%s", resp);
 		else
 #if OSX
 			pause();
@@ -1330,14 +1332,14 @@ int main(int argc, char *argv[])
 
 		if (!strcmp(resp, "save"))	{
 			char name[128];
-			i = scanf("%s", name);
+			(void)! scanf("%s", name);
 			SaveConfig(name, glConfigID, true);
 		}
 
 		if (!strcmp(resp, "dump") || !strcmp(resp, "dumpall"))	{
 			bool all = !strcmp(resp, "dumpall");
 
-			for (i = 0; i < MAX_RENDERERS; i++) {
+			for (int i = 0; i < MAX_RENDERERS; i++) {
 				struct sMR *p = &glMRDevices[i];
 				bool Locked = pthread_mutex_trylock(&p->Mutex);
 

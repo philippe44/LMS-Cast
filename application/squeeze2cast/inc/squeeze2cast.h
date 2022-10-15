@@ -1,33 +1,18 @@
 /*
  *  Squeeze2cast - LMS to Cast gateway
  *
- *  (c) Philippe 2016-2017, philippe_44@outlook.com
+ *  (c) Philippe, philippe_44@outlook.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  See LICENSE
  *
  */
 
-#ifndef __SQUEEZE2CAST_H
-#define __SQUEEZE2CAST_H
+#pragma once
 
-#include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
+#include <stdint.h>
+#include <pthread.h>
 
-#include "upnp.h"
-#include "ithread.h"
-#include "squeezedefs.h"
+#include "platform.h"
 #include "squeezeitf.h"
 
 /*----------------------------------------------------------------------------*/
@@ -58,7 +43,7 @@ typedef struct sMRConfig
 
 
 struct sMR {
-	u32_t Magic;
+	uint32_t Magic;
 	bool  Running;
 	tMRConfig Config;
 	sq_dev_param_t	sq_config;
@@ -67,34 +52,32 @@ struct sMR {
 	char FriendlyName	[RESOURCE_LENGTH];
 	enum eMRstate 	State;
 	char*			NextURI;				// gapped next URI
-	char			NextMime[_STR_LEN_];    // gapped next mimetype
+	char			NextMime[STR_LEN];    // gapped next mimetype
 	metadata_t		NextMetaData;           // gapped next metadata
 	bool			ShortTrack;				// current or next track is short
-	s16_t			ShortTrackWait;			// stop timeout when short track is last track
+	int16_t			ShortTrackWait;			// stop timeout when short track is last track
 	sq_action_t		sqState;
-	u32_t			sqStamp;				// timestamp of slimproto state change to filter fast pause/play
-	u32_t			StartTime;				// for flac reposition issue (offset)
-	u32_t			TrackPoll;
-	s32_t			IdleTimer;				// idle timer to disconnect SSL connection
-	u32_t 			Expired;				// timestamp when device was missing (used to keep it for a while)
+	uint32_t			sqStamp;				// timestamp of slimproto state change to filter fast pause/play
+	uint32_t			StartTime;				// for flac reposition issue (offset)
+	uint32_t			TrackPoll;
+	int32_t			IdleTimer;				// idle timer to disconnect SSL connection
+	uint32_t 			Expired;				// timestamp when device was missing (used to keep it for a while)
 	int	 			SqueezeHandle;
 	void*			CastCtx;
 	pthread_mutex_t Mutex;
 	pthread_t 		Thread;
 	double			Volume;
-	u32_t			VolumeStampRx, VolumeStampTx;	// timestamps to filter volume loopbacks
+	uint32_t			VolumeStampRx, VolumeStampTx;	// timestamps to filter volume loopbacks
 	bool			Group;
 	struct sGroupMember {
 		struct sGroupMember	*Next;
 		struct in_addr		Host;
-		u16_t				Port;
+		uint16_t				Port;
    } *GroupMaster;
 };
 
 extern char 				glBinding[];
-extern s32_t				glLogLimit;
+extern int32_t				glLogLimit;
 extern tMRConfig			glMRConfig;
 extern sq_dev_param_t		glDeviceParam;
 extern struct sMR			glMRDevices[MAX_RENDERERS];
-
-#endif

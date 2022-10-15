@@ -103,3 +103,5 @@ alpha/
 _backup/
 application - 1.x/
 *.vrc
+.vs/
+__recovery/

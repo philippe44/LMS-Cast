@@ -1,31 +1,18 @@
 /*
- *  Chromecast protocol handler
+ *  Chromecast core protocol handler
  *
  *  (c) Philippe 2016-2017, philippe_44@outlook.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * See LICENSE
  *
  */
 
-#ifndef __CASTCORE_H
-#define __CASTCORE_H
+#pragma once
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
-#include "castcore.h"
+#include <fcntl.h>
 
 #include "openssl/crypto.h"
 #include "openssl/x509.h"
@@ -33,12 +20,11 @@
 #include "openssl/ssl.h"
 #include "openssl/err.h"
 
-#include <fcntl.h>
-
+#include "cross_util.h"
 #include <pb_encode.h>
 #include <pb_decode.h>
 #include "jansson.h"
-#include "CastMessage.pb.h"
+#include "castmessage.pb.h"
 
 #define CAST_BEAT "urn:x-cast:com.google.cast.tp.heartbeat"
 #define CAST_RECEIVER "urn:x-cast:com.google.cast.receiver"
@@ -61,10 +47,10 @@ typedef struct sCastCtx {
 	int				mediaSessionId;
 	enum { CAST_WAIT, CAST_WAIT_MEDIA } State;
 	struct in_addr	ip;
-	u16_t			port;
-	tQueue			eventQueue, reqQueue;
+	uint16_t		port;
+	queue_t			eventQueue, reqQueue;
 	double 			MediaVolume;
-	u32_t			lastPong;
+	uint32_t		lastPong;
 	bool			group;
 	bool			stopReceiver;
 } tCastCtx;
@@ -80,8 +66,7 @@ typedef struct {
 bool 	SendCastMessage(struct sCastCtx *Ctx, char *ns, char *dest, char *payload, ...);
 bool 	LaunchReceiver(tCastCtx *Ctx);
 void 	SetVolume(tCastCtx *Ctx, double Volume);
-void 	CastQueueFlush(tQueue *Queue);
+void 	CastQueueFlush(queue_t *Queue);
 bool	CastConnect(struct sCastCtx *Ctx);
 void 	CastDisconnect(struct sCastCtx *Ctx);
 
-#endif
