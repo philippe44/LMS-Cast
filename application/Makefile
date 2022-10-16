@@ -29,7 +29,7 @@ JANSSON		= libjansson/targets/$(HOST)/$(PLATFORM)
 #VALGRIND	= $(BASE)/valgrind
 
 #DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H -DRESAMPLE -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB
-DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB
+DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB -DLINKALL
 
 CFLAGS  	+= -Wall -Wno-deprecated-declarations -Wno-format-truncation -Wno-stringop-truncation -fPIC -ggdb -O2 $(DEFINES) -fdata-sections -ffunction-sections 
 LDFLAGS += -s -lpthread -ldl -lm -lrt -lstdc++ -L. 
@@ -49,20 +49,22 @@ INCLUDE = -I$(OPENSSL)/include \
 		  		  
 DEPS	= $(SRC)/inc/squeezedefs.h
 				  
-SOURCES = slimproto.c buffer.c output_http.c main.c utils.c metadata.c mimetypes.c \
+SOURCES = slimproto.c buffer.c output_http.c output.c main.c \
 		  stream.c decode.c pcm.c resample.c process.c alac.c flac.c \
 		  flac_thru.c m4a_thru.c thru.c \
+		  utils.c metadata.c mimetypes.c \
 		  cross_util.c cross_log.c cross_net.c cross_thread.c platform.c \
 		  pb_common.c pb_decode.c pb_encode.c \
 		  cast_util.c config_cast.c castcore.c cast_parse.c castmessage.pb.c squeeze2cast.c
 
 #dump.c error.c hashtable.c strconv.c \		  
 		
-SOURCES_LIBS = cross_ssl.c output.c
+SOURCES_LIBS = cross_ssl.c
 		
 OBJECTS	= $(patsubst %.c,$(BUILDDIR)/%.o,$(filter %.c,$(SOURCES) $(SOURCES_LIBS)))
 OBJECTS	+= $(patsubst %.c,$(BUILDDIR)/%.o,$(filter %.cpp,$(SOURCES) $(SOURCES_LIBS)))
-#OBJECTS_STATIC = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES)) $(patsubst %.c,$(BUILDDIR)/%-static.o,$(SOURCES_LIBS)) 
+OBJECTS_STATIC = $(patsubst %.c,$(BUILDDIR)/%.o,$(filter %.c,$(SOURCES))) $(patsubst %.c,$(BUILDDIR)/%-static.o,$(filter %.c,$(SOURCES_LIBS)))
+OBJECTS_STATIC	+= $(patsubst %.cpp,$(BUILDDIR)/%.o,$(filter %.cpp,$(SOURCES))) $(patsubst %.cpp,$(BUILDDIR)/%-static.o,$(filter %.cpp,$(SOURCES_LIBS)))
 
 LIBRARY	= $(PUPNP)/libpupnp.a \
 		 $(CODECS)/$(HOST)/$(PLATFORM)/libcodecs.a \
@@ -71,8 +73,7 @@ LIBRARY	= $(PUPNP)/libpupnp.a \
 		 
 LIBRARY_STATIC 	= $(LIBRARY) $(OPENSSL)/libopenssl.a
 
-#all: $(EXECUTABLE) $(EXECUTABLE_STATIC)
-all: directory $(EXECUTABLE)
+all: $(EXECUTABLE) $(EXECUTABLE_STATIC)
 
 $(EXECUTABLE): $(OBJECTS) $(DEPS)
 	$(CC) $(OBJECTS) $(LIBRARY) $(LDFLAGS) -o $@
