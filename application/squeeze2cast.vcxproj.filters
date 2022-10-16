@@ -95,9 +95,6 @@
     <ClCompile Include="squeezelite\thru.c">
       <Filter>squeezelite</Filter>
     </ClCompile>
-    <ClCompile Include="squeezelite\liteutils.c">
-      <Filter>squeezelite</Filter>
-    </ClCompile>
     <ClCompile Include="squeezelite\utils.c">
       <Filter>squeezelite</Filter>
     </ClCompile>
