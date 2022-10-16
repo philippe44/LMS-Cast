@@ -17,6 +17,11 @@
 #include <process.h>
 #endif
 
+#if USE_SSL
+#include <openssl/ssl.h>
+#include "cross_ssl.h"
+#endif
+
 #include "mdnssd.h"
 #include "ixml.h"
 
@@ -986,11 +991,12 @@ static bool Start(void) {
 	char IPaddr[16] = "";
 	unsigned short Port = 0;
 	
-	// manually load openSSL symbols to accept multiple versions
+#if USE_SSL
 	if (!cross_ssl_load()) {
 		LOG_ERROR("Cannot load SSL libraries", NULL);
 		return false;
 	}
+#endif
 
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
@@ -1052,7 +1058,9 @@ static bool Stop(void) {
 	if (glConfigID) ixmlDocument_free(glConfigID);
 
 	netsock_close();
+#if USE_SSL
 	cross_ssl_free();
+#endif
 
 	return true;
 }
