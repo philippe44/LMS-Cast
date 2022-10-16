@@ -7,10 +7,9 @@
  *
  */
 
+#include <string.h>
+#include <stdio.h>
 #include <math.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include "platform.h"
 
@@ -1299,7 +1298,7 @@ int main(int argc, char *argv[]) {
 
 #if LINUX || FREEBSD
 		if (!glDaemonize && glInteractive)
-			(void)! = scanf("%s", resp);
+			(void)! scanf("%s", resp);
 		else pause();
 #else
 		if (glInteractive)

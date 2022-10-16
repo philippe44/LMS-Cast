@@ -22,7 +22,7 @@
 #include "squeezelite.h"
 #if CODECS
 #include "FLAC/stream_encoder.h"
-#include "shine/src/lib/layer3.h"
+#include "layer3.h"
 #endif
 
 extern log_level	output_loglevel;

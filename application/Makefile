@@ -1,5 +1,9 @@
-BASE		= ..
-CFLAGS 		+= -Wno-multichar -Wno-unused-result
+ifeq ($(CC),cc)
+CC=$(lastword $(subst /, ,$(shell readlink -f `which cc`)))
+endif
+
+PLATFORM ?= $(firstword $(subst -, ,$(CC)))
+HOST ?= $(word 2, $(subst -, ,$(CC)))
 
 ifeq ($(OS),Darwin)
 LINKSTATIC	=
@@ -9,86 +13,82 @@ LINKSTATIC 	= -static
 LDFLAGS 	+= -Wl,--gc-sections
 endif
 
-TOOLS		= ./tools
-SRC			= ./squeeze2cast
-SQUEEZETINY	= ./squeezetiny
-JANSSON		= $(BASE)/jansson
-NANOPB		= $(BASE)/nanopb
-MDNSSD		= $(BASE)/mdnssd
-VALGRIND	= $(BASE)/valgrind
-UPNP 		= $(BASE)/libupnp/1.6.19
-ALAC		= $(BASE)/alac
+BUILDDIR	= build/$(PLATFORM)
+EXECUTABLE 	= bin/squeeze2cast-$(PLATFORM)
+EXECUTABLE_STATIC = bin/squeeze2cast-$(PLATFORM)-static
 
-DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H -DRESAMPLE -DCODECS -DUSE_SSL -D_GNU_SOURCE
+SRC			= squeeze2cast
+SQUEEZELITE	= squeezelite
+TOOLS		= crosstools/src
+MDNS		= libmdns/targets
+PUPNP 		= libpupnp/targets/$(HOST)/$(PLATFORM)
+CODECS		= libcodecs/targets
+OPENSSL		= libopenssl/targets/$(HOST)/$(PLATFORM)
+NANOPB		= nanopb
+JANSSON		= libjansson/targets/$(HOST)/$(PLATFORM)
+#VALGRIND	= $(BASE)/valgrind
 
+#DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H -DRESAMPLE -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB
+DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB
 
-CFLAGS 		+= -fdata-sections -ffunction-sections 
+CFLAGS  	+= -Wall -Wno-deprecated-declarations -Wno-format-truncation -Wno-stringop-truncation -fPIC -ggdb -O2 $(DEFINES) -fdata-sections -ffunction-sections 
+LDFLAGS += -s -lpthread -ldl -lm -lrt -lstdc++ -L. 
 
-vpath %.c $(TOOLS):$(SRC):$(SQUEEZETINY):$(JANSSON)/src:$(NANOPB):$(MDNSSD):$(ALAC)
-vpath %.cpp $(TOOLS):$(SRC):$(SQUEEZETINY):$(JANSSON)/src:$(NANOPB):$(MDNSSD):$(ALAC)
+vpath %.c $(TOOLS):$(SRC):$(SQUEEZELITE):$(NANOPB)
+vpath %.cpp $(TOOLS):$(SRC):$(SQUEEZELITE):$(NANOPB)
 
-INCLUDE = -I. \
-		  -I$(BASE)\
-		  -I$(VALGRIND)/memcheck -I$(VALGRIND)/include \
-		  -I$(SQUEEZETINY) \
+INCLUDE = -I$(OPENSSL)/include \
 		  -I$(TOOLS) \
-		  -I$(SRC) -I$(SRC)/inc \
-		  -I$(ALAC) \
-		  -I$(UPNP)/ixml/inc -I$(UPNP)/upnp/inc -I$(UPNP)/build/inc -I$(UPNP)/threadutil/inc \
-		  -I$(JANSSON)/src \
+		  -I$(SQUEEZELITE) \
+		  -I$(SRC)/inc \
+		  -I$(PUPNP)/include/upnp -I$(PUPNP)/include/ixml -I$(PUPNP)/include/addons \
+		  -I$(CODECS)/include/flac -I$(CODECS)/include/shine -I$(CODECS)/include/addons \
+		  -I$(MDNS)/include/tinysvcmdns -I$(MDNS)/include/mdnssd \
 		  -I$(NANOPB) \
-		  -I$(MDNSSD) \
-		  -I$(BASE)/flac/include\
-		  -I$(BASE)/faad2/include\
-		  -I$(BASE)/libmad\
-		  -I$(BASE)/libvorbis/include -I$(BASE)/libogg/include\
-		  -I$(BASE)/libopus/include -I$(BASE)/libopusfile/include\
-		  -I$(BASE)/soxr/src
+		  -I$(JANSSON)/include
 		  		  
-DEPS	= $(SQUEEZETINY)/squeezedefs.h
+DEPS	= $(SRC)/inc/squeezedefs.h
 				  
-SOURCES = slimproto.c buffer.c tinyutils.c output_http.c main.c \
-		  stream.c decode.c pcm.c  process.c resample.c alac.c alac_wrapper.cpp \
+SOURCES = slimproto.c buffer.c output_http.c main.c utils.c metadata.c mimetypes.c \
+		  stream.c decode.c pcm.c resample.c process.c alac.c flac.c \
 		  flac_thru.c m4a_thru.c thru.c \
-		  ag_dec.c ALACBitUtilities.c ALACDecoder.cpp dp_dec.c EndianPortable.c matrix_dec.c \
-		  util_common.c cast_util.c util.c log_util.c \
-		  castcore.c cast_parse.c CastMessage.pb.c squeeze2cast.c \
-		  pb_common.c pb_decode.c pb_encode.c dump.c error.c hashtable.c strconv.c \
-		  hashtable_seed.c load.c memory.c pack_unpack.c strbuffer.c utf.c value.c \
-	  	  mdnssd-min.c
+		  cross_util.c cross_log.c cross_net.c cross_thread.c platform.c \
+		  pb_common.c pb_decode.c pb_encode.c \
+		  cast_util.c config_cast.c castcore.c cast_parse.c castmessage.pb.c squeeze2cast.c
+
+#dump.c error.c hashtable.c strconv.c \		  
 		
-SOURCES_LIBS = flac.c mad.c faad.c vorbis.c opus.c output.c sslsym.c
+SOURCES_LIBS = cross_ssl.c output.c
 		
-OBJECTS 		= $(patsubst %.c,$(OBJ)/%.o,$(filter %.c,$(SOURCES))) $(patsubst %.cpp,$(OBJ)/%.o,$(filter %.cpp,$(SOURCES))) $(patsubst %.c,$(OBJ)/%.o,$(SOURCES_LIBS)) 
-OBJECTS_STATIC 	= $(patsubst %.c,$(OBJ)/%.o,$(filter %.c,$(SOURCES))) $(patsubst %.cpp,$(OBJ)/%.o,$(filter %.cpp,$(SOURCES))) $(patsubst %.c,$(OBJ)/%-static.o,$(SOURCES_LIBS)) 
+OBJECTS	= $(patsubst %.c,$(BUILDDIR)/%.o,$(filter %.c,$(SOURCES) $(SOURCES_LIBS)))
+OBJECTS	+= $(patsubst %.c,$(BUILDDIR)/%.o,$(filter %.cpp,$(SOURCES) $(SOURCES_LIBS)))
+#OBJECTS_STATIC = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES)) $(patsubst %.c,$(BUILDDIR)/%-static.o,$(SOURCES_LIBS)) 
 
-LIBRARY 	= $(OBJ)/libixml.a $(OBJ)/libsoxr.a $(OBJ)/libshine.a
-LIBRARY_STATIC 	= $(LIBRARY) $(OBJ)/libfaad.a $(OBJ)/libFLAC.a $(OBJ)/libmad.a $(OBJ)/libvorbisfile.a $(OBJ)/libvorbis.a $(OBJ)/libogg.a $(OBJ)/libopusfile.a $(OBJ)/libopus.a -lssl -lcrypto
+LIBRARY	= $(PUPNP)/libpupnp.a \
+		 $(CODECS)/$(HOST)/$(PLATFORM)/libcodecs.a \
+		 $(MDNS)/$(HOST)/$(PLATFORM)/libmdns.a  \
+		 $(JANSSON)/libjansson.a
+		 
+LIBRARY_STATIC 	= $(LIBRARY) $(OPENSSL)/libopenssl.a
 
-all: $(EXECUTABLE) $(EXECUTABLE_STATIC)
+#all: $(EXECUTABLE) $(EXECUTABLE_STATIC)
+all: directory $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS)
+$(EXECUTABLE): $(OBJECTS) $(DEPS)
 	$(CC) $(OBJECTS) $(LIBRARY) $(LDFLAGS) -o $@
 	
-$(EXECUTABLE_STATIC): $(OBJECTS_STATIC)
-	$(CC) $(OBJECTS_STATIC) $(LIBRARY_STATIC) $(LDFLAGS) $(LINKSTATIC) -o $@	
+$(EXECUTABLE_STATIC): $(OBJECTS_STATIC) $(DEPS)
+	$(CC) $(OBJECTS_STATIC) $(LIBRARY_STATIC) $(LDFLAGS) -static -o $@	
 
-$(OBJECTS): $(DEPS) | bin $(OBJ)
-
-$(OBJ):
-	@mkdir -p $@
-	
-bin:	
+directory:
+	@mkdir -p $(BUILDDIR)
 	@mkdir -p bin
 
-$(OBJ)/%.o : %.c
+$(BUILDDIR)/%.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -c -o $@
-	
-$(OBJ)/%.o : %.cpp
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -c -o $@
-	
-$(OBJ)/%-static.o : %.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -DLINKALL $(INCLUDE) $< -c -o $(OBJ)/$*-static.o	
+
+$(BUILDDIR)/%-static.o : %.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -DSSL_LIB_STATIC $(INCLUDE) $< -c -o $(BUILDDIR)/$*-static.o	
 	
 clean:
-	rm -f $(OBJECTS) $(OBJECTS_STATIC) $(EXECUTABLE) $(EXECUTABLE_STATIC)
+	rm -f $(OBJECTS) $(EXECUTABLE) $(OBJECTS_STATIC) $(EXECUTABLE_STATIC) 

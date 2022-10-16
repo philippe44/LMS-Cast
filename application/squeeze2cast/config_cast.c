@@ -19,6 +19,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -45,7 +46,7 @@ extern bool 		log_cmdline;
 /* locals */
 /*----------------------------------------------------------------------------*/
 extern log_level 	util_loglevel;
-static log_level 	*loglevel = &util_loglevel;
+static log_level __attribute__((unused)) * loglevel = &util_loglevel;
 
 static void *MigrateConfig(IXML_Document *doc);
 static void *MigrateMRConfig(IXML_Node *device);
