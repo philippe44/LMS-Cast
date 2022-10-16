@@ -105,3 +105,4 @@ application - 1.x/
 *.vrc
 .vs/
 __recovery/
+*.user
