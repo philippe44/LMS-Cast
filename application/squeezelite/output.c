@@ -639,7 +639,7 @@ bool output_thread_init(struct thread_ctx_s *ctx) {
 
 /*---------------------------------------------------------------------------*/
 void output_close(struct thread_ctx_s *ctx) {
-	LOG_INFO("[%p] close media renderer", ctx);
+	LOG_DEBUG("[%p] close media renderer", ctx);
 	buf_destroy(ctx->outputbuf);
 }
 

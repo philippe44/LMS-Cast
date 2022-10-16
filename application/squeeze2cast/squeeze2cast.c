@@ -260,7 +260,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 	if (action == SQ_ONOFF) {
 		Device->on = *((bool*) param);
 
-		LOG_INFO("[%p]: device set %s", caller, Device->on ? "ON" : "OFF");
+		LOG_DEBUG("[%p]: device set %s", caller, Device->on ? "ON" : "OFF");
 
 		if (Device->on) {
 			CastPowerOn(Device->CastCtx);
@@ -281,7 +281,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 		return false;
 	}
 
-	LOG_SDEBUG("callback for %s (%d)", Device->FriendlyName, action);
+	LOG_SDEBUG("[%p]: callback for %s (%d)", Device, Device->FriendlyName, action);
 
 	switch (action) {
 
@@ -362,7 +362,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 			break;
 		case SQ_VOLUME: {
 			Device->Volume = (double) LMSVolumeMap[*(uint16_t*)p] / 100;
-			LOG_INFO("Volume %d", (int) (Device->Volume * 100));
+			LOG_INFO("[%p]: Volume %d", Device, (int) (Device->Volume * 100));
 
 			if (!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)) {
 				uint32_t now = gettime_ms();
@@ -952,7 +952,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 		}
 	}
 
-	LOG_INFO("[%p]: adding renderer (%s) with mac %hx%x", Device, Name, *(uint16_t*)Device->sq_config.mac, *(uint32_t*)(Device->sq_config.mac + 2));
+	LOG_INFO("[%p]: adding renderer (%s) with mac %hX-%X", Device, Device->FriendlyName, *(uint16_t*)Device->sq_config.mac, *(uint32_t*)(Device->sq_config.mac + 2));
 	Device->CastCtx = CreateCastDevice(Device, Device->Group, Device->Config.StopReceiver, ip, port, Device->Config.MediaVolume);
 	pthread_create(&Device->Thread, NULL, &MRThread, Device);
 

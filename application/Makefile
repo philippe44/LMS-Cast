@@ -17,7 +17,7 @@ BUILDDIR	= build/$(PLATFORM)
 EXECUTABLE 	= bin/squeeze2cast-$(PLATFORM)
 EXECUTABLE_STATIC = bin/squeeze2cast-$(PLATFORM)-static
 
-SRC			= squeeze2cast
+SRC		= squeeze2cast
 SQUEEZELITE	= squeezelite
 TOOLS		= crosstools/src
 MDNS		= libmdns/targets
@@ -29,7 +29,7 @@ JANSSON		= libjansson/targets/$(HOST)/$(PLATFORM)
 #VALGRIND	= $(BASE)/valgrind
 
 #DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H -DRESAMPLE -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB
-DEFINES 	= -D_FILE_OFFSET_BITS=64 -DPB_FIELD_16BIT -DHAVE_STDINT_H -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB -DLINKALL
+DEFINES 	= -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB -DLINKALL
 
 CFLAGS  	+= -Wall -Wno-deprecated-declarations -Wno-format-truncation -Wno-stringop-truncation -fPIC -ggdb -O2 $(DEFINES) -fdata-sections -ffunction-sections 
 LDFLAGS += -s -lpthread -ldl -lm -lrt -lstdc++ -L. 
@@ -73,7 +73,7 @@ LIBRARY	= $(PUPNP)/libpupnp.a \
 		 
 LIBRARY_STATIC 	= $(LIBRARY) $(OPENSSL)/libopenssl.a
 
-all: $(EXECUTABLE) $(EXECUTABLE_STATIC)
+all: directory $(EXECUTABLE) $(EXECUTABLE_STATIC)
 
 $(EXECUTABLE): $(OBJECTS) $(DEPS)
 	$(CC) $(OBJECTS) $(LIBRARY) $(LDFLAGS) -o $@
