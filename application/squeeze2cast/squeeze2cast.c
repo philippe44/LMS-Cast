@@ -675,7 +675,6 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 	struct sMR *Device;
 	mDNSservice_t *s;
 	uint32_t now = gettime_ms();
-	int j;
 
 	if (*loglevel == lDEBUG) {
 		LOG_DEBUG("----------------- round ------------------", NULL);
@@ -781,17 +780,16 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 			continue;
 		}
 
-		// device creation so search a free spot.
-		for (j = 0; j < MAX_RENDERERS && glMRDevices[j].Running; j++);
+		// new device so search a free spot - as this function is not called
+		// recursively, no need to lock the device's mutex
+		for (Device = glMRDevices; Device->Running && Device < glMRDevices + MAX_RENDERERS; Device++);
 
 		// no more room !
-		if (j == MAX_RENDERERS) {
-			LOG_ERROR("Too many Cast devices", NULL);
+		if (Device == glMRDevices + MAX_RENDERERS) {
+			LOG_ERROR("Too many devices (max:%u)", MAX_RENDERERS);
 			NFREE(UDN);
 			break;
 		}
-
-		Device = glMRDevices + j;
 
 		// if model is a group
 		Model = GetmDNSAttribute(s->attr, s->attr_count, "md");
@@ -819,19 +817,12 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 	}
 
 	// walk through the list for device that expire on timeout
-	for (j = 0; j < MAX_RENDERERS; j++) {
-
-		Device = glMRDevices + j;
-
+	for (int i = 0; i < MAX_RENDERERS; i++) {
+		Device = glMRDevices + i;
 		if (!Device->Running || Device->Config.RemoveTimeout < 0 || !Device->Expired ||
-
 			now < Device->Expired + Device->Config.RemoveTimeout*1000 ||
-
 			(!Device->Config.RemoveTimeout && CastIsConnected(Device->CastCtx)))
-
 			continue;
-
-
 		LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
 		sq_delete_device(Device->SqueezeHandle);
 		RemoveCastDevice(Device);

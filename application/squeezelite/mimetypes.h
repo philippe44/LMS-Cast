@@ -7,6 +7,8 @@
  */
 
 #include <stdint.h>
+
+#define MAX_MIMETYPES	128
  
 char* mimetype_from_codec(char codec, char* mimetypes[], char* options);
 char* mimetype_from_pcm(uint8_t* sample_size, bool truncable, uint32_t sample_rate, uint8_t channels, char* mimetypes[], char* options);
