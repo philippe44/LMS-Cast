@@ -987,8 +987,7 @@ static void RemoveCastDevice(struct sMR *Device) {
 
 /*----------------------------------------------------------------------------*/
 static bool Start(void) {
-	struct in_addr addr;
-	char IPaddr[16] = "";
+	struct in_addr Host;
 	unsigned short Port = 0;
 	
 #if USE_SSL
@@ -998,29 +997,29 @@ static bool Start(void) {
 	}
 #endif
 
+	// must binding to an address
+	get_interface(&Host);
+
+	if (!strstr(glBinding, "?")) {
+		char addr[16] = "";
+		// sscanf does not capture empty string in %[^:]
+		if (!sscanf(glBinding, "%[^:]:%hu", addr, &Port)) sscanf(glBinding, ":%hu", &Port);
+		if (*addr) Host.s_addr = inet_addr(addr);
+	}
+
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
-	// sscanf does not capture empty string in %[^:]
-	if (!strstr(glBinding, "?") && !sscanf(glBinding, "%[^:]:%hu", IPaddr, &Port)) sscanf(glBinding, ":%hu", &Port);
-
-	if (*IPaddr) {
-		addr.s_addr = inet_addr(IPaddr);
-	} else {
-		get_interface(&addr);
-		strcpy(IPaddr, inet_ntoa(addr));
-	}
-
 	// start squeezebox part
-	sq_init(IPaddr, Port, glModelName);
+	sq_init(Host, Port, glModelName);
 
-	LOG_INFO("Binding to %s (http:%hu)", IPaddr, Port);
+	LOG_INFO("Binding to %s (http:%hu)", inet_ntoa(Host), Port);
 
 	// init mutex & cond no matter what
 	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
 	/* start the mDNS devices discovery thread */
-	if ((glmDNSsearchHandle = init_mDNS(false, addr)) == NULL) {
+	if ((glmDNSsearchHandle = init_mDNS(false, Host)) == NULL) {
 		LOG_ERROR("Cannot start mDNS searcher", NULL);
 		return false;
 	}
