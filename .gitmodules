@@ -13,18 +13,12 @@
 [submodule "application/libpupnp"]
 	path = application/libpupnp
 	url = http://github.com/philippe44/libpupnp
-[submodule "application/pthreads4w"]
-	path = application/pthreads4w
-	url = http://github.com/philippe44/pthreads4w
 [submodule "application/libopenssl"]
 	path = application/libopenssl
 	url = http://github.com/philippe44/libopenssl
 [submodule "application/nanopb"]
 	path = application/nanopb
 	url = https://github.com/nanopb/nanopb
-[submodule "application.libpthreads4w"]
-	path = application.libpthreads4w
-	url = https://github.com/philippe44/libpthreads4w
 [submodule "application/libpthreads4w"]
 	path = application/libpthreads4w
 	url = https://github.com/philippe44/libpthreads4w
