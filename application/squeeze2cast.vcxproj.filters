@@ -101,12 +101,24 @@
     <ClCompile Include="squeezelite\mimetypes.c">
       <Filter>squeezelite</Filter>
     </ClCompile>
+    <ClCompile Include="squeezelite\mad.c">
+      <Filter>squeezelite</Filter>
+    </ClCompile>
+    <ClCompile Include="squeezelite\faad.c">
+      <Filter>squeezelite</Filter>
+    </ClCompile>
+    <ClCompile Include="squeezelite\opus.c">
+      <Filter>squeezelite</Filter>
+    </ClCompile>
+    <ClCompile Include="squeezelite\vorbis.c">
+      <Filter>squeezelite</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libcodecs\targets\win32\x86\libcodecs.lib" />
     <Library Include="libpupnp\targets\win32\x86\libpupnp.lib" />
     <Library Include="libjansson\targets\win32\x86\libjansson.lib" />
-    <Library Include="pthreads4w\targets\win32\x86\libpthreadVC3.lib" />
     <Library Include="libmdns\targets\win32\x86\libmdns.lib" />
+    <Library Include="libpthreads4w\targets\win32\x86\libpthreadVC3.lib" />
   </ItemGroup>
 </Project>
