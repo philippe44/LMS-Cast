@@ -130,7 +130,7 @@ sq_dev_param_t glDeviceParam = {
 /* locals */
 /*----------------------------------------------------------------------------*/
 static log_level 			*loglevel = &main_loglevel;
-#if LINUX || FREEBSD
+#if LINUX || FREEBSD || SUNOS
 static bool					glDaemonize = false;
 #endif
 static bool					glMainRunning = true;
@@ -153,7 +153,7 @@ static char usage[] =
 		   "See -t for license terms\n"
 		   "Usage: [options]\n"
 		   "  -s <ip[:port]>\t\tConnect to specified server, otherwise uses autodiscovery to find server\n"
-		   "  -b <ip[:port]>]\t\tNetwork address and port to bind to\n"
+		   "  -b <ip|iface[:port]>]\t\tNetwork address (or interface name) and port to bind to\n"
 		   "  -x <config file>\tread config from file (default is ./config.xml)\n"
 		   "  -i <config file>\tdiscover players, save <config file> and exit\n"
 		   "  -I \t\t\tauto save config at every network scan\n"
@@ -162,7 +162,7 @@ static char usage[] =
 		   "  -o [thru|pcm|flc[:<q>]|mp3[:<r>]][,r:[-]<rate>][,s:<8:16:24>][,flow]\tTranscode mode\n"
 		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|slimmain|stream|decode|output|main|util|cast, level: error|warn|info|debug|sdebug\n"
 		   "  -M <modelname>\tSet the squeezelite player model name sent to the server (default: " MODEL_NAME_STRING ")\n"
-#if LINUX || FREEBSD
+#if LINUX || FREEBSD || SUNOS
 		   "  -z \t\t\tDaemonize\n"
 #endif
 		   "  -Z \t\t\tNOT interactive\n"
@@ -181,6 +181,9 @@ static char usage[] =
 #endif
 #if FREEBSD
 		   " FREEBSD"
+#endif
+#if SUNOS
+	" SUNOS"
 #endif
 #if EVENTFD
 		   " EVENTFD"
@@ -724,12 +727,12 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 						Remove = false;
 						// changing the master, so need to update cast params
 						if (Device->GroupMaster->Host.s_addr == s->host.s_addr) {
-							free(list_pop((list_t**) &Device->GroupMaster));
+							free(list_pop((cross_list_t**) &Device->GroupMaster));
 							UpdateCastDevice(Device->CastCtx, Device->GroupMaster->Host, Device->GroupMaster->Port);
 						} else {
 							struct sGroupMember *Member = Device->GroupMaster;
 							while (Member && (Member->Host.s_addr != s->host.s_addr)) Member = Member->Next;
-							if (Member) free(list_remove((list_t*) Member, (list_t**) &Device->GroupMaster));
+							if (Member) free(list_remove((cross_list_t*) Member, (cross_list_t**) &Device->GroupMaster));
 						}
 					}
 				}
@@ -752,7 +755,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 					struct sGroupMember *Member = calloc(1, sizeof(struct sGroupMember));
 					Member->Host = s->host;
 					Member->Port = s->port;
-					list_push((list_t*) Member, (list_t**) &Device->GroupMaster);
+					list_push((cross_list_t*) Member, (cross_list_t**) &Device->GroupMaster);
 				}
 
 				if (UpdateCastDevice(Device->CastCtx, s->addr, s->port)) {
@@ -980,7 +983,7 @@ static void RemoveCastDevice(struct sMR *Device) {
 
 	pthread_join(Device->Thread, NULL);
 
-	list_clear((list_t**) &Device->GroupMaster, free);
+	list_clear((cross_list_t**) &Device->GroupMaster, free);
 	metadata_free(&Device->NextMetaData);
 	NFREE(Device->NextURI);
 }
@@ -989,6 +992,7 @@ static void RemoveCastDevice(struct sMR *Device) {
 static bool Start(void) {
 	struct in_addr Host;
 	unsigned short Port = 0;
+	char addr[128] = "";
 	
 #if USE_SSL
 	if (!cross_ssl_load()) {
@@ -997,15 +1001,13 @@ static bool Start(void) {
 	}
 #endif
 
-	// must bind to an address
-	get_interface(&Host);
+	// sscanf does not capture empty strings
+	if (!strchr(glBinding, '?') && !sscanf(glBinding, "%[^:]:%hu", addr, &Port)) sscanf(glBinding, ":%hu", &Port);
 
-	if (!strstr(glBinding, "?")) {
-		char addr[16] = "";
-		// sscanf does not capture empty string in %[^:]
-		if (!sscanf(glBinding, "%[^:]:%hu", addr, &Port)) sscanf(glBinding, ":%hu", &Port);
-		if (*addr) Host.s_addr = inet_addr(addr);
-	}
+	Host = get_interface(addr);
+
+	// can't find a suitable interface
+	if (Host.s_addr == INADDR_NONE) return false;
 
 	memset(&glMRDevices, 0, sizeof(glMRDevices));
 	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
@@ -1179,7 +1181,7 @@ bool ParseArgs(int argc, char **argv) {
 			glGracefullShutdown = false;
 			break;
 
-#if LINUX || FREEBSD
+#if LINUX || FREEBSD || SUNOS
 		case 'z':
 			glDaemonize = true;
 			break;
@@ -1275,7 +1277,7 @@ int main(int argc, char *argv[]) {
 		return(0);
 	}
 
-#if LINUX || FREEBSD
+#if LINUX || FREEBSD || SUNOS
 	if (glDaemonize) {
 		if (daemon(1, glLogFile ? 1 : 0)) {
 			fprintf(stderr, "error daemonizing: %s\n", strerror(errno));
@@ -1303,7 +1305,7 @@ int main(int argc, char *argv[]) {
 	
 	while (strcmp(resp, "exit")) {
 
-#if LINUX || FREEBSD
+#if LINUX || FREEBSD || SUNOS
 		if (!glDaemonize && glInteractive)
 			(void)! scanf("%s", resp);
 		else pause();
