@@ -23,46 +23,43 @@ sub binaries {
 	if ($os->{'os'} eq 'Linux') {
 
 		if ($os->{'osArch'} =~ /x86_64/) {
-			return qw(squeeze2cast-x86-64-static squeeze2cast-x86-64 );
+			return qw(squeeze2cast-linux-x86_64-static squeeze2cast-linux-x86_64 );
 		}
 		if ($os->{'binArch'} =~ /i386/) {
-			return qw(squeeze2cast-x86-static squeeze2cast-x86 );
+			return qw(squeeze2cast-linux-x86-static squeeze2cast-linux-x86 );
 		}
 		if ($os->{'osArch'} =~ /aarch64/) {
-			return qw( squeeze2cast-aarch64-static squeeze2cast-aarch64 squeeze2cast-armv6hf-static squeeze2cast-armv6hf );
+			return qw( squeeze2cast-linux-aarch64-static squeeze2cast-linux-aarch64 );
 		}
 		if ($os->{'binArch'} =~ /armhf/) {
-			return qw(squeeze2cast-armv6hf-static squeeze2cast-armv6hf );
-		}
-		if ($os->{'binArch'} =~ /arm/) {
-			return qw(squeeze2cast-armv5te-static squeeze2cast-armv5te );
+			return qw(squeeze2cast-linux-arm-static squeeze2cast-linux-armv );
 		}
 		if ($os->{'binArch'} =~ /powerpc/) {
-			return qw(squeeze2cast-ppc-static squeeze2cast-ppc );
+			return qw(squeeze2cast-linux-powerpc-static squeeze2cast-linux-powerpc );
 		}
 		if ($os->{'binArch'} =~ /sparc/) {
-			return qw(squeeze2cast-sparc-static squeeze2cast-sparc );
+			return qw(squeeze2cast-linux-sparc64-static squeeze2cast-linux-sparc64 );
 		}
 		
-		# fallback to offering all linux options for case when architecture detection does not work
-		return qw(squeeze2cast-x86-64 squeeze2cast-x86-64-static squeeze2cast-x86 squeeze2cast-x86-static squeeze2cast-armv6hf squeeze2cast-armv6hf-static squeeze2cast-armv5te squeeze2cast-armv5te-static squeeze2cast-ppc squeeze2cast-ppc-static 
-		squeeze2cast-sparc squeeze2cast-sparc-static squeeze2cast-aarch64 squeeze2cast-aarch64_static);
 	}
 	
 	if ($os->{'os'} eq 'Unix') {
-	
+		
+		if ($os->{'osName'} eq 'solaris') {
+			return qw(squeeze2cast-solaris-x86_64-static squeeze2cast-solaris-x86_64 );
+		}	
 		if ($os->{'osName'} =~ /freebsd/) {
-			return qw(  squeeze2cast-bsd-x64-static squeeze2cast-bsd-x64 );
+			return qw(  squeeze2cast-freebsd-x86_64-static squeeze2cast-freebsd-x86_64 );
 		}
 		
 	}	
 	
 	if ($os->{'os'} eq 'Darwin') {
-		return qw(squeeze2cast-osx-multi-static squeeze2cast-osx-multi );
+		return qw(squeeze2cast-macos-x86_64-static squeeze2cast-macos-x86_64);
 	}
 	
 	if ($os->{'os'} eq 'Windows') {
-		return qw(squeeze2cast-win.exe);
+		return qw(squeeze2cast-static.exe squeeze2cast.exe);
 	}	
 }
 
