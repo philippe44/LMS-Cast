@@ -23,60 +23,55 @@ sub binaries {
 	if ($os->{'os'} eq 'Linux') {
 
 		if ($os->{'osArch'} =~ /x86_64/) {
-			return qw(squeeze2cast-linux-x86_64-static squeeze2cast-linux-x86_64 );
+			return qw(squeeze2cast-linux-x86_64 squeeze2cast-linux-x86_64-static );
 		}
 		if ($os->{'binArch'} =~ /i386/) {
-			return qw(squeeze2cast-linux-x86-static squeeze2cast-linux-x86 );
+			return qw(squeeze2cast-linux-x86 squeeze2cast-linux-x86-static );
 		}
 		if ($os->{'osArch'} =~ /aarch64/) {
-			return qw( squeeze2cast-linux-aarch64-static squeeze2cast-linux-aarch64 );
+			return qw( squeeze2cast-linux-aarch64 squeeze2cast-linux-aarch64-static );
 		}
 		if ($os->{'binArch'} =~ /armhf/) {
-			return qw(squeeze2cast-linux-arm-static squeeze2cast-linux-armv );
+			return qw(squeeze2cast-linux-arm squeeze2cast-linux-armv-static );
 		}
 		if ($os->{'binArch'} =~ /powerpc/) {
-			return qw(squeeze2cast-linux-powerpc-static squeeze2cast-linux-powerpc );
+			return qw(squeeze2cast-linux-powerpc squeeze2cast-linux-powerpc-static );
 		}
 		if ($os->{'binArch'} =~ /sparc/) {
-			return qw(squeeze2cast-linux-sparc64-static squeeze2cast-linux-sparc64 );
+			return qw(squeeze2cast-linux-sparc64 squeeze2cast-linux-sparc64-static );
 		}
+		if ($os->{'binArch'} =~ /mips/) {
+			return qw(squeeze2cast-linux-mips squeeze2cast-linux-mips-static );
+		}		
 		
 	}
 	
 	if ($os->{'os'} eq 'Unix') {
 		
 		if ($os->{'osName'} eq 'solaris') {
-			return qw(squeeze2cast-solaris-x86_64-static squeeze2cast-solaris-x86_64 );
+			return qw(squeeze2cast-solaris-x86_64 squeeze2cast-solaris-x86_64-static );
 		}	
 		if ($os->{'osName'} =~ /freebsd/) {
-			return qw(  squeeze2cast-freebsd-x86_64-static squeeze2cast-freebsd-x86_64 );
+			return qw(  squeeze2cast-freebsd-x86_64 squeeze2cast-freebsd-x86_64-static );
 		}
 		
 	}	
 	
 	if ($os->{'os'} eq 'Darwin') {
-		return qw(squeeze2cast-macos-x86_64-static squeeze2cast-macos-x86_64);
+		return qw(squeeze2cast-macos-x86_64 squeeze2cast-macos-x86_64-static );
 	}
 	
 	if ($os->{'os'} eq 'Windows') {
-		return qw(squeeze2cast-static.exe squeeze2cast.exe);
+		return qw(squeeze2cast.exe squeeze2cast-static.exe);
 	}	
 }
 
 sub bin {
 	my $class = shift;
-
 	my @binaries = $class->binaries;
+	my $bin = $prefs->get("bin");
 
-	if (my $b = $prefs->get("bin")) {
-		for my $bin (@binaries) {
-			if ($bin eq $b) {
-				return $b;
-			}
-		}
-	}
-
-	return $binaries[0];
+	return grep($bin, @binaries) ? $bin : @binaries;
 }
 
 sub start {
