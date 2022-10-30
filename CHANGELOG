@@ -1,3 +1,6 @@
+2.0.2
+ - update mdnsd that was binding to a specific port for no reason
+ 
 2.0.1
  - new compîlers to allow glibc starting 2.23
  - mips is bigendian by default
