@@ -106,3 +106,4 @@ application - 1.x/
 .vs/
 __recovery/
 *.user
+*.pdb

@@ -2,6 +2,14 @@ ifeq ($(CC),cc)
 CC=$(lastword $(subst /, ,$(shell readlink -f `which cc`)))
 endif
 
+ifeq ($(findstring gcc,$(CC)),gcc)
+CFLAGS  += -Wno-deprecated-declarations -Wno-format-truncation -Wno-stringop-truncation 
+LDFLAGS += -s -lstdc++
+else
+CFLAGS += -fno-temp-file
+LDFLAGS += -lc++
+endif
+
 PLATFORM ?= $(firstword $(subst -, ,$(CC)))
 HOST ?= $(word 2, $(subst -, ,$(CC)))
 
@@ -34,8 +42,8 @@ JANSSON		= libjansson/targets/$(HOST)/$(PLATFORM)
 
 DEFINES 	= -DCODECS -DUSE_SSL -D_GNU_SOURCE -DUPNP_STATIC_LIB -DLINKALL -DRESAMPLE
 
-CFLAGS  	+= -Wall -Wno-deprecated-declarations -Wno-format-truncation -Wno-stringop-truncation -fPIC -ggdb -O2 $(DEFINES) -fdata-sections -ffunction-sections 
-LDFLAGS += -s -lpthread -ldl -lm -lstdc++ -L. 
+CFLAGS  += -Wall -fPIC -ggdb -O2 $(DEFINES) -fdata-sections -ffunction-sections 
+LDFLAGS += -lpthread -ldl -lm -L. 
 
 vpath %.c $(TOOLS):$(SRC):$(SQUEEZELITE):$(NANOPB)
 vpath %.cpp $(TOOLS):$(SRC):$(SQUEEZELITE):$(NANOPB)

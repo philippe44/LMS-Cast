@@ -1,3 +1,7 @@
+2.0.3
+ - fix mdns service discovery queries
+ - add arm64 for M1
+
 2.0.2
  - update mdnsd that was binding to a specific port for no reason
  
