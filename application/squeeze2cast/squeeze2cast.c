@@ -136,7 +136,7 @@ static bool					glDaemonize = false;
 static bool					glMainRunning = true;
 static pthread_t 			glMainThread, glmDNSsearchThread;
 static pthread_mutex_t 		glUpdateMutex;
-static struct mDNShandle_s	*glmDNSsearchHandle = NULL;
+static struct mdnssd_handle_s	*glmDNSsearchHandle = NULL;
 static char					*glLogFile;
 static bool					glDiscovery = false;
 static bool					glAutoSaveConfigFile = false;
@@ -640,7 +640,7 @@ static void *MRThread(void *args)
 
 
 /*----------------------------------------------------------------------------*/
-static char *GetmDNSAttribute(txt_attr_t *p, int count, char *name)
+static char *GetmDNSAttribute(mdnssd_txt_attr_t *p, int count, char *name)
 {
 	int j;
 
@@ -677,10 +677,10 @@ static bool isMember(struct in_addr host) {
 
 
 /*----------------------------------------------------------------------------*/
-static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
+static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop)
 {
 	struct sMR *Device;
-	mDNSservice_t *s;
+	mdnssd_service_t *s;
 	uint32_t now = gettime_ms();
 
 	if (*loglevel == lDEBUG) {
@@ -851,7 +851,7 @@ static bool mDNSsearchCallback(mDNSservice_t *slist, void *cookie, bool *stop)
 static void *mDNSsearchThread(void *args)
 {
 	// launch the query,
-	query_mDNS(glmDNSsearchHandle, "_googlecast._tcp.local", 120,
+	mdnssd_query(glmDNSsearchHandle, "_googlecast._tcp.local", false,
 			   glDiscovery ? DISCOVERY_TIME : 0, &mDNSsearchCallback, NULL);
 	return NULL;
 }
@@ -1021,7 +1021,7 @@ static bool Start(void) {
 	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);
 
 	/* start the mDNS devices discovery thread */
-	if ((glmDNSsearchHandle = init_mDNS(false, Host)) == NULL) {
+	if ((glmDNSsearchHandle = mdnssd_init(false, Host, true)) == NULL) {
 		LOG_ERROR("Cannot start mDNS searcher", NULL);
 		return false;
 	}
@@ -1044,7 +1044,7 @@ static bool Stop(void) {
 
 	LOG_DEBUG("terminate search thread ...", NULL);
 	// this forces an ongoing search to end
-	close_mDNS(glmDNSsearchHandle);
+	mdnssd_close(glmDNSsearchHandle);
 	pthread_join(glmDNSsearchThread, NULL);
 	pthread_mutex_destroy(&glUpdateMutex);
 
