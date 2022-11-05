@@ -1,3 +1,6 @@
+2.0.5
+ - update mdnssd
+
 2.0.4
  - update libmdns (no unicast & compliant mode)
  
