@@ -32,7 +32,7 @@ sub binaries {
 			return qw( squeeze2cast-linux-aarch64 squeeze2cast-linux-aarch64-static );
 		}
 		if ($os->{'binArch'} =~ /armhf/) {
-			return qw(squeeze2cast-linux-arm squeeze2cast-linux-armv-static );
+			return qw(squeeze2cast-linux-arm squeeze2cast-linux-arm-static squeeze2cast-linux-armv6 squeeze2cast-linux-armv6-static );
 		}
 		if ($os->{'binArch'} =~ /powerpc/) {
 			return qw(squeeze2cast-linux-powerpc squeeze2cast-linux-powerpc-static );
@@ -58,7 +58,13 @@ sub binaries {
 	}	
 	
 	if ($os->{'os'} eq 'Darwin') {
-		return qw(squeeze2cast-macos-x86_64 squeeze2cast-macos-x86_64-static );
+		if ($os->{'binArch'} =~ /x86_64/) {
+			return qw(squeeze2cast-macos-x86_64 squeeze2cast-macos-x86_64-static );
+		}
+		if ($os->{'binArch'} =~ /arm64/) {
+			return qw(squeeze2cast-macos-arm64 squeeze2cast-macos-arm64-static );
+		}
+		
 	}
 	
 	if ($os->{'os'} eq 'Windows') {
