@@ -1,3 +1,8 @@
+2.0.6.1
+ - add MacOS universal binaries
+ - glibc is really static (-nss)
+ - give log window a bit of love
+ 
 2.0.6
  - add armv6
 

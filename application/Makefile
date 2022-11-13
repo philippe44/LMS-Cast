@@ -25,9 +25,10 @@ ifeq ($(HOST)-$(PLATFORM), linux-x86_64)
 LDFLAGS += -lmvec
 endif
 
-BUILDDIR	= bin/$(HOST)/$(PLATFORM)
-EXECUTABLE 	= bin/squeeze2cast-$(HOST)-$(PLATFORM)
-EXECUTABLE_STATIC = bin/squeeze2cast-$(HOST)-$(PLATFORM)-static
+CORE              = bin/squeeze2cast-$(HOST)
+BUILDDIR          = $(dir $(CORE))$(HOST)/$(PLATFORM)
+EXECUTABLE        = $(CORE)-$(PLATFORM)
+EXECUTABLE_STATIC = $(EXECUTABLE)-static
 
 SRC		= squeeze2cast
 SQUEEZELITE	= squeezelite
@@ -93,12 +94,18 @@ LIBRARY_STATIC 	= $(LIBRARY) $(OPENSSL)/libopenssl.a
 all: directory $(EXECUTABLE) $(EXECUTABLE_STATIC)
 
 $(EXECUTABLE): $(OBJECTS)
-	echo $(CFLAGS)
 	$(CC) $(OBJECTS) $(LIBRARY) $(CFLAGS) $(LDFLAGS) -o $@
-	
+ifeq ($(HOST),macos)
+	rm -f $(CORE)
+	lipo -create -output $(CORE) $$(ls $(CORE)* | grep -v '\-static')
+endif
+
 $(EXECUTABLE_STATIC): $(OBJECTS_STATIC)
-	echo $(CFLAGS)
-	$(CC) $(OBJECTS_STATIC) $(LIBRARY_STATIC) $(CFLAGS) $(LDFLAGS) $(LINKSTATIC) -o $@	
+	$(CC) $(OBJECTS_STATIC) $(LIBRARY_STATIC) $(CFLAGS) $(LDFLAGS) $(LINKSTATIC) -o $@
+ifeq ($(HOST),macos)
+	rm -f $(CORE)-static
+	lipo -create -output $(CORE)-static $(CORE)-*-static
+endif	
 	
 $(OBJECTS) $(OBJECTS_STATIC): $(DEPS)
 
@@ -113,4 +120,4 @@ $(BUILDDIR)/%-static.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -DSSL_STATIC_LIB $(INCLUDE) $< -c -o $(BUILDDIR)/$*-static.o	
 	
 clean:
-	rm -f $(OBJECTS) $(EXECUTABLE) $(OBJECTS_STATIC) $(EXECUTABLE_STATIC) 
+	rm -f $(OBJECTS) $(EXECUTABLE) $(OBJECTS_STATIC) $(EXECUTABLE_STATIC) $(CORE) $(CORE)-static 

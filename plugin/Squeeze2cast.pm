@@ -23,25 +23,25 @@ sub binaries {
 	if ($os->{'os'} eq 'Linux') {
 
 		if ($os->{'osArch'} =~ /x86_64/) {
-			return qw(squeeze2cast-linux-x86_64 squeeze2cast-linux-x86_64-static );
+			return qw(squeeze2cast-linux-x86_64 squeeze2cast-linux-x86_64-static);
 		}
 		if ($os->{'binArch'} =~ /i386/) {
-			return qw(squeeze2cast-linux-x86 squeeze2cast-linux-x86-static );
+			return qw(squeeze2cast-linux-x86 squeeze2cast-linux-x86-static);
 		}
 		if ($os->{'osArch'} =~ /aarch64/) {
-			return qw( squeeze2cast-linux-aarch64 squeeze2cast-linux-aarch64-static );
+			return qw( squeeze2cast-linux-aarch64 squeeze2cast-linux-aarch64-static);
 		}
 		if ($os->{'binArch'} =~ /armhf/) {
 			return qw(squeeze2cast-linux-arm squeeze2cast-linux-arm-static squeeze2cast-linux-armv6 squeeze2cast-linux-armv6-static );
 		}
 		if ($os->{'binArch'} =~ /powerpc/) {
-			return qw(squeeze2cast-linux-powerpc squeeze2cast-linux-powerpc-static );
+			return qw(squeeze2cast-linux-powerpc squeeze2cast-linux-powerpc-static);
 		}
 		if ($os->{'binArch'} =~ /sparc/) {
-			return qw(squeeze2cast-linux-sparc64 squeeze2cast-linux-sparc64-static );
+			return qw(squeeze2cast-linux-sparc64 squeeze2cast-linux-sparc64-static);
 		}
 		if ($os->{'binArch'} =~ /mips/) {
-			return qw(squeeze2cast-linux-mips squeeze2cast-linux-mips-static );
+			return qw(squeeze2cast-linux-mips squeeze2cast-linux-mips-static);
 		}		
 		
 	}
@@ -58,13 +58,7 @@ sub binaries {
 	}	
 	
 	if ($os->{'os'} eq 'Darwin') {
-		if ($os->{'binArch'} =~ /x86_64/) {
-			return qw(squeeze2cast-macos-x86_64 squeeze2cast-macos-x86_64-static );
-		}
-		if ($os->{'binArch'} =~ /arm64/) {
-			return qw(squeeze2cast-macos-arm64 squeeze2cast-macos-arm64-static );
-		}
-		
+		return qw(squeeze2cast-macos squeeze2cast-macos-static );
 	}
 	
 	if ($os->{'os'} eq 'Windows') {
@@ -227,43 +221,27 @@ sub configFile {
 }
 
 sub logHandler {
-	my ($client, $params, undef, undef, $response) = @_;
+	my ($client, $params, $callback, $httpClient, $response) = @_;
+	my $body = \'';
 
-	$response->header("Refresh" => "10; url=" . $params->{path} . ($params->{lines} ? '?lines=' . $params->{lines} : ''));
-	$response->header("Content-Type" => "text/plain; charset=utf-8");
+	if ( main::WEBUI ) {
+		$body = Slim::Web::Pages::Common->logFile($httpClient, $params, $response, 'castbridge');
+		# as of LMS 8.3, this is in fact ignored (overwritten)
+		$response->header('Content-Type' => 'text/html; charset=utf-8');	
+	}	
 
-	my $body = '';
-	my $file = File::ReadBackwards->new(logFile());
-	
-	if ($file){
-
-		my @lines;
-		my $count = $params->{lines} || 1000;
-
-		while ( --$count && (my $line = $file->readline()) ) {
-			unshift (@lines, $line);
-		}
-
-		$body .= join('', @lines);
-
-		$file->close();			
-	};
-
-	return \$body;
+	return $body;
 }
 
 sub configHandler {
 	my ($client, $params, undef, undef, $response) = @_;
-
-	$response->header("Content-Type" => "text/xml; charset=utf-8");
-
 	my $body = '';
 	
-	$log->error(configFile());
+	# as of LMS 8.3, this is in fact ignored (overwritten)
+	$response->header('Content-Type' => 'text/xml; charset=utf-8');
 	
 	if (-e configFile) {
 		open my $fh, '<', configFile;
-		
 		read $fh, $body, -s $fh;
 		close $fh;
 	}	
@@ -273,7 +251,6 @@ sub configHandler {
 
 sub guideHandler {
 	my ($client, $params) = @_;
-		
 	return Slim::Web::HTTP::filltemplatefile('plugins/CastBridge/userguide.htm', $params);
 }
 

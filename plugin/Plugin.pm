@@ -57,6 +57,8 @@ sub initPlugin {
 	
 	$fade_volume = \&Slim::Player::SqueezePlay::fade_volume;
 	*Slim::Player::SqueezePlay::fade_volume = \&fade_volume;
+	
+	*Slim::Utils::Log::castbridgeLogFile = sub { Plugins::CastBridge::Squeeze2cast->logFile; };
 
 	$class->SUPER::initPlugin(@_);
 	
@@ -69,9 +71,10 @@ sub initPlugin {
 	if (!$::noweb) {
 		require Plugins::CastBridge::Settings;
 		Plugins::CastBridge::Settings->new;
-		Slim::Web::Pages->addPageFunction("^castbridge-log.log", \&Plugins::CastBridge::Squeeze2cast::logHandler);
-		Slim::Web::Pages->addPageFunction("^castbridge-config.xml", \&Plugins::CastBridge::Squeeze2cast::configHandler);
-		Slim::Web::Pages->addPageFunction("castbridge-guide.htm", \&Plugins::CastBridge::Squeeze2cast::guideHandler);
+		# there is a bug in LMS where the "content-type" set in handlers is ignored, only extension matters (and is html by default)
+		Slim::Web::Pages->addPageFunction("castbridge-log", \&Plugins::CastBridge::Squeeze2cast::logHandler);
+		Slim::Web::Pages->addPageFunction("castbridge-config.xml", \&Plugins::CastBridge::Squeeze2cast::configHandler);
+		Slim::Web::Pages->addPageFunction("castbridge-guide", \&Plugins::CastBridge::Squeeze2cast::guideHandler);
 	}
 	
 	$log->warn(Dumper(Slim::Utils::OSDetect::details()));
