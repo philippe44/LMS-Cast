@@ -434,8 +434,7 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 		// remote_title is present, it's a webradio if not repeating
 		if (metadata->remote_title && metadata->repeating == -1) metadata->duration = 0;
 
-		// most players don't support https, so don't even bother
-		if (!metadata->artwork || !strlen(metadata->artwork) || strcasestr(metadata->artwork,"https://")) {
+		if (!metadata->artwork || !strlen(metadata->artwork)) {
 			NFREE(metadata->artwork);
 			if ((p = cli_find_tag(cur, "coverid")) != NULL) {
 				(void)! asprintf(&metadata->artwork, "http://%s:%s/music/%s/cover_%s.jpg", ctx->server_ip, ctx->server_port, p, ctx->config.coverart);
