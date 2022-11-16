@@ -1,5 +1,9 @@
+2.0.6.3
+ - don't use debug dll's
+
 2.0.6.2
  - missing upnp backport wrt https metadata
+
 2.0.6.1
  - add MacOS universal binaries
  - glibc is really static (-nss)
