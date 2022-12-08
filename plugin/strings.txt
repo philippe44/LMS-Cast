@@ -151,20 +151,6 @@ PLUGIN_CASTBRIDGE_BINDING_DESC
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
 	
-PLUGIN_CASTBRIDGE_STREAMOPTIONS
-	EN	Streaming options	
-	
-PLUGIN_CASTBRIDGE_STREAMOPTIONS_DESC
-	EN	With large buffers, next track can be requested very quickly and some remote streaming services might close the connection.
-	EN	That request can be delayed up to &ltN&gt seconds before end of the current track. Set to 0 to request it immediately
-	EN	<br>see User Guide for more details (really). 
-		
-PLUGIN_CASTBRIDGE_NEXTDELAY1
-	EN	Next
-	
-PLUGIN_CASTBRIDGE_NEXTDELAY2
-	EN	afore end	
-
 PLUGIN_CASTBRIDGE_CASTAUDIOCAPS
 	EN	Chromecast player audio capabilities
 

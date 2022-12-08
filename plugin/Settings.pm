@@ -15,7 +15,7 @@ use Slim::Utils::Log;
 my $prefs = preferences('plugin.castbridge');
 my $log   = logger('plugin.castbridge');
 my @xmlmain = qw(binding log_limit);
-my @xmldevice = qw(name mac next_delay sample_rate codecs mode enabled remove_timeout send_metadata volume_on_play volume_feedback send_coverart media_volume server);
+my @xmldevice = qw(name mac sample_rate codecs mode enabled remove_timeout send_metadata volume_on_play volume_feedback send_coverart media_volume server);
 my @prefs_bool  = qw(autorun logging autosave eraselog useLMSsocket);
 my @prefs_other = qw(output bin debugs opts baseport);
 

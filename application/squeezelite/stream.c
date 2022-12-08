@@ -226,7 +226,7 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 		It is required to use min with buf_space as it is the full space - 1,
 		otherwise, a write to full would be authorized and the write pointer
 		would wrap to the read pointer, making impossible to know if the buffer
-		is full or empty. This as the consequence, though, that the buffer can
+		is full or empty. This has the consequence, though, that the buffer can
 		never be totally full and can only wrap once the read pointer has moved
 		so it is impossible to count on having a proper multiply of any number
 		of bytes in the buffer
@@ -549,7 +549,8 @@ void stream_file(const char *header, size_t header_len, unsigned threshold, stru
 	UNLOCK_S;
 }
 
-void stream_sock(u32_t ip, u16_t port, bool use_ssl, const char *header, size_t header_len, unsigned threshold, bool cont_wait, struct thread_ctx_s *ctx) {
+void stream_sock(u32_t ip, u16_t port, bool use_ssl, const char *header, size_t header_len, unsigned threshold, 
+				 bool cont_wait, bool hold, struct thread_ctx_s *ctx) {
 	int sock;
 	char *p;
 
@@ -583,7 +584,7 @@ void stream_sock(u32_t ip, u16_t port, bool use_ssl, const char *header, size_t 
 	LOCK_S;
 
 	ctx->fd = sock;
-	ctx->stream.state = SEND_HEADERS;
+	ctx->stream.state = hold ? ON_HOLD : SEND_HEADERS;
 	ctx->stream.cont_wait = cont_wait;
 	ctx->stream.meta_interval = 0;
 	ctx->stream.meta_next = 0;
