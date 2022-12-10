@@ -9,8 +9,8 @@
 		[%IF running %] <b><font color="red">&nbsp&nbsp[% "PLUGIN_CASTBRIDGE_WARNING" | string %]</font></b> [% END %]
 	[% END %]
 	
-	[% IF binaries.size > 1 %]
-		[% WRAPPER setting title="PLUGIN_CASTBRIDGE_BINARIES" desc="PLUGIN_CASTBRIDGE_BINARIES_DESC" %]
+    [% WRAPPER setting title="PLUGIN_CASTBRIDGE_BINARIES" desc="PLUGIN_CASTBRIDGE_BINARIES_DESC" %]
+        [% IF binaries.size > 1 %]    
 			<select class="stdedit" name="bin" id="bin">
 			[% FOREACH entry IN binaries %]
 				<option [% IF entry == bin %]selected[% found = 1 %][% END %] value="[% entry %]">[% entry %]</option>
@@ -18,8 +18,9 @@
 			[% IF not found %]
 				<option selected value="">[% "PLUGIN_CASTBRIDGE_BINARIES" | string %]</option>
 			[% END %]
-			</select>
+			</select>&nbsp
 		[% END %]
+        <b><a href="https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170" target="vcredist">[% "PLUGIN_CASTBRIDGE_VCREDIST" | string %]</a></b>
 	[% END %]
 		
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_OPTIONS" desc="PLUGIN_CASTBRIDGE_OPTIONS_DESC" %]
