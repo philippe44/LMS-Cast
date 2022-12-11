@@ -331,8 +331,7 @@ static void process_strm(u8_t *pkt, int len, struct thread_ctx_s *ctx) {
 				break;
 			}
 
-			stream_sock(ip, port, strm->flags & 0x20, header, header_len, strm->threshold * 1024, 
-						ctx->autostart >= 2, ctx->output.state > OUTPUT_STOPPED, ctx);
+			stream_sock(ip, port, strm->flags & 0x20, header, header_len, strm->threshold * 1024, ctx->autostart >= 2,  ctx);
 
 			sendSTAT("STMc", 0, ctx);
 			ctx->canSTMdu = ctx->sentSTMu = ctx->sentSTMo = ctx->sentSTMl = ctx->sendSTMd = false;
@@ -732,8 +731,7 @@ static void slimproto_run(struct thread_ctx_s *ctx) {
 			 and thus should be continuous, so there is no need to wait toward
 			 the end of the track
 			*/
-			if ((ctx->decode.state == DECODE_COMPLETE && ctx->canSTMdu && ctx->status.output_ready &&
-				(ctx->output.encode.flow || _sendSTMu)) ||
+			if ((ctx->decode.state == DECODE_COMPLETE && ctx->canSTMdu && ctx->status.output_ready) ||
 				ctx->decode.state == DECODE_ERROR) {
 				if (ctx->decode.state == DECODE_COMPLETE) _sendSTMd = true;
 				if (ctx->decode.state == DECODE_ERROR)    _sendSTMn = true;
