@@ -153,6 +153,22 @@ PLUGIN_CASTBRIDGE_BINDING_DESC
 	
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
+    
+PLUGIN_CASTBRIDGE_STREAMOPTIONS
+	EN	Streaming options
+    
+PLUGIN_CASTBRIDGE_STREAMOPTIONS_DESC
+	EN	Some ChromeCast implementation (the HTTP stack) does not handle correctly streaming and might end tracks prematurely. Setting this
+	EN	option to "underrun" forces the bridge to wait until the track has stopped before requesting the next one from LMS
+    
+PLUGIN_CASTBRIDGE_NEXTURI
+	EN	Next track mode
+    
+PLUGIN_CASTBRIDGE_NEXTNORMAL
+	EN	Normal
+    
+PLUGIN_CASTBRIDGE_NEXTUNDERRUN
+	EN	Underrun
 	
 PLUGIN_CASTBRIDGE_CASTAUDIOCAPS
 	EN	Chromecast player audio capabilities

@@ -108,6 +108,7 @@ void SaveConfig(char *name, void *ref, bool full) {
 	XMLUpdateNode(doc, common, false, "volume_feedback", "%d", (int) glMRConfig.VolumeFeedback);
 	XMLUpdateNode(doc, common, false, "media_volume", "%d", (int) (glMRConfig.MediaVolume * 100));
 	XMLUpdateNode(doc, common, false, "remove_timeout", "%d", (int) glMRConfig.RemoveTimeout);
+	XMLUpdateNode(doc, common, false, "next_uri", "%d", (int)glMRConfig.NextURI);
 	XMLUpdateNode(doc, common, false, "send_metadata", "%d", (int) glMRConfig.SendMetaData);
 	XMLUpdateNode(doc, common, false, "send_coverart", "%d", (int) glMRConfig.SendCoverArt);
 	XMLUpdateNode(doc, common, false, "auto_play", "%d", (int) glMRConfig.AutoPlay);
@@ -188,6 +189,7 @@ static void LoadConfigItem(tMRConfig *Conf, sq_dev_param_t *sq_conf, char *name,
 	if (!strcmp(name, "volume_feedback")) Conf->VolumeFeedback = atol(val);
 	if (!strcmp(name, "media_volume")) Conf->MediaVolume = atof(val) / 100;
 	if (!strcmp(name, "remove_timeout")) Conf->RemoveTimeout = atol(val);
+	if (!strcmp(name, "next_uri")) Conf->NextURI = atol(val);
 	if (!strcmp(name, "auto_play")) Conf->AutoPlay = atol(val);
 	if (!strcmp(name, "send_metadata")) Conf->SendMetaData = atol(val);
 	if (!strcmp(name, "send_coverart")) Conf->SendCoverArt = atol(val);

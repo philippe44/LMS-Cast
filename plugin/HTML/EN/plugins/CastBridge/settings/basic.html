@@ -106,6 +106,15 @@
 		options.style.display = (status.checked) ? 'inline' : 'none';
 	}
 	</script>
+    
+    [% WRAPPER setting title="PLUGIN_CASTBRIDGE_STREAMOPTIONS" desc="PLUGIN_CASTBRIDGE_STREAMOPTIONS_DESC" %]
+		[% "PLUGIN_CASTBRIDGE_NEXTURI" | string %]
+        <select class="stdedit" name="next_uri" id="next_uri">
+        [% FOREACH entry IN [ ['', ''], ['PLUGIN_CASTBRIDGE_NEXTNORMAL','0'], ['PLUGIN_CASTBRIDGE_NEXTUNDERRUN','2'] ] %]
+			<option [% IF entry.1 == next_uri %]selected[% END %] value="[% entry.1 %]">[% entry.0 | string %]</option>
+		[% END %]
+		</select>
+	[% END %]
 	
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_CASTAUDIOCAPS" desc="PLUGIN_CASTBRIDGE_CASTAUDIOCAPS_DESC" %]
 		[% "PLUGIN_CASTBRIDGE_CODECS" | string %]

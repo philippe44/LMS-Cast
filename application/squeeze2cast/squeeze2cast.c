@@ -47,6 +47,8 @@
 
 #define MODEL_NAME_STRING	"CastBridge"
 
+enum { NEXT_GAPPED = 0, NEXT_UNDERRUN = 2 };
+
 /*----------------------------------------------------------------------------*/
 /* globals 																	  */
 /*----------------------------------------------------------------------------*/
@@ -929,6 +931,8 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 		Device->on = true;
 		Device->sq_config.use_cli = false;
 	} else Device->on = false;
+
+	Device->sq_config.wait_underrun = Device->Config.NextURI == NEXT_UNDERRUN;
 
 	// optional
 	Device->sqStamp = 0;

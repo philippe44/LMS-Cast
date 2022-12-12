@@ -39,6 +39,7 @@ typedef struct sMRConfig
 	bool		AutoPlay;
 	double		MediaVolume;
 	int			RemoveTimeout;
+	int			NextURI;
 } tMRConfig;
 
 
