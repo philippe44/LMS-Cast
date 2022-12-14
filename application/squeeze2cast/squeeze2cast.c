@@ -641,24 +641,17 @@ static void *MRThread(void *args)
 
 
 /*----------------------------------------------------------------------------*/
-static char *GetmDNSAttribute(mdnssd_txt_attr_t *p, int count, char *name)
-{
-	int j;
-
-	for (j = 0; j < count; j++)
-		if (!strcasecmp(p[j].name, name))
-			return strdup(p[j].value);
+static char *GetmDNSAttribute(mdnssd_txt_attr_t *p, int count, char *name) {
+	for (int i = 0; i < count; i++)
+		if (!strcasecmp(p[i].name, name))
+			return strdup(p[i].value);
 
 	return NULL;
 }
 
-
 /*----------------------------------------------------------------------------*/
-static struct sMR *SearchUDN(char *UDN)
-{
-	int i;
-
-	for (i = 0; i < MAX_RENDERERS; i++) {
+static struct sMR *SearchUDN(char *UDN) {
+	for (int i = 0; i < MAX_RENDERERS; i++) {
 		if (glMRDevices[i].Running && !strcmp(glMRDevices[i].UDN, UDN))
 			return glMRDevices + i;
 	}
@@ -668,14 +661,12 @@ static struct sMR *SearchUDN(char *UDN)
 
 /*----------------------------------------------------------------------------*/
 static bool isMember(struct in_addr host) {
-	int i;
-	for (i = 0; i < MAX_RENDERERS; i++) {
+	for (int i = 0; i < MAX_RENDERERS; i++) {
 		 if (glMRDevices[i].Running && GetAddr(glMRDevices[i].CastCtx).s_addr == host.s_addr)
 			return true;
 	}
 	return false;
 }
-
 
 /*----------------------------------------------------------------------------*/
 static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop)
@@ -847,7 +838,6 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 	return false;
 }
 
-
 /*----------------------------------------------------------------------------*/
 static void *mDNSsearchThread(void *args)
 {
@@ -1007,7 +997,7 @@ static bool Start(void) {
 	// sscanf does not capture empty strings
 	if (!strchr(glBinding, '?') && !sscanf(glBinding, "%[^:]:%hu", addr, &Port)) sscanf(glBinding, ":%hu", &Port);
 
-	Host = get_interface(addr, NULL);
+	Host = get_interface(addr, NULL, NULL);
 
 	// can't find a suitable interface
 	if (Host.s_addr == INADDR_NONE) return false;
