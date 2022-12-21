@@ -165,6 +165,9 @@ static int connect_socket(bool use_ssl, struct thread_ctx_s *ctx) {
 		return sock;
 	}
 
+	int opt = 4096;
+	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (void*) &opt, sizeof(opt));
+
 	set_nonblock(sock);
 	set_nosigpipe(sock);
 

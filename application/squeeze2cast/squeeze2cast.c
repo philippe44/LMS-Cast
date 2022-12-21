@@ -246,10 +246,9 @@ static void DeltaOptions(char* ref, char* src);
 static void _SyncNotifyState(const char *State, struct sMR* Device);
 
 /*----------------------------------------------------------------------------*/
-bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8_t *cookie, void *param)
+bool sq_callback(void *caller, sq_action_t action, ...)
 {
 	struct sMR *Device = caller;
-	char *p = (char*) param;
 	bool rc = true;
 
 	pthread_mutex_lock(&Device->Mutex);
@@ -261,15 +260,18 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 		return false;
 	}
 
+	va_list args;
+	va_start(args, action);
+
 	if (action == SQ_ONOFF) {
-		Device->on = *((bool*) param);
+		Device->on = va_arg(args, int);
 
 		LOG_DEBUG("[%p]: device set %s", caller, Device->on ? "ON" : "OFF");
 
 		if (Device->on) {
 			CastPowerOn(Device->CastCtx);
 			// candidate for busyraise/drop as it's using cli
-			if (Device->Config.AutoPlay) sq_notify(Device->SqueezeHandle, Device, SQ_PLAY, NULL, &Device->on);
+			if (Device->Config.AutoPlay) sq_notify(Device->SqueezeHandle, SQ_PLAY, (int) Device->on);
 		} else {
 			// cannot disconnect when LMS is configured for pause when OFF
 			if (Device->sqState == SQ_STOP) {
@@ -282,6 +284,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 	if (!Device->on && action != SQ_SETNAME && action != SQ_SETSERVER && Device->sqState != SQ_PLAY) {
 		LOG_DEBUG("[%p]: device off or not controlled by LMS", caller);
 		pthread_mutex_unlock(&Device->Mutex);
+		va_end(args);
 		return false;
 	}
 
@@ -290,7 +293,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 	switch (action) {
 
 		case SQ_SET_TRACK: {
-			struct track_param *p = (struct track_param*) param;
+			struct track_param *p = va_arg(args, struct track_param*);
 
 			NFREE(Device->NextURI);
 			metadata_free(&Device->NextMetaData);
@@ -365,8 +368,9 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 		case SQ_NEXT:
 			break;
 		case SQ_VOLUME: {
-			Device->Volume = (double) LMSVolumeMap[*(uint16_t*)p] / 100;
-			LOG_INFO("[%p]: Volume %d", Device, (int) (Device->Volume * 100));
+			int Volume = va_arg(args, int);
+			Device->Volume = (double) LMSVolumeMap[Volume] / 100;
+			LOG_INFO("[%p]: LMS volume (0..128) %d => CC %0.4lf", Device, Volume, Device->Volume);
 
 			if (!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)) {
 				uint32_t now = gettime_ms();
@@ -380,7 +384,7 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 			break;
 		}
 		case SQ_SETNAME:
-			strcpy(Device->sq_config.name, param);
+			strcpy(Device->sq_config.name, va_arg(args, char*));
 			 if (glAutoSaveConfigFile) {
 				pthread_mutex_lock(&glUpdateMutex);
 				SaveConfig(glConfigName, glConfigID, false);
@@ -388,13 +392,14 @@ bool sq_callback(sq_dev_handle_t handle, void *caller, sq_action_t action, uint8
 			}
 			break;
 		case SQ_SETSERVER:
-			strcpy(Device->sq_config.set_server, inet_ntoa(*(struct in_addr*) param));
+			strcpy(Device->sq_config.set_server, inet_ntoa(*va_arg(args, struct in_addr*)));
 			break;
 		default:
 			break;
 	}
 
 	pthread_mutex_unlock(&Device->Mutex);
+	va_end(args);
 	return rc;
 }
 
@@ -488,7 +493,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 
 	// candidate for busyraise/drop as it's using cli
 	if (Event != SQ_NONE)
-		sq_notify(Device->SqueezeHandle, Device, Event, NULL, &Param);
+		sq_notify(Device->SqueezeHandle, Event, (int) Param);
 }
 
 
@@ -570,13 +575,13 @@ static void *MRThread(void *args)
 						if (elapsed > p->StartTime)	elapsed -= p->StartTime;
 						else elapsed = 0;
 					}
-					sq_notify(p->SqueezeHandle, p, SQ_TIME, NULL, &elapsed);
+					sq_notify(p->SqueezeHandle, SQ_TIME, elapsed);
 				}
 
 				// LOAD sets the url but we should wait till we are PLAYING
 				if (p->State == PLAYING) {
 					url = GetMediaInfoItem_S(data, 0, "contentId");
-					if (url) sq_notify(p->SqueezeHandle, p, SQ_TRACK_INFO, NULL, (void*) url);
+					if (url) sq_notify(p->SqueezeHandle, SQ_TRACK_INFO, url);
 				}
 
 			}
@@ -586,18 +591,20 @@ static void *MRThread(void *args)
 				double volume;
 				bool muted;
 
-				if (!p->Group && GetMediaVolume(data, 0, &volume, &muted)) {
+				// FIXME
+				//if (!p->Group && GetMediaVolume(data, 0, &volume, &muted)) {
+				if (GetMediaVolume(data, 0, &volume, &muted)) {
 					if (volume != -1 && !muted && volume != p->Volume) Volume = volume;
 				}
 			}
 
 			// now apply the volume change if any
 			if (Volume != -1 && fabs(Volume - p->Volume) >= 0.01 && now > p->VolumeStampTx + 1000) {
-				uint16_t VolFix = Volume * 100 + 0.5;
+				int VolFix = Volume * 100 + 0.5;
 				p->VolumeStampRx = now;
-				LOG_INFO("[%p]: Volume local change %u (%0.4lf)", p, VolFix, Volume);
+				LOG_INFO("[%p]: Volume local change CC %0.4lf => LMS (0..100) %u ", p, Volume, VolFix);
 				// candidate for busyraise/drop as it's using cli
-				sq_notify(p->SqueezeHandle, p, SQ_VOLUME, NULL, &VolFix);
+				sq_notify(p->SqueezeHandle, SQ_VOLUME, VolFix);
 			}
 
 			// Cast devices has closed the connection
@@ -610,7 +617,7 @@ static void *MRThread(void *args)
 		if (p->ShortTrackWait > 0 && ((p->ShortTrackWait -= elapsed) < 0)) {
 			LOG_WARN("[%p]: stopping on short track timeout", p);
 			p->ShortTrack = false;
-			sq_notify(p->SqueezeHandle, p, SQ_STOP, NULL, &p->ShortTrack);
+			sq_notify(p->SqueezeHandle, SQ_STOP, (int) p->ShortTrack);
 		}
 
 		// get track position & CurrentURI
@@ -759,7 +766,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 					// only update if LMS has not set its own name
 					if (!strcmp(Device->sq_config.name, Device->FriendlyName)) {
 						// by notifying LMS, we'll get an update later
-						sq_notify(Device->SqueezeHandle, Device, SQ_SETNAME, NULL, Name);
+						sq_notify(Device->SqueezeHandle, SQ_SETNAME, Name);
 					}
 
 					LOG_INFO("[%p]: Name update %s => %s (LMS:%s)", Device, Device->FriendlyName, Name, Device->sq_config.name);
