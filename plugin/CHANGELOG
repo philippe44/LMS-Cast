@@ -1,3 +1,6 @@
+2.1.12.5
+ - fix once for all the TCPWindow size issue with Windows
+
 2.12.12.4
  - add some mute possibility
  
