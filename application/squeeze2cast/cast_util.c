@@ -286,7 +286,7 @@ void CastSetDeviceVolume(struct sCastCtx *Ctx, double Volume, bool Queue) {
 		// Only set waitId if this is NOT queue bypass
 		if (Queue) Ctx->waitId = Ctx->reqId;
 
-		LOG_INFO("[%p]: Immediate VOLUME (id:%u)", Ctx->owner, Ctx->reqId);
+		LOG_DEBUG("[%p]: Immediate VOLUME (id:%u)", Ctx->owner, Ctx->reqId);
 
 		Ctx->reqId++;
 	}

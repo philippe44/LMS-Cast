@@ -591,10 +591,10 @@ static void *MRThread(void *args)
 				double volume;
 				bool muted;
 
-				// FIXME
-				//if (!p->Group && GetMediaVolume(data, 0, &volume, &muted)) {
 				if (GetMediaVolume(data, 0, &volume, &muted)) {
 					if (volume != -1 && !muted && volume != p->Volume) Volume = volume;
+					if (p->Muted != muted) sq_notify(p->SqueezeHandle, SQ_MUTE, (int) muted);
+					p->Muted = muted;
 				}
 			}
 

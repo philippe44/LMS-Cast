@@ -722,15 +722,10 @@ static void slimproto_run(struct thread_ctx_s *ctx) {
 			 and thus should be continuous, so there is no need to wait toward
 			 the end of the track
 			*/
-			// FIXME
 			if (ctx->decode.state == DECODE_ERROR || 
 			    (ctx->decode.state == DECODE_COMPLETE && ctx->canSTMdu && output_ready &&
 				(ctx->output.encode.flow || _sendSTMu ||
 				 (!ctx->config.wait_underrun && ctx->status.duration && ctx->status.duration - ctx->status.ms_played < 20 * 1000)))) {
-			/*
-			if (ctx->decode.state == DECODE_ERROR ||
-				(ctx->decode.state == DECODE_COMPLETE && ctx->canSTMdu && output_ready)) {
-			*/
 				if (ctx->decode.state == DECODE_COMPLETE) _sendSTMd = true;
 				if (ctx->decode.state == DECODE_ERROR)    _sendSTMn = true;
 				ctx->decode.state = DECODE_STOPPED;

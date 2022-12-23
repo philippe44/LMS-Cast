@@ -70,6 +70,7 @@ struct sMR {
 	double			Volume;
 	uint32_t			VolumeStampRx, VolumeStampTx;	// timestamps to filter volume loopbacks
 	bool			Group;
+	bool			Muted;
 	struct sGroupMember {
 		struct sGroupMember	*Next;
 		struct in_addr		Host;

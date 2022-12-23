@@ -601,13 +601,16 @@ void sq_notify(sq_dev_handle_t handle, sq_event_t event, ...)
 				wake_controller(ctx);
 			}
 			break;
-		case SQ_VOLUME: {
+		case SQ_VOLUME:
 			sprintf(cmd, "%s mixer volume %d", ctx->cli_id, va_arg(args, int));
 			rsp = cli_send_cmd(cmd, false, true, ctx);
 			NFREE(rsp);
 			break;
-		}
-
+		case SQ_MUTE:
+			sprintf(cmd, "%s mixer muting %d", ctx->cli_id, va_arg(args, int) ? 1 : 0);
+			rsp = cli_send_cmd(cmd, false, true, ctx);
+			NFREE(rsp);
+			break;
 		case SQ_TIME: {
 			u32_t now, time = va_arg(args, u32_t);
 			LOCK_O;
