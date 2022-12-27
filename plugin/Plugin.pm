@@ -43,7 +43,8 @@ sub hasOutputChannels {
 
 sub fade_volume {
 	my ($client, $fade, $callback, $callbackargs) = @_;
-	return $fade_volume->($client, $fade, $callback, $callbackargs) if $fade > 0 || $client->modelName !~ /CastBridge/;
+	# no fade-in or out, we don't want that flur of commands
+	return $fade_volume->($client, $fade, $callback, $callbackargs) if $client->modelName !~ /CastBridge/;
 	return $callback->(@{$callbackargs}) if $callback;
 }
 

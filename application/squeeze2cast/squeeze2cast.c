@@ -593,8 +593,12 @@ static void *MRThread(void *args)
 
 				if (GetMediaVolume(data, 0, &volume, &muted)) {
 					if (volume != -1 && !muted && volume != p->Volume) Volume = volume;
-					if (p->Muted != muted) sq_notify(p->SqueezeHandle, SQ_MUTE, (int) muted);
-					p->Muted = muted;
+					if (p->Muted != muted) {
+						p->VolumeStampRx = now;
+						p->Muted = muted;
+						LOG_INFO("[%p]: setting mute/unmute %d", p, muted);
+						sq_notify(p->SqueezeHandle, SQ_MUTE, (int) muted);
+					}
 				}
 			}
 
