@@ -43,8 +43,9 @@ sub hasOutputChannels {
 
 sub fade_volume {
 	my ($client, $fade, $callback, $callbackargs) = @_;
-	# no fade-in or out, we don't want that flur of commands
-	return $fade_volume->($client, $fade, $callback, $callbackargs) if $client->modelName !~ /CastBridge/ || ($fade > 0 && $client->can('setMute'));
+	# no fade-out, we don't want to have a value of 0 set on pause
+	return $fade_volume->($client, $fade, $callback, $callbackargs) if $fade > 0 || $client->modelName !~ /CastBridge/;
+	# we should set volume in case some day we use callback directly on fade-in (as Resume/Start may set volume to 0
 	return $callback->(@{$callbackargs}) if $callback;
 }
 

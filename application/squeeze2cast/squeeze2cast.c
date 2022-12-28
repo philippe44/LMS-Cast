@@ -508,9 +508,7 @@ static void *MRThread(void *args)
 	json_t *data;
 
 	while (p->Running) {
-		double Volume = -1;
 		int wakeTimer;
-		uint32_t now;
 
 		if (p->ShortTrack) wakeTimer = TRACK_POLL / 4;
 		else if (p->sqState == SQ_STOP && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
@@ -518,7 +516,7 @@ static void *MRThread(void *args)
 
 		// context is valid until this thread ends, no deletion issue
 		data = GetTimedEvent(p->CastCtx, wakeTimer);
-		now = gettime_ms();
+		uint32_t now = gettime_ms();
 		elapsed = now - last;
 
 		// need to protect against events from CC threads, not from deletion
@@ -588,27 +586,22 @@ static void *MRThread(void *args)
 
 			// check for volume at the receiver level, but only record the change
 			if (type && p->Config.VolumeFeedback && !strcasecmp(type, "RECEIVER_STATUS")) {
-				double volume;
-				bool muted;
+				double Volume = -1;
+				bool Muted;
 
-				if (GetMediaVolume(data, 0, &volume, &muted)) {
-					if (volume != -1 && !muted && volume != p->Volume) Volume = volume;
-					if (p->Muted != muted) {
+				if (GetMediaVolume(data, 0, &Volume, &Muted) && Volume != -1 && now > p->VolumeStampTx + 1000) {
+					if (!Muted && Volume != p->Volume && fabs(Volume - p->Volume) >= 0.01 ) {
+						int VolFix = Volume * 100 + 0.5;
 						p->VolumeStampRx = now;
-						p->Muted = muted;
-						LOG_INFO("[%p]: setting mute/unmute %d", p, muted);
-						sq_notify(p->SqueezeHandle, SQ_MUTE, (int) muted);
+						LOG_INFO("[%p]: Volume local change CC %0.4lf => LMS (0..100) %u ", p, Volume, VolFix);
+						sq_notify(p->SqueezeHandle, SQ_VOLUME, VolFix);
+					} else if (Muted) {
+						// un-mute is detected by volume change, no need to detect it (and it fails anyway)
+						p->VolumeStampRx = now;
+						LOG_INFO("[%p]: setting mute", p);
+						sq_notify(p->SqueezeHandle, SQ_MUTE, 1);
 					}
 				}
-			}
-
-			// now apply the volume change if any
-			if (Volume != -1 && fabs(Volume - p->Volume) >= 0.01 && now > p->VolumeStampTx + 1000) {
-				int VolFix = Volume * 100 + 0.5;
-				p->VolumeStampRx = now;
-				LOG_INFO("[%p]: Volume local change CC %0.4lf => LMS (0..100) %u ", p, Volume, VolFix);
-				// candidate for busyraise/drop as it's using cli
-				sq_notify(p->SqueezeHandle, SQ_VOLUME, VolFix);
 			}
 
 			// Cast devices has closed the connection
