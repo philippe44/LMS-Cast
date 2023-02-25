@@ -32,7 +32,7 @@ sub binaries {
 			return qw( squeeze2cast-linux-aarch64 squeeze2cast-linux-aarch64-static);
 		}
 		if ($os->{'binArch'} =~ /arm/) {
-			return qw(squeeze2cast-linux-armv6 squeeze2cast-linux-armv6-static squeeze2cast-linux-arm squeeze2cast-linux-arm-static);
+			return qw(squeeze2cast-linux-arm squeeze2cast-linux-arm-static squeeze2cast-linux-armv6 squeeze2cast-linux-armv6-static squeeze2cast-linux-armv5 squeeze2cast-linux-armv5-static);
 		}
 		if ($os->{'binArch'} =~ /powerpc/) {
 			return qw(squeeze2cast-linux-powerpc squeeze2cast-linux-powerpc-static);

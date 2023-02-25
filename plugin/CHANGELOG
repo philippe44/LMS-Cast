@@ -1,4 +1,7 @@
-2.13.0
+2.1.14
+ - delay stream_sock to HTTP request for 2nd and further track to allow idle HTTP request
+ 
+2.1.13
  - release
  
 2.1.12.11
