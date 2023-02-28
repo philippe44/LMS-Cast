@@ -173,11 +173,11 @@ sub beat {
 	my ($class, $path, @args) = @_;
 	
 	if ($prefs->get('autorun') && !($squeeze2cast && $squeeze2cast->alive)) {
-		$log->error('crashed ... restarting');
+		$log->error('load failed or crashed ... restarting');
 		
 		if ($prefs->get('logging')) {
 			open(my $fh, ">>", $class->logFile);
-			print $fh "\nRestarting Squeeze2cast after crash: $path @args\n";
+			print $fh "\nRestarting Squeeze2cast after load failure or crash: $path @args\n";
 			close $fh;
 		}
 		
