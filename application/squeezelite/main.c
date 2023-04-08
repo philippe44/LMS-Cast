@@ -141,9 +141,7 @@ static char *cli_decode(char *str) {
 
 /*---------------------------------------------------------------------------*/
 /* IMPORTANT: be sure to free() the returned string after use */
-static char *cli_find_tag(char *str, char *tag)
-
-{
+static char *cli_find_tag(char *str, char *tag) {
 	char *p, *res = NULL;
 	char *buf = malloc(max(strlen(str), strlen(tag)) + 5);
 
@@ -330,7 +328,7 @@ bool sq_set_time(sq_dev_handle_t handle, char *pos)
 }
 
 /*--------------------------------------------------------------------------*/
-bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
+uint32_t sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 {
 	struct thread_ctx_s *ctx = &thread_ctx[handle - 1];
 	char cmd[1024];
@@ -344,7 +342,7 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 			LOG_ERROR("[%p]: no handle or CLI socket %d", ctx, handle);
 		}
 		metadata_defaults(metadata);
-		return false;
+		return 0;
 	}
 
 	// use -1 to get what's playing
@@ -356,7 +354,7 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 	if (!rsp || !*rsp) {
 		metadata_defaults(metadata);
 		LOG_WARN("[%p]: cannot get metadata", ctx);
-		return true;
+		return hash32(metadata->artist) ^ hash32(metadata->title) ^ hash32(metadata->artwork);
 	}
 
 	// the tag means the it's a repeating stream whose length might be known
@@ -400,6 +398,9 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 			metadata->duration -= (u32_t) (atof(p) * 1000);
 			free(p);
 		}
+
+		// live_duration always capture duration beofre adjustement to webradio
+		metadata->live_duration = metadata->duration;
 
 		if ((p = cli_find_tag(cur, "bitrate")) != NULL) {
 			metadata->bitrate = atol(p);
@@ -477,7 +478,7 @@ bool sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offset)
 				div(metadata->duration,1000).rem, metadata->size,
 				metadata->artwork ? metadata->artwork : "");
 
-	return true;
+	return hash32(metadata->artist) ^ hash32(metadata->title) ^ hash32(metadata->artwork);
 }
 
 /*--------------------------------------------------------------------------*/

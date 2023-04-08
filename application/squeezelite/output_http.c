@@ -168,14 +168,6 @@ static void output_http_thread(struct thread_param_s *param) {
 
 		n = select(sock + 1, &rfds, &wfds, NULL, &timeout);
 
-		// start streaming process if we are waiting
-		if (!acquired && ctx->stream.state == STREAMING_DELAYED && n > 0) {
-			LOG_INFO("[%p]: Starting delayed LMS streaming", ctx);
-			stream_sock(ctx->stream.strm.ip, ctx->stream.strm.port, ctx->stream.strm.flags & 0x20, ctx->stream.strm.header, 
-						ctx->stream.strm.len, ctx->stream.strm.threshold * 1024, ctx->autostart >= 2, ctx);
-			continue;
-		}
-
 		// need to wait till we have an initialized codec
 		if (!acquired && n > 0) {
 			LOCK_D;
@@ -385,14 +377,21 @@ static void output_http_thread(struct thread_param_s *param) {
 	if (store) fclose(store);
 
 	LOCK_O;
+
 	thread->http = -1;
-	thread->running = false;
+	if (thread->running) {
+		// if we self-terminate, nobody will join us so free resources now
+		pthread_detach(thread->thread);
+		thread->running = false;
+	}
+
 	if (ctx->output.encode.flow) {
 		// terminate codec if needed
 		_output_end_stream(NULL, ctx);
 		// need to have slimproto move on in case of stream failure
 		ctx->output.completed = true;
 	}
+
 	UNLOCK_O;
 
 	LOG_INFO("[%p]: end thread %d (%zu bytes)", ctx, thread == ctx->output_thread ? 0 : 1, bytes);

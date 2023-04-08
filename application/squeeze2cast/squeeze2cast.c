@@ -98,6 +98,7 @@ sq_dev_param_t glDeviceParam = {
 					OUTPUTBUF_SIZE,			// output_buffer_size
 					"aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3",		// codecs
 					"thru",					// mode
+					15,						// next_delay
 					"wav",					// raw_audio_format
 					"?",                    // server
 					96000,					// sample_rate
@@ -310,8 +311,8 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 					// could not get next URI before track stopped, restart
 					Device->ShortTrackWait = 0;
 					if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
-					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
-					CastPlay(Device->CastCtx);
+					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, (Device->Config.SendMetaData) ? &p->metadata : NULL, 0);
+					CastPlay(Device->CastCtx, NULL);
 					Device->StartTime = 0;
 					metadata_free(&p->metadata);
 					LOG_WARN("[%p]: next URI (stopped) (s:%u) %s", Device, Device->ShortTrack, p->uri);
@@ -324,13 +325,20 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 				 }
 			} else {
 				if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
-				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, (Device->Config.SendMetaData) ? &p->metadata : NULL);
 				Device->StartTime = sq_get_time(Device->SqueezeHandle);
+				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, (Device->Config.SendMetaData) ? &p->metadata : NULL, Device->StartTime);
 				metadata_free(&p->metadata);
 				LOG_INFO("[%p]: current URI (s:%u) %s", Device, Device->ShortTrack, p->uri);
 			}
 			break;
 		}
+		case SQ_NEW_METADATA: {
+			struct metadata_s *MetaData = va_arg(args, struct metadata_s*);
+			//uint64_t offset = gettime_us() / 1000 + sq_get_time(Device->SqueezeHandle);
+			CastPlay(Device->CastCtx, MetaData);
+			LOG_INFO("[% p]: received new metadata <%s>", Device, MetaData->title);
+			break;
+		}	
 		case SQ_UNPAUSE:
 			// got it, don't need to send it more than once ...
 			if (Device->sqState == SQ_PLAY) break;
@@ -338,7 +346,7 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 			if (Device->Config.VolumeOnPlay == 1 && Device->Volume != -1)
 				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 
-			CastPlay(Device->CastCtx);
+			CastPlay(Device->CastCtx, NULL);
 			Device->sqState = SQ_PLAY;
 			break;
 		case SQ_PLAY:
@@ -348,7 +356,7 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 			if (Device->Config.VolumeOnPlay == 1 && Device->Volume != -1)
 				CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 
-			CastPlay(Device->CastCtx);
+			CastPlay(Device->CastCtx, NULL);
 			Device->sqState = SQ_PLAY;
 			Device->sqStamp = gettime_ms();
 			break;
@@ -432,10 +440,10 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 			if (Device->NextMetaData.duration && Device->NextMetaData.duration < SHORT_TRACK) Device->ShortTrack = true;
 			else Device->ShortTrack = false;
 
-			CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime,
-					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL);
+			CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime, Device->FriendlyName, 
+					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL, 0);
 
-			CastPlay(Device->CastCtx);
+			CastPlay(Device->CastCtx, NULL);
 
 			LOG_INFO("[%p]: gapped transition (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
 
@@ -1231,7 +1239,6 @@ int main(int argc, char *argv[]) {
 #if defined(SIGHUP)
 	signal(SIGHUP, sighandler);
 #endif
-
 	netsock_init();
 
 	// first try to find a config file on the command line
