@@ -1029,19 +1029,16 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 	// get metadata - they must be freed by callee whenever he wants
 	uint32_t hash = sq_get_metadata(ctx->self, &info.metadata, info.offset);
 
-	// do a deep copy of these metadata for self
-	LOCK_O;
-	metadata_clone(&info.metadata, &out->metadata);
-	out->live_metadata.last = now;
-	out->live_metadata.hash = hash;
-	UNLOCK_O;
-	
 	// skip tracks that are too short
 	if (info.offset && info.metadata.duration && info.metadata.duration < SHORT_TRACK) {
 		LOG_WARN("[%p]: track too short (%d)", ctx, info.metadata.duration);
 		metadata_free(&info.metadata);
 		return false;
 	}
+
+	LOCK_O;
+	// do a deep copy of these metadata for self
+	metadata_clone(&info.metadata, &out->metadata);
 
 	// set key parameters
 	out->completed = false;
@@ -1051,6 +1048,9 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 
 	// get live metadata when track repeats or have no duration (livestream)
 	out->live_metadata.enabled = !out->duration || info.metadata.repeating != -1;
+	out->live_metadata.last = now;
+	out->live_metadata.hash = out->live_metadata.enabled ? 0 : hash;
+	UNLOCK_O;
 
 	// read source parameters (if any)
 	if (size == '?') out->sample_size = 0;

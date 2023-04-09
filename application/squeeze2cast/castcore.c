@@ -458,8 +458,9 @@ void ProcessQueue(tCastCtx *Ctx) {
 			json_t* msg = json_pack("{ss,si,si}", "type", "PLAY", "requestId", Ctx->waitId,
 												  "mediaSessionId", Ctx->mediaSessionId);
 
-			item->data.customData = json_pack("{so}", "customData", item->data.customData);
-			json_object_update(msg, item->data.customData);
+			json_t* customData = json_pack("{so}", "customData", item->data.customData);
+			json_object_update(msg, customData);
+			json_decref(customData);
 
 			char* str = json_dumps(msg, JSON_ENCODE_ANY | JSON_INDENT(1));
 			json_decref(item->data.customData);

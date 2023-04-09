@@ -1,3 +1,9 @@
+2.2.0.2
+ - make sure <%s> is not misinterpreted
+ 
+2.2.0.1
+ - fix 1st track metadata not appearing
+ 
 2.2.0
  - add custom receiver to update metadata on the fly (credit Erwan)
  - fix change opus & vorbis large metadata issue that can cause playback to fail

@@ -21,10 +21,6 @@ LDFLAGS += -lssp
 endif
 endif
 
-ifeq ($(HOST)-$(PLATFORM), linux-x86_64)
-LDFLAGS += -lmvec
-endif
-
 CORE              = bin/squeeze2cast-$(HOST)
 BUILDDIR          = $(dir $(CORE))$(HOST)/$(PLATFORM)
 EXECUTABLE        = $(CORE)-$(PLATFORM)

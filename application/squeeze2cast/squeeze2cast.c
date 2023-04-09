@@ -335,8 +335,8 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 		case SQ_NEW_METADATA: {
 			struct metadata_s *MetaData = va_arg(args, struct metadata_s*);
 			//uint64_t offset = gettime_us() / 1000 + sq_get_time(Device->SqueezeHandle);
+			LOG_INFO("[%p]: received new metadata (%s)", Device, MetaData->title);
 			CastPlay(Device->CastCtx, MetaData);
-			LOG_INFO("[% p]: received new metadata <%s>", Device, MetaData->title);
 			break;
 		}	
 		case SQ_UNPAUSE:
