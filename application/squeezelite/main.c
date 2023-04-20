@@ -450,7 +450,7 @@ uint32_t sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offse
 			char *artwork;
 
 			p = strrchr(metadata->artwork, '.');
-			if (*ctx->config.coverart &&  p && (strcasecmp(p, ".jpg") || strcasecmp(p, ".png"))) {
+			if (*ctx->config.coverart && p && (strcasecmp(p, ".jpg") || strcasecmp(p, ".png"))) {
 				*p = '\0';
 				(void)! asprintf(&artwork, "http://%s:%s/%s_%s.%s", ctx->server_ip, ctx->server_port,
 							*(metadata->artwork) == '/' ? metadata->artwork + 1 : metadata->artwork,

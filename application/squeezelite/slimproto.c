@@ -600,13 +600,10 @@ static void slimproto_run(struct thread_ctx_s *ctx) {
 				UNLOCK_O;
 			}
 
-			// icy is activated, handle things locally
+			// handle icy locally or inform player manager
 			if (ctx->output.icy.interval) {
-				// ignore track_start when live_metadata is enabled, we'll catch-up anyway
-				if (updated || (ctx->output.track_started && !ctx->output.live_metadata.enabled)) {
-					ctx->output.icy.updated = true;
-					output_set_icy(metadata, ctx);
-				}
+				// icy is activated, handle things locally
+				if (updated) output_set_icy(metadata, ctx);
 			} else if ((ctx->output.encode.flow && ctx->output.track_started) || updated) {
 				// the callee must clone metdata if he wants to keep them
 				ctx->callback(ctx->MR, SQ_NEW_METADATA, metadata);
@@ -1067,6 +1064,7 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 
 	// in flow mode we now have eveything, just initialize codec
 	if (out->encode.flow) {
+		if (out->icy.interval) output_set_icy(&info.metadata, ctx);
 		metadata_free(&info.metadata);
 		return codec_open(out->codec, out->sample_size, out->sample_rate,
 						  out->channels, out->in_endian, ctx);
@@ -1096,7 +1094,7 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 
 	// in case of flow, all parameters shall be set
 	if (strcasestr(mode, "flow") && out->encode.mode != ENCODE_THRU) {
-		out->icy.allowed = ctx->config.send_icy;
+		out->icy.allowed = ctx->config.send_icy != ICY_NONE;
 		if (ctx->config.send_icy) output_set_icy(&info.metadata, ctx);
 		metadata_free(&info.metadata);
 		metadata_defaults(&info.metadata);
@@ -1216,7 +1214,6 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 		
 		LOG_INFO("[%p]: will send %zu mp3 silence blocks", ctx, out->encode.count);
 	}
-
 
 	// matching found in player
 	if (mimetype) {
