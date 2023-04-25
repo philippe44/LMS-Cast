@@ -1,3 +1,10 @@
+2.2.2
+ - mDNS empty rounds
+
+2.2.1.1
+ - remove group's special volume scale factor (was probably an ancien CC bug)
+ - mediavolume (scaling) factor is now 1 by default
+ 
 2.2.1
  - fix vorbis and opus end of track
  - new metadata update mode in flow

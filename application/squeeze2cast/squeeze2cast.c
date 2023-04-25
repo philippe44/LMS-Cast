@@ -74,7 +74,7 @@ tMRConfig			glMRConfig = {
 							true,	// send_metadata
 							true,   // send_coverart
 							false,	// autoplay
-							0.5,	// media_volume
+							1.0,	// media_volume
 							0,		// remove_timeout
 					};
 
