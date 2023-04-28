@@ -270,9 +270,13 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 		LOG_DEBUG("[%p]: device set %s", caller, Device->on ? "ON" : "OFF");
 
 		if (Device->on) {
-			CastPowerOn(Device->CastCtx);
+			rc = CastPowerOn(Device->CastCtx);
+			if (rc) {
 			// candidate for busyraise/drop as it's using cli
 			if (Device->Config.AutoPlay) sq_notify(Device->SqueezeHandle, SQ_PLAY, (int) Device->on);
+		} else {
+				LOG_ERROR("[%p]: device %s unable to power on; connection failed.", caller, Device->FriendlyName);
+			}
 		} else {
 			// cannot disconnect when LMS is configured for pause when OFF
 			if (Device->sqState == SQ_STOP) {
@@ -329,6 +333,9 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, (Device->Config.SendMetaData) ? &p->metadata : NULL, Device->StartTime);
 				metadata_free(&p->metadata);
 				LOG_INFO("[%p]: current URI (s:%u) %s", Device, Device->ShortTrack, p->uri);
+			}
+			if (!rc) {
+				LOG_ERROR("[%p]: unable to connect to/load device %s", Device, Device->FriendlyName);
 			}
 			break;
 		}
@@ -440,13 +447,14 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 			if (Device->NextMetaData.duration && Device->NextMetaData.duration < SHORT_TRACK) Device->ShortTrack = true;
 			else Device->ShortTrack = false;
 
-			CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime, Device->FriendlyName, 
-					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL, 0);
-
+			if (CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime, Device->FriendlyName, 
+					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL, 0)) {
 			CastPlay(Device->CastCtx, NULL);
 
 			LOG_INFO("[%p]: gapped transition (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
-
+			} else {
+				LOG_ERROR("[%p]: Unable to perform stop; can't reach device: %s", Device, Device->FriendlyName);
+			}
 			metadata_free(&Device->NextMetaData);
 			NFREE(Device->NextURI);
 			Device->StartTime = 0;
@@ -506,6 +514,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 
 
 /*----------------------------------------------------------------------------*/
+// Per-renderer (device) status-monitoring thread
 #define TRACK_POLL  (1000)
 #define MAX_ACTION_ERRORS (5)
 static void *MRThread(void *args)
@@ -718,8 +727,9 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL ||
 			(s->host.s_addr != s->addr.s_addr && isMember(s->host))) continue;
 
-		// is that device already here
+		// is that service already in our device list?
 		if ((Device = SearchUDN(UDN)) != NULL) {
+			LOG_DEBUG("[%p]: mDNS service update for existing device (%s)", Device, Device->FriendlyName);
 			// a service is being removed
 			Device->Expired = 0;
 			if (s->expired) {
@@ -742,11 +752,12 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 				}
 				if (Remove) {
 					if (!Device->Config.RemoveTimeout && !CastIsConnected(Device->CastCtx)) {
+						// if currently connected, removal is delayed until the connection terminates (unless subsequently re-detected by mdns)
 						LOG_INFO("[%p]: removing renderer (%s)", Device, Device->FriendlyName);
 						sq_delete_device(Device->SqueezeHandle);
 						RemoveCastDevice(Device);
 					} else {
-						LOG_INFO("[%p]: keeping missing renderer (%s)", Device, Device->FriendlyName);
+						LOG_INFO("[%p]: keeping missing renderer (%s) for now", Device, Device->FriendlyName);
 						Device->Expired = now | 0x01;
 					}
 				}
@@ -854,8 +865,9 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 static void *mDNSsearchThread(void *args)
 {
 	// launch the query,
-	mdnssd_query(glmDNSsearchHandle, "_googlecast._tcp.local", false,
-			   glDiscovery ? DISCOVERY_TIME : 0, &mDNSsearchCallback, NULL);
+	if (!mdnssd_query(glmDNSsearchHandle, "_googlecast._tcp.local", false,
+			glDiscovery ? DISCOVERY_TIME : 0, &mDNSsearchCallback, NULL)) 
+		LOG_WARN("mDNS search query has exited with an error. Should normally only exit when closing the bridge.");
 	return NULL;
 }
 
