@@ -690,9 +690,9 @@ static bool isMember(struct in_addr host) {
 }
 
 /*----------------------------------------------------------------------------*/
-// Called by mdnssd_query when a matching service broadcasts a new or updated 
-// resource record, or when we don't receive a keep-alive for a service in time.
-// Also called periodically by MainThread to remove any potentially expired devices.
+// Called periodically by mdnssd_query. If slist != null, a matching service 
+// has broadcast a new or updated resource record, or a keep-alive for an 
+// existing service did not arrive in time.
 static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop)
 {
 	struct sMR *Device;
@@ -700,7 +700,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 	uint32_t now = gettime_ms();
 	bool haveChanges = false;
 
-	if (*loglevel == lDEBUG && s != NULL) {
+	if (*loglevel == lDEBUG) {
 		LOG_DEBUG("----------------- round ------------------", NULL);
 		for (s = slist; s && glMainRunning; s = s->next) {
 			char *host = strdup(inet_ntoa(s->host));
@@ -721,7 +721,6 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 	very user-friendy
 	*/
 
-	pthread_mutex_lock(&glUpdateMutex);
 	for (s = slist; s && glMainRunning; s = s->next) {
 		char *UDN = NULL, *Name = NULL;
 		char *Model;
@@ -848,11 +847,9 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 	// walk through the list for device that expire on timeout
 	for (int i = 0; i < MAX_RENDERERS; i++) {
 		Device = glMRDevices + i;
-		if (!Device->Running || Device->Config.RemoveTimeout < 0 // unused entry, or device which never expires
-		    || CastIsConnected(Device->CastCtx)) { // currently still connected
-			continue;
-		}
-		else if (Device->Expired && now > Device->Expired + Device->Config.RemoveTimeout*1000) {
+		if (Device->Running && !Device->Config.RemoveTimeout < 0 // active entry, but not a device which never expires
+			&& !CastIsConnected(Device->CastCtx)
+			&& Device->Expired && now > Device->Expired + Device->Config.RemoveTimeout*1000) {
 			haveChanges = true;
 			LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
 			sq_delete_device(Device->SqueezeHandle);
@@ -861,11 +858,12 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 	}
 
 	if (haveChanges && (glAutoSaveConfigFile || glDiscovery)) {
+		pthread_mutex_lock(&glUpdateMutex);
 		LOG_DEBUG("Updating configuration %s", glConfigName);
 		SaveConfig(glConfigName, glConfigID, false);
+		pthread_mutex_unlock(&glUpdateMutex);
 	}
 
-	pthread_mutex_unlock(&glUpdateMutex);
 	// we have intentionally not released the slist
 	return false;
 }
@@ -883,7 +881,6 @@ static void *mDNSsearchThread(void *args)
 /*----------------------------------------------------------------------------*/
 static void *MainThread(void *args)
 {
-	bool ignored = false;
 	while (glMainRunning) {
 
 		crossthreads_sleep(30*1000);
@@ -912,9 +909,6 @@ static void *MainThread(void *args)
 				}
 			}
 		}
-
-		// Called to allow expired devices to be reliably timed out
-		mDNSsearchCallback(NULL, NULL, &ignored);
 	}
 
 	return NULL;
@@ -942,9 +936,9 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->NextMime[0]	 	= '\0';
 	Device->NextURI 		= NULL;
 	Device->Group 			= group;
-	Device->Expired         = 0;
-	Device->ShortTrack      = false;
-	Device->ShortTrackWait  = 0;
+	Device->Expired			= 0;
+	Device->ShortTrack		= false;
+	Device->ShortTrackWait	= 0;
 
 	if (group) {
 		Device->GroupMaster	= calloc(1, sizeof(struct sGroupMember));
