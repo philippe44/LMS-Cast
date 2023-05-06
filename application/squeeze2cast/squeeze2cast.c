@@ -270,15 +270,19 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 		LOG_DEBUG("[%p]: device set %s", caller, Device->on ? "ON" : "OFF");
 
 		if (Device->on) {
-			CastPowerOn(Device->CastCtx);
-			// candidate for busyraise/drop as it's using cli
-			if (Device->Config.AutoPlay) sq_notify(Device->SqueezeHandle, SQ_PLAY, (int) Device->on);
+			rc = CastPowerOn(Device->CastCtx);
+			if (rc) {
+				// candidate for busyraise/drop as it's using cli
+				if (Device->Config.AutoPlay) sq_notify(Device->SqueezeHandle, SQ_PLAY, (int) Device->on);
+			} else {
+				LOG_ERROR("[%p]: device %s unable to power on; connection failed.", caller, Device->FriendlyName);
+			}
 		} else {
 			// cannot disconnect when LMS is configured for pause when OFF
 			if (Device->sqState == SQ_STOP) {
 				Device->IdleTimer = -1;
 				CastPowerOff(Device->CastCtx);
-            }
+			}
 		}
 	}
 
@@ -329,6 +333,9 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, (Device->Config.SendMetaData) ? &p->metadata : NULL, Device->StartTime);
 				metadata_free(&p->metadata);
 				LOG_INFO("[%p]: current URI (s:%u) %s", Device, Device->ShortTrack, p->uri);
+			}
+			if (!rc) {
+				LOG_ERROR("[%p]: unable to connect to/load device %s", Device, Device->FriendlyName);
 			}
 			break;
 		}
@@ -440,13 +447,14 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 			if (Device->NextMetaData.duration && Device->NextMetaData.duration < SHORT_TRACK) Device->ShortTrack = true;
 			else Device->ShortTrack = false;
 
-			CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime, Device->FriendlyName, 
-					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL, 0);
+			if (CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime, Device->FriendlyName, 
+					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL, 0)) {
+				CastPlay(Device->CastCtx, NULL);
 
-			CastPlay(Device->CastCtx, NULL);
-
-			LOG_INFO("[%p]: gapped transition (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
-
+				LOG_INFO("[%p]: gapped transition (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
+			} else {
+				LOG_ERROR("[%p]: Unable to perform stop; can't reach device: %s", Device, Device->FriendlyName);
+			}
 			metadata_free(&Device->NextMetaData);
 			NFREE(Device->NextURI);
 			Device->StartTime = 0;
@@ -506,6 +514,7 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 
 
 /*----------------------------------------------------------------------------*/
+// Per-renderer (device) status-monitoring thread
 #define TRACK_POLL  (1000)
 #define MAX_ACTION_ERRORS (5)
 static void *MRThread(void *args)
@@ -681,11 +690,15 @@ static bool isMember(struct in_addr host) {
 }
 
 /*----------------------------------------------------------------------------*/
+// Called periodically by mdnssd_query. If slist != null, a matching service 
+// has broadcast a new or updated resource record, or a keep-alive for an 
+// existing service did not arrive in time.
 static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop)
 {
 	struct sMR *Device;
 	mdnssd_service_t *s;
 	uint32_t now = gettime_ms();
+	bool haveChanges = false;
 
 	if (*loglevel == lDEBUG) {
 		LOG_DEBUG("----------------- round ------------------", NULL);
@@ -718,10 +731,12 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL ||
 			(s->host.s_addr != s->addr.s_addr && isMember(s->host))) continue;
 
-		// is that device already here
+		// is that service already in our device list?
 		if ((Device = SearchUDN(UDN)) != NULL) {
-			// a service is being removed
+			LOG_DEBUG("[%p]: mDNS service update for existing device (%s)", Device, Device->FriendlyName);
+			haveChanges = true;
 			Device->Expired = 0;
+			// a device to be removed
 			if (s->expired) {
 				bool Remove = true;
 				// groups need to find if the removed service is the master
@@ -742,11 +757,12 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 				}
 				if (Remove) {
 					if (!Device->Config.RemoveTimeout && !CastIsConnected(Device->CastCtx)) {
+						// if currently connected, removal is delayed until the connection terminates (unless subsequently re-detected by mdns)
 						LOG_INFO("[%p]: removing renderer (%s)", Device, Device->FriendlyName);
 						sq_delete_device(Device->SqueezeHandle);
 						RemoveCastDevice(Device);
 					} else {
-						LOG_INFO("[%p]: keeping missing renderer (%s)", Device, Device->FriendlyName);
+						LOG_INFO("[%p]: keeping missing renderer (%s) for now", Device, Device->FriendlyName);
 						Device->Expired = now | 0x01;
 					}
 				}
@@ -812,6 +828,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		if (!Name) Name = strdup(s->hostname);
 
 		if (AddCastDevice(Device, Name, UDN, Group, s->addr, s->port) && !glDiscovery) {
+			haveChanges = true;
 			// create a new slimdevice
 			Device->SqueezeHandle = sq_reserve_device(Device, Device->on, MimeCaps, &sq_callback);
 			if (!*(Device->sq_config.name)) strcpy(Device->sq_config.name, Device->FriendlyName);
@@ -830,23 +847,24 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 	// walk through the list for device that expire on timeout
 	for (int i = 0; i < MAX_RENDERERS; i++) {
 		Device = glMRDevices + i;
-		if (!Device->Running || Device->Config.RemoveTimeout < 0 || !Device->Expired ||
-			now < Device->Expired + Device->Config.RemoveTimeout*1000 ||
-			(!Device->Config.RemoveTimeout && CastIsConnected(Device->CastCtx)))
-			continue;
-		LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
-		sq_delete_device(Device->SqueezeHandle);
-		RemoveCastDevice(Device);
+		if (Device->Running && !Device->Config.RemoveTimeout < 0 // active entry, but not a device which never expires
+			&& !CastIsConnected(Device->CastCtx)
+			&& Device->Expired && now > Device->Expired + Device->Config.RemoveTimeout*1000) {
+			haveChanges = true;
+			LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
+			sq_delete_device(Device->SqueezeHandle);
+			RemoveCastDevice(Device);
+		}
 	}
 
-	if (glAutoSaveConfigFile || glDiscovery) {
+	if (haveChanges && (glAutoSaveConfigFile || glDiscovery)) {
 		pthread_mutex_lock(&glUpdateMutex);
 		LOG_DEBUG("Updating configuration %s", glConfigName);
 		SaveConfig(glConfigName, glConfigID, false);
 		pthread_mutex_unlock(&glUpdateMutex);
 	}
 
-	// we have not released the slist
+	// we have intentionally not released the slist
 	return false;
 }
 
@@ -854,8 +872,9 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 static void *mDNSsearchThread(void *args)
 {
 	// launch the query,
-	mdnssd_query(glmDNSsearchHandle, "_googlecast._tcp.local", false,
-			   glDiscovery ? DISCOVERY_TIME : 0, &mDNSsearchCallback, NULL);
+	if (!mdnssd_query(glmDNSsearchHandle, "_googlecast._tcp.local", false,
+			glDiscovery ? DISCOVERY_TIME : 0, &mDNSsearchCallback, NULL)) 
+		LOG_WARN("mDNS search query has exited with an error. Should normally only exit when closing the bridge.");
 	return NULL;
 }
 
@@ -917,6 +936,9 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->NextMime[0]	 	= '\0';
 	Device->NextURI 		= NULL;
 	Device->Group 			= group;
+	Device->Expired			= 0;
+	Device->ShortTrack		= false;
+	Device->ShortTrackWait	= 0;
 
 	if (group) {
 		Device->GroupMaster	= calloc(1, sizeof(struct sGroupMember));
