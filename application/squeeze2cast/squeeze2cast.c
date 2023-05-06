@@ -148,6 +148,7 @@ static bool					glGracefullShutdown = true;
 static void					*glConfigID = NULL;
 static char					glConfigName[STR_LEN] = "./config.xml";
 static char					glModelName[STR_LEN] = MODEL_NAME_STRING;
+uint32_t					glNetmask;
 
 static char usage[] =
 
@@ -448,9 +449,8 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 			else Device->ShortTrack = false;
 
 			if (CastLoad(Device->CastCtx, Device->NextURI, Device->NextMime, Device->FriendlyName, 
-					  (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL, 0)) {
+					     (Device->Config.SendMetaData) ? &Device->NextMetaData : NULL, 0)) {
 				CastPlay(Device->CastCtx, NULL);
-
 				LOG_INFO("[%p]: gapped transition (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
 			} else {
 				LOG_ERROR("[%p]: Unable to perform stop; can't reach device: %s", Device, Device->FriendlyName);
@@ -681,12 +681,31 @@ static struct sMR *SearchUDN(char *UDN) {
 }
 
 /*----------------------------------------------------------------------------*/
-static bool isMember(struct in_addr host) {
+static void UpdateDevices(void) {
+	bool Updated = false;
+	uint32_t now = gettime_ms();
+
+	pthread_mutex_lock(&glUpdateMutex);
+
+	// walk through the list for device that expire on timeout
 	for (int i = 0; i < MAX_RENDERERS; i++) {
-		 if (glMRDevices[i].Running && GetAddr(glMRDevices[i].CastCtx).s_addr == host.s_addr)
-			return true;
+		struct sMR* Device = Device = glMRDevices + i;
+		if (Device->Running && !Device->Config.RemoveTimeout < 0 // active entry, but not a device which never expires
+			&& !CastIsConnected(Device->CastCtx)
+			&& Device->Expired && now > Device->Expired + Device->Config.RemoveTimeout * 1000) {
+			Updated = true;
+			LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
+			sq_delete_device(Device->SqueezeHandle);
+			RemoveCastDevice(Device);
+		}
 	}
-	return false;
+
+	if ((Updated && glAutoSaveConfigFile) || glDiscovery) {
+		LOG_DEBUG("Updating configuration %s", glConfigName);
+		SaveConfig(glConfigName, glConfigID, false);	
+	}
+
+	pthread_mutex_unlock(&glUpdateMutex);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -729,7 +748,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 
 		// is the mDNS record usable announce made by other CC on behalf
 		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL ||
-			(s->host.s_addr != s->addr.s_addr && isMember(s->host))) continue;
+			(s->host.s_addr != s->addr.s_addr && (s->host.s_addr & glNetmask) == (s->addr.s_addr & glNetmask))) continue;
 
 		// is that service already in our device list?
 		if ((Device = SearchUDN(UDN)) != NULL) {
@@ -844,25 +863,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		NFREE(Name);
 	}
 
-	// walk through the list for device that expire on timeout
-	for (int i = 0; i < MAX_RENDERERS; i++) {
-		Device = glMRDevices + i;
-		if (Device->Running && !Device->Config.RemoveTimeout < 0 // active entry, but not a device which never expires
-			&& !CastIsConnected(Device->CastCtx)
-			&& Device->Expired && now > Device->Expired + Device->Config.RemoveTimeout*1000) {
-			haveChanges = true;
-			LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
-			sq_delete_device(Device->SqueezeHandle);
-			RemoveCastDevice(Device);
-		}
-	}
-
-	if (haveChanges && (glAutoSaveConfigFile || glDiscovery)) {
-		pthread_mutex_lock(&glUpdateMutex);
-		LOG_DEBUG("Updating configuration %s", glConfigName);
-		SaveConfig(glConfigName, glConfigID, false);
-		pthread_mutex_unlock(&glUpdateMutex);
-	}
+	UpdateDevices();
 
 	// we have intentionally not released the slist
 	return false;
@@ -909,6 +910,8 @@ static void *MainThread(void *args)
 				}
 			}
 		}
+
+		UpdateDevices();
 	}
 
 	return NULL;
@@ -1029,7 +1032,7 @@ static bool Start(void) {
 	// sscanf does not capture empty strings
 	if (!strchr(glBinding, '?') && !sscanf(glBinding, "%[^:]:%hu", addr, &Port)) sscanf(glBinding, ":%hu", &Port);
 
-	Host = get_interface(addr, NULL, NULL);
+	Host = get_interface(addr, NULL, &glNetmask);
 
 	// can't find a suitable interface
 	if (Host.s_addr == INADDR_NONE) return false;

@@ -1,3 +1,6 @@
+2.2.3
+  - fix netmask endianness which created false expiries
+  
 2.2.2
  - mDNS empty rounds
 

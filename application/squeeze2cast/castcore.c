@@ -348,7 +348,7 @@ bool UpdateCastDevice(struct sCastCtx *Ctx, struct in_addr ip, uint16_t port) {
 }
 
 /*----------------------------------------------------------------------------*/
-struct in_addr GetAddr(struct sCastCtx *Ctx) {
+struct in_addr CastGetAddr(struct sCastCtx *Ctx) {
 	return Ctx->ip;
 }
 
