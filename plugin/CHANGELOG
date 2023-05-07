@@ -1,5 +1,9 @@
+2.2.4
+ - check for expired devices out of mDNS loopback as well
+ - fix timeout logical negation error
+ 
 2.2.3
-  - fix netmask endianness which created false expiries
+ - fix netmask endianness which created false expiries
   
 2.2.2
  - mDNS empty rounds

@@ -681,8 +681,7 @@ static struct sMR *SearchUDN(char *UDN) {
 }
 
 /*----------------------------------------------------------------------------*/
-static void UpdateDevices(void) {
-	bool Updated = false;
+static void UpdateDevices(bool Updated) {
 	uint32_t now = gettime_ms();
 
 	pthread_mutex_lock(&glUpdateMutex);
@@ -690,13 +689,14 @@ static void UpdateDevices(void) {
 	// walk through the list for device that expire on timeout
 	for (int i = 0; i < MAX_RENDERERS; i++) {
 		struct sMR* Device = Device = glMRDevices + i;
-		if (Device->Running && !Device->Config.RemoveTimeout < 0 // active entry, but not a device which never expires
+		if (Device->Running && Device->Config.RemoveTimeout >= 0 // active entry, but not a device which never expires
 			&& !CastIsConnected(Device->CastCtx)
 			&& Device->Expired && now > Device->Expired + Device->Config.RemoveTimeout * 1000) {
-			Updated = true;
+
 			LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
 			sq_delete_device(Device->SqueezeHandle);
 			RemoveCastDevice(Device);
+			Updated = true;
 		}
 	}
 
@@ -717,7 +717,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 	struct sMR *Device;
 	mdnssd_service_t *s;
 	uint32_t now = gettime_ms();
-	bool haveChanges = false;
+	bool Updated = false;
 
 	if (*loglevel == lDEBUG) {
 		LOG_DEBUG("----------------- round ------------------", NULL);
@@ -753,7 +753,6 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		// is that service already in our device list?
 		if ((Device = SearchUDN(UDN)) != NULL) {
 			LOG_DEBUG("[%p]: mDNS service update for existing device (%s)", Device, Device->FriendlyName);
-			haveChanges = true;
 			Device->Expired = 0;
 			// a device to be removed
 			if (s->expired) {
@@ -847,7 +846,6 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		if (!Name) Name = strdup(s->hostname);
 
 		if (AddCastDevice(Device, Name, UDN, Group, s->addr, s->port) && !glDiscovery) {
-			haveChanges = true;
 			// create a new slimdevice
 			Device->SqueezeHandle = sq_reserve_device(Device, Device->on, MimeCaps, &sq_callback);
 			if (!*(Device->sq_config.name)) strcpy(Device->sq_config.name, Device->FriendlyName);
@@ -856,6 +854,8 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 				Device->SqueezeHandle = 0;
 				LOG_ERROR("[%p]: cannot create squeezelite instance (%s)", Device, Device->FriendlyName);
 				RemoveCastDevice(Device);
+			} else {
+				Updated = true;
 			}
 		}
 
@@ -863,7 +863,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		NFREE(Name);
 	}
 
-	UpdateDevices();
+	UpdateDevices(Updated);
 
 	// we have intentionally not released the slist
 	return false;
@@ -911,7 +911,7 @@ static void *MainThread(void *args)
 			}
 		}
 
-		UpdateDevices();
+		UpdateDevices(false);
 	}
 
 	return NULL;
@@ -1079,9 +1079,8 @@ static bool Stop(void) {
 	LOG_INFO("stopping Cast devices ...", NULL);
 	FlushCastDevices();
 
-	crossthreads_wake();
-
 	LOG_DEBUG("terminate main thread ...", NULL);
+	crossthreads_wake();
 	pthread_join(glMainThread, NULL);
 	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_destroy(&glMRDevices[i].Mutex);
 	if (glConfigID) ixmlDocument_free(glConfigID);
