@@ -402,6 +402,7 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 		case SQ_SETNAME:
 			strcpy(Device->sq_config.name, va_arg(args, char*));
 			 if (glAutoSaveConfigFile) {
+				LOG_INFO("Updating configuration %s", glConfigName);
 				pthread_mutex_lock(&glUpdateMutex);
 				SaveConfig(glConfigName, glConfigID, false);
 				pthread_mutex_unlock(&glUpdateMutex);
@@ -681,7 +682,7 @@ static struct sMR *SearchUDN(char *UDN) {
 }
 
 /*----------------------------------------------------------------------------*/
-static void UpdateDevices(bool Updated) {
+static void UpdateDevices() {
 	uint32_t now = gettime_ms();
 
 	pthread_mutex_lock(&glUpdateMutex);
@@ -696,13 +697,7 @@ static void UpdateDevices(bool Updated) {
 			LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
 			sq_delete_device(Device->SqueezeHandle);
 			RemoveCastDevice(Device);
-			Updated = true;
 		}
-	}
-
-	if ((Updated && glAutoSaveConfigFile) || glDiscovery) {
-		LOG_DEBUG("Updating configuration %s", glConfigName);
-		SaveConfig(glConfigName, glConfigID, false);	
 	}
 
 	pthread_mutex_unlock(&glUpdateMutex);
@@ -810,6 +805,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 
 					LOG_INFO("[%p]: Name update %s => %s (LMS:%s)", Device, Device->FriendlyName, Name, Device->sq_config.name);
 					strcpy(Device->FriendlyName, Name);
+					Updated = true;
 				}
 				NFREE(Name);
 
@@ -863,7 +859,14 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		NFREE(Name);
 	}
 
-	UpdateDevices(Updated);
+	UpdateDevices();
+
+	if ((Updated && glAutoSaveConfigFile) || glDiscovery) {
+		if (!glDiscovery) LOG_INFO("Updating configuration %s", glConfigName);
+		pthread_mutex_lock(&glUpdateMutex);
+		SaveConfig(glConfigName, glConfigID, false);
+		pthread_mutex_unlock(&glUpdateMutex);
+	}
 
 	// we have intentionally not released the slist
 	return false;
@@ -911,7 +914,7 @@ static void *MainThread(void *args)
 			}
 		}
 
-		UpdateDevices(false);
+		UpdateDevices();
 	}
 
 	return NULL;
