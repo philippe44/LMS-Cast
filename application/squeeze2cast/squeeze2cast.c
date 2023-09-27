@@ -704,6 +704,14 @@ static void UpdateDevices() {
 }
 
 /*----------------------------------------------------------------------------*/
+static bool isMember(struct in_addr host) {
+	for (int i = 0; i < MAX_RENDERERS; i++) {
+		if (glMRDevices[i].Running && CastGetAddr(glMRDevices[i].CastCtx).s_addr == host.s_addr) return true;
+	}
+	return false;
+}
+
+/*----------------------------------------------------------------------------*/
 // Called periodically by mdnssd_query. If slist != null, a matching service 
 // has broadcast a new or updated resource record, or a keep-alive for an 
 // existing service did not arrive in time.
@@ -742,8 +750,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", "audio/ogg;codecs=opus", "audio/ogg;codecs=flac", NULL };
 
 		// is the mDNS record usable announce made by other CC on behalf
-		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL ||
-			(s->host.s_addr != s->addr.s_addr && (s->host.s_addr & glNetmask) == (s->addr.s_addr & glNetmask))) continue;
+		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL || (s->host.s_addr != s->addr.s_addr && isMember(s->host))) continue;
 
 		// is that service already in our device list?
 		if ((Device = SearchUDN(UDN)) != NULL) {
@@ -1035,7 +1042,10 @@ static bool Start(void) {
 	// sscanf does not capture empty strings
 	if (!strchr(glBinding, '?') && !sscanf(glBinding, "%[^:]:%hu", addr, &Port)) sscanf(glBinding, ":%hu", &Port);
 
-	Host = get_interface(addr, NULL, &glNetmask);
+	char* iface = NULL;
+	Host = get_interface(addr, &iface, &glNetmask);
+	LOG_INFO("Binding to %s [%s] with mask 0x%08x (http port %hu)", inet_ntoa(Host), iface, ntohl(glNetmask), Port);
+	NFREE(iface);
 
 	// can't find a suitable interface
 	if (Host.s_addr == INADDR_NONE) return false;
@@ -1045,8 +1055,6 @@ static bool Start(void) {
 
 	// start squeezebox part
 	sq_init(Host, Port, glModelName);
-
-	LOG_INFO("Binding to %s (http:%hu)", inet_ntoa(Host), Port);
 
 	// init mutex & cond no matter what
 	for (int i = 0; i < MAX_RENDERERS; i++) pthread_mutex_init(&glMRDevices[i].Mutex, 0);

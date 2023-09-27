@@ -223,7 +223,7 @@ bool CastConnect(struct sCastCtx *Ctx) {
 	addr.sin_addr.s_addr = Ctx->ip.s_addr;
 	addr.sin_port = htons(Ctx->port);
 
-	err = tcp_connect_timeout(Ctx->sock, addr, 2*1000);
+	err = tcp_connect_timeout(Ctx->sock, addr, 3*1000);
 
 	if (err) {
 		closesocket(Ctx->sock);
@@ -393,7 +393,7 @@ void CastQueueFlush(cross_queue_t *Queue) {
 }
 
 /*----------------------------------------------------------------------------*/
-void ProcessQueue(tCastCtx *Ctx) {
+static void ProcessQueue(tCastCtx *Ctx) {
 	tReqItem *item;
 
 	if ((item = queue_extract(&Ctx->reqQueue)) == NULL) return;

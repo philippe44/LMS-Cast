@@ -1,3 +1,7 @@
+2.2.9
+ - revert exclusion of devices based on netmask
+ - display interface upon startup
+ 
 2.2.8
  - json_pack with "so" does not require object's ref to be decremented
  
