@@ -1,3 +1,6 @@
+2.2.10
+ - update libs (kd_dump fix)
+ 
 2.2.9
  - revert exclusion of devices based on netmask
  - display interface upon startup
