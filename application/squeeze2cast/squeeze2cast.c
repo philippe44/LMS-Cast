@@ -162,7 +162,7 @@ static char usage[] =
 		   "  -I \t\t\tauto save config at every network scan\n"
 		   "  -f <logfile>\t\tWrite debug to logfile\n"
 		   "  -p <pid file>\t\twrite PID in file\n"
-		   "  -o [thru|pcm|flc[:<q>]|mp3[:<r>]][,r:[-]<rate>][,s:<8:16:24>][,flow]\tTranscode mode\n"
+		   "  -o [thru|pcm|flc[:<q>]|aac[:<r>]|mp3[:<r>]][,r:[-]<rate>][,s:<8:16:24>][,flow]\tTranscode mode\n"
 		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|slimmain|stream|decode|output|main|util|cast, level: error|warn|info|debug|sdebug\n"
 		   "  -M <modelname>\tSet the squeezelite player model name sent to the server (default: " MODEL_NAME_STRING ")\n"
 #if LINUX || FREEBSD || SUNOS

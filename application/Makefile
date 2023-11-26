@@ -54,6 +54,7 @@ INCLUDE = -I$(OPENSSL)/include \
 		  -I$(CODECS)/include/ogg -I$(CODECS)/include/vorbis \
 		  -I$(CODECS)/include/opus -I$(CODECS)/include/opusfile \
 		  -I$(CODECS)/include/faad2 \
+		  -I$(CODECS)/include/faac \
 		  -I$(CODECS)/include/shine \
 		  -I$(CODECS)/include/soxr -I$(CODECS)/include/addons \
 		  -I$(MDNS)/include/mdnssvc -I$(MDNS)/include/mdnssd \
