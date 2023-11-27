@@ -133,9 +133,9 @@
 			var mode = input.options[input.selectedIndex].value;
 			var process = document.getElementsByClassName('encode_process');
 			var	flac = document.getElementById('encode_flac');
-			var	mp3 = document.getElementById('encode_mp3');
+			var	mp3_aac = document.getElementById('encode_mp3_aac');
 						
-			flac.style.display = mp3.style.display = 'none';
+			flac.style.display = mp3_aac.style.display = 'none';
 			for (var i = 0; i < process.length; i++) {
 				process[i].style.display = 'inline';
 			}
@@ -146,15 +146,15 @@
 				}
 			} else if (mode === 'flc') {
 				flac.style.display = 'inline';
-			} else if (mode === 'mp3') {
-				mp3.style.display = 'inline';
+			} else if (mode === 'mp3' || mode === 'aac') {
+				mp3_aac.style.display = 'inline';
 			}	
 		}
 		</script>
 		
 		[% "PLUGIN_CASTBRIDGE_ENCODEMODE" | string %]
 		<select class="stdedit" name="encode_mode" id="encode_mode" onchange="modechange(this)">
-		[% FOREACH entry IN [ ['',''], ['none','thru'], ['pcm','pcm'], ['flac', 'flc'], ['mp3', 'mp3'], ['silent','null'] ] %]
+		[% FOREACH entry IN [ ['',''], ['none','thru'], ['pcm','pcm'], ['flac', 'flc'], ['mp3', 'mp3'], ['aac', 'aac'], ['silent','null'] ] %]
 			<option [% IF entry.1 == encode_mode %]selected[% END %] value="[% entry.1 %]">[% entry.0 %]</option>
 		[% END %]
 		</select>&nbsp
@@ -173,8 +173,8 @@
 					[% END %]
 					</select>&nbsp
 				</span>
-				<span id="encode_mp3" [% IF encode_mode != 'mp3' %]hidden[% END %]>
-					[% "PLUGIN_CASTBRIDGE_ENCODEMP3BITRATE" | string %]
+				<span id="encode_mp3_aac" [% IF encode_mode != 'mp3' && encode_mode != 'aac' %]hidden[% END %]>
+					[% "PLUGIN_CASTBRIDGE_ENCODEBITRATE" | string %]
 					<select class="stdedit" name="encode_bitrate" id="encode_bitrate">
 					[% FOREACH entry IN [ '', '64', '96', '128', '144', '160', '192', '224', '256', '320' ] %]
 						<option [% IF entry == encode_bitrate %]selected[% END %] value="[% entry %]">[% entry %]</option>

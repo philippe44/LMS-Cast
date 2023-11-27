@@ -81,7 +81,6 @@ static struct {
 #endif
 
 // careful, this should not be more than 1/8 of obuf size
-#define FLAC_BLOCK_SIZE 1024
 #define FLAC_MAX_FRAMES	4096
 #define FLAC_MIN_SPACE	(FLAC_MAX_FRAMES * BYTES_PER_FRAME)
 
@@ -341,6 +340,7 @@ bool _output_fill(struct buffer *buf, FILE *store, struct thread_ctx_s *ctx) {
 		} else if (p->encode.mode == ENCODE_MP3) {
 			if (!p->encode.codec) return false;
 
+			// this is the number of samples per channel (so number of frames...)
 			int block = shine_samples_per_pass(p->encode.codec);
 
 			// make sure we have enough space in output (assume 1:1 ratio ...)
@@ -365,11 +365,9 @@ bool _output_fill(struct buffer *buf, FILE *store, struct thread_ctx_s *ctx) {
 			// full block available, encode it
 			if (p->encode.count == block) {
 				int bytes;
-				u8_t *data;
 
 				p->encode.count = 0;
-				data = shine_encode_buffer_interleaved(p->encode.codec, (s16_t*) p->encode.buffer, &bytes);
-
+				u8_t* data = shine_encode_buffer_interleaved(p->encode.codec, (s16_t*) p->encode.buffer, &bytes);
 				_buf_write(buf, data, bytes);
 			}
 		 } else if (p->encode.mode == ENCODE_AAC) {
@@ -399,6 +397,7 @@ bool _output_fill(struct buffer *buf, FILE *store, struct thread_ctx_s *ctx) {
 
 			// full block available, encode it
 			if (p->encode.count == aac->in_samples / p->encode.channels) {	
+				// we could avoid the interim output but that means more passes
 				int bytes = faacEncEncode(p->encode.codec, (int32_t*) p->encode.buffer, p->encode.count * p->encode.channels, aac->buffer, aac->out_max_bytes);
 				_buf_write(buf, aac->buffer, bytes);
 				p->encode.count = 0;
@@ -514,7 +513,7 @@ void _output_new_stream(struct buffer *obuf, FILE *store, struct thread_ctx_s *c
 		ok &= FLAC(f, stream_encoder_set_channels, codec, out->encode.channels);
 		ok &= FLAC(f, stream_encoder_set_bits_per_sample, codec, out->encode.sample_size);
 		ok &= FLAC(f, stream_encoder_set_sample_rate, codec, out->encode.sample_rate);
-		ok &= FLAC(f, stream_encoder_set_blocksize, codec, FLAC_BLOCK_SIZE);
+		ok &= FLAC(f, stream_encoder_set_blocksize, codec, 0);
 		ok &= FLAC(f, stream_encoder_set_streamable_subset, codec, false);
 		if (!out->encode.flow) ok &= FLAC(f, stream_encoder_set_total_samples_estimate, codec,
 										  (out->encode.sample_rate * (u64_t) out->duration + 10) / 1000);
@@ -526,7 +525,7 @@ void _output_new_stream(struct buffer *obuf, FILE *store, struct thread_ctx_s *c
 		}
 		else {
 			FLAC(f, stream_encoder_delete, codec);
-			LOG_ERROR("%p]: failed initializing flac-%u r:%u s:%u c:%u", ctx, level, out->encode.sample_rate,
+			LOG_ERROR("[%p]: failed initializing flac-%u r:%u s:%u c:%u", ctx, level, out->encode.sample_rate,
 					  out->encode.sample_size, out->encode.channels);
 		}
 	} else if (out->encode.mode == ENCODE_MP3) {
@@ -552,7 +551,7 @@ void _output_new_stream(struct buffer *obuf, FILE *store, struct thread_ctx_s *c
 			LOG_INFO("[%p]: MP3-%u encoding r:%u s:%u c:%u", ctx,config.mpeg.bitr, out->encode.sample_rate,
 					 out->encode.sample_size, out->encode.channels);
 		} else {
-			LOG_ERROR("%p]: failed initializing MP3-%u r:%u s:%u c:%u", ctx, config.mpeg.bitr, out->encode.sample_rate,
+			LOG_ERROR("[%p]: failed initializing MP3-%u r:%u s:%u c:%u", ctx, config.mpeg.bitr, out->encode.sample_rate,
 					  out->encode.sample_size, out->encode.channels);
 		}
 	} else if (out->encode.mode == ENCODE_AAC) {
@@ -583,7 +582,7 @@ void _output_new_stream(struct buffer *obuf, FILE *store, struct thread_ctx_s *c
 					 out->encode.sample_size, out->encode.channels);
 		} else {
 			free(aac);
-			LOG_ERROR("%p]: failed initializing AAC-%u r:%u s:%u c:%u", ctx, bitrate, out->encode.sample_rate,
+			LOG_ERROR("[%p]: failed initializing AAC-%u r:%u s:%u c:%u", ctx, bitrate, out->encode.sample_rate,
 					  out->encode.sample_size, out->encode.channels);
 		}
 #else

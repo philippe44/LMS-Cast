@@ -1072,7 +1072,7 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 
 	// detect processing mode
 	if (strcasestr(mode, "pcm")) out->encode.mode = ENCODE_PCM;
-	else if (strcasestr(mode, "flc")) out->encode.mode = ENCODE_FLAC;
+	else if (strcasestr(mode, "flc") || strcasestr(mode, "flac")) out->encode.mode = ENCODE_FLAC;
 	else if (strcasestr(mode, "aac")) out->encode.mode = ENCODE_AAC;
 	else if (strcasestr(mode, "mp3")) out->encode.mode = ENCODE_MP3;
 	else if (strcasestr(mode, "null")) out->encode.mode = ENCODE_NULL;
