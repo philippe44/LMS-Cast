@@ -61,7 +61,7 @@ INCLUDE = -I$(OPENSSL)/include \
 		  -I$(NANOPB) \
 		  -I$(JANSSON)/include
 		  		  
-DEPS	= $(SRC)/inc/squeezedefs.h
+DEPS	= $(SRC)/inc/squeezedefs.h $(LIBRARY) $(LIBRARY_STATIC)
 				  
 SOURCES = slimproto.c buffer.c output_http.c output.c main.c \
 		  stream.c decode.c pcm.c resample.c process.c \
