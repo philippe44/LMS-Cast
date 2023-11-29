@@ -324,7 +324,7 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 				 } else {
 					strcpy(Device->NextMime, p->mimetype);
 					// this is a structure copy, pointers remains valid
-					Device->NextMetaData = p->metadata;
+					metadata_clone(&p->metadata, &Device->NextMetaData);
 					Device->NextURI = strdup(p->uri);
 					LOG_INFO("[%p]: next URI (s:%u) %s", Device, Device->ShortTrack, Device->NextURI);
 				 }
@@ -332,7 +332,6 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 				if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
 				Device->StartTime = sq_get_time(Device->SqueezeHandle);
 				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, (Device->Config.SendMetaData) ? &p->metadata : NULL, Device->StartTime);
-				metadata_free(&p->metadata);
 				LOG_INFO("[%p]: current URI (s:%u) %s", Device, Device->ShortTrack, p->uri);
 			}
 			if (!rc) {
