@@ -57,6 +57,10 @@ sub binaries {
 		
 	}	
 	
+	if ($os->{'os'} eq 'FreeBSD') {
+		return qw(  squeeze2cast-freebsd-x86_64 squeeze2cast-freebsd-x86_64-static );
+	}
+	
 	if ($os->{'os'} eq 'Darwin') {
 		return qw(squeeze2cast-macos squeeze2cast-macos-static );
 	}
