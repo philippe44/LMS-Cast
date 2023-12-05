@@ -155,16 +155,19 @@ static char usage[] =
 			VERSION "\n"
 		   "See -t for license terms\n"
 		   "Usage: [options]\n"
-		   "  -s <ip[:port]>\t\tConnect to specified server, otherwise uses autodiscovery to find server\n"
-		   "  -b <ip|iface[:port]>]\t\tNetwork address (or interface name) and port to bind to\n"
-		   "  -x <config file>\tread config from file (default is ./config.xml)\n"
-		   "  -i <config file>\tdiscover players, save <config file> and exit\n"
-		   "  -I \t\t\tauto save config at every network scan\n"
-		   "  -f <logfile>\t\tWrite debug to logfile\n"
-		   "  -p <pid file>\t\twrite PID in file\n"
-		   "  -o [thru|pcm|flc[:<q>]|aac[:<r>]|mp3[:<r>]][,r:[-]<rate>][,s:<8:16:24>][,flow]\tTranscode mode\n"
-		   "  -d <log>=<level>\tSet logging level, logs: all|slimproto|slimmain|stream|decode|output|main|util|cast, level: error|warn|info|debug|sdebug\n"
-		   "  -M <modelname>\tSet the squeezelite player model name sent to the server (default: " MODEL_NAME_STRING ")\n"
+		   "  -s <ip[:port]>        connect to specified server, otherwise uses autodiscovery to find server\n"
+		   "  -b <ip|iface[:port]>] network address (or interface name) and port to bind to\n"
+	       "  -g -3|-2|-1|0	        HTTP content-length (-3:chunked, -2:if known, -1:none, 0:fixed large)\n"
+		   "  -M <modelname>        set the squeezelite player model name sent to the server (default: " MODEL_NAME_STRING ")\n"
+		   "  -x <config file>      read config from file (default is ./config.xml)\n"
+		   "  -i <config file>      discover players, save <config file> and exit\n"
+		   "  -I                    auto save config at every network scan\n"
+	       "  -d <log>=<level>      set logging level, logs: all|slimproto|slimmain|stream|decode|output|main|util|cast, level: error|warn|info|debug|sdebug\n"
+		   "  -f <logfile>          write debug to logfile\n"
+		   "  -p <pid file>         write PID in file\n"
+		   "  -c thru[|pcm|flc[:<q>]|aac[:<r>]|mp3[:<r>]][,r:[-]<rate>][,s:<8:16:24>][,flow]] transcode mode\n"
+		   "  -o is equivalent to -c but is deprecated\n"
+		   
 #if LINUX || FREEBSD || SUNOS
 		   "  -z \t\t\tDaemonize\n"
 #endif
@@ -1171,7 +1174,7 @@ bool ParseArgs(int argc, char **argv) {
 
 	while (optind < argc && strlen(argv[optind]) >= 2 && argv[optind][0] == '-') {
 		char *opt = argv[optind] + 1;
-		if (strstr("stxdfpibcMo", opt) && optind < argc - 1) {
+		if (strstr("sxdfpibcMogL", opt) && optind < argc - 1) {
 			optarg = argv[optind + 1];
 			optind += 2;
 		} else if (strstr("tzZIk", opt)) {
@@ -1183,9 +1186,14 @@ bool ParseArgs(int argc, char **argv) {
 		}
 
 		switch (opt[0]) {
-		case 'c':
+		case 'g':
+			glDeviceParam.stream_length = atoi(optarg);
+			if (!glDeviceParam.stream_length) glDeviceParam.stream_length = HTTP_LARGE;
+			break;
+		case 'L':
 			strcpy(glDeviceParam.store_prefix, optarg);
 			break;
+		case 'c':
 		case 'o':
 			strcpy(glDeviceParam.mode, optarg);
 			break;
@@ -1273,7 +1281,6 @@ int main(int argc, char *argv[]) {
 #if defined(SIGHUP)
 	signal(SIGHUP, sighandler);
 #endif
-	netsock_init();
 
 	// first try to find a config file on the command line
 	for (int i = 1; i < argc; i++) {
@@ -1286,7 +1293,13 @@ int main(int argc, char *argv[]) {
 	glConfigID = (void*) LoadConfig(glConfigName, &glMRConfig, &glDeviceParam);
 
 	// potentially overwrite with some cmdline parameters
-	if (!ParseArgs(argc, argv)) exit(1);
+	if (!ParseArgs(argc, argv)) {
+		netsock_close();
+		exit(1);
+	}
+
+	// start network now
+	netsock_init();
 
 	if (glLogFile) {
 		if (!freopen(glLogFile, "a", stderr)) {
