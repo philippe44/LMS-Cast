@@ -1,3 +1,19 @@
+3.0.0.1
+ - send accept-range header in HEAD and 416 cases
+ - fix range in 216 when not enougn data in cache
+ - add -C <codec>,...<codec> on command line
+ - change mp3 default rate to 224 and aac to 160
+ - fix flac processing level could use 24 bits when receiving format with sample_size set
+ - add cache option
+ - estimate content-length when needed for length 0
+ - duration not set to 0 at first flow call
+ - finalize refactor of handle_http and make it aligned to spotconnect
+ - mdnssvc stopping eats all CPU in busy loop in Windows (select can't have all null's)
+
+2.4.1
+ - eliminate unsupported codecs in thru mode
+ - take into account CODECS_STRICT rule
+ 
 2.4.0
  - refactor output_http entirely
  - add command line -g to set HTTP content-length 

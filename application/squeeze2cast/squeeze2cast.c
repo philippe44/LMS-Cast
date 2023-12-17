@@ -92,12 +92,14 @@ static uint8_t LMSVolumeMap[129] = {
 		};
 
 sq_dev_param_t glDeviceParam = {
-					HTTP_NO_LENGTH, 	 	// stream_length
+					HTTP_LENGTH_NONE, 	 	// stream_length
 					 // both are multiple of 3*4(2) for buffer alignement on sample
 					STREAMBUF_SIZE,			// stream_buffer_size
 					OUTPUTBUF_SIZE,			// output_buffer_size
 					"aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3",		// codecs
 					"thru",					// mode
+					HTTP_CACHE_MEMORY,		// memory cache
+					false,					// force_aac
 					15,						// next_delay
 					"wav",					// raw_audio_format
 					"?",                    // server
@@ -149,6 +151,13 @@ static void					*glConfigID = NULL;
 static char					glConfigName[STR_LEN] = "./config.xml";
 static char					glModelName[STR_LEN] = MODEL_NAME_STRING;
 uint32_t					glNetmask;
+static char*				glMimeCaps[] = { "audio/flac", "audio/mpeg", "audio/wav", "audio/aac",
+#ifdef CODECS_STRICT
+											 "audio/ogg;codecs=vorbis", "audio/ogg;codecs=opus",
+											 "audio/ogg;codecs=flac", NULL };
+#else										 
+											  "audio/ogg", NULL };
+#endif
 
 static char usage[] =
 
@@ -162,18 +171,20 @@ static char usage[] =
 		   "  -x <config file>      read config from file (default is ./config.xml)\n"
 		   "  -i <config file>      discover players, save <config file> and exit\n"
 		   "  -I                    auto save config at every network scan\n"
-	       "  -d <log>=<level>      set logging level, logs: all|slimproto|slimmain|stream|decode|output|main|util|cast, level: error|warn|info|debug|sdebug\n"
+	       "  -d <log>=<level>      set logging level\n"
+		   "                        logs: all|slimproto|slimmain|stream|decode|output|main|util|cast\n"
+		   "                        level: error|warn|info|debug| sdebug\n"
 		   "  -f <logfile>          write debug to logfile\n"
 		   "  -p <pid file>         write PID in file\n"
-		   "  -c thru[|pcm|flc[:<q>]|aac[:<r>]|mp3[:<r>]][,r:[-]<rate>][,s:<8:16:24>][,flow]] transcode mode\n"
-		   "  -o is equivalent to -c but is deprecated\n"
+		   "  -C [-]<codec>,<codec> list of potential codecs (aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3). '-' removes codecs from default\n"
+		   "  -c (or -o) thru[|pcm|flc[:<q>]|aac[:<r>]|mp3[:<r>]][,r:[-]<rate>][,s:<8:16:24>][,flow]] transcode mode\n"
 		   
 #if LINUX || FREEBSD || SUNOS
-		   "  -z \t\t\tDaemonize\n"
+		   "  -z                    Daemonize\n"
 #endif
-		   "  -Z \t\t\tNOT interactive\n"
-		   "  -k \t\t\tImmediate exit on SIGQUIT and SIGTERM\n"
-		   "  -t \t\t\tLicense terms\n"
+		   "  -Z                    NOT interactive\n"
+		   "  -k                    immediate exit on SIGQUIT and SIGTERM\n"
+		   "  -t                    license terms\n"
 		   "\n"
 		   "Build options:"
 #if LINUX
@@ -246,6 +257,7 @@ static void	RemoveCastDevice(struct sMR *Device);
 static void *MRThread(void *args);
 static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool Group, struct in_addr ip, uint16_t port);
 static void DeltaOptions(char* ref, char* src);
+static void CheckCodecs(char* codecs, char** MimeCaps);
 
 // functions prefixed with _ require device's mutex to be locked
 static void _SyncNotifyState(const char *State, struct sMR* Device);
@@ -410,9 +422,12 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 				pthread_mutex_unlock(&glUpdateMutex);
 			}
 			break;
-		case SQ_SETSERVER:
-			strcpy(Device->sq_config.set_server, inet_ntoa(*va_arg(args, struct in_addr*)));
+		case SQ_SETSERVER: {
+			struct in_addr server;
+			server.s_addr = va_arg(args, uint32_t);
+			strcpy(Device->sq_config.set_server, inet_ntoa(server));
 			break;
+		}
 		default:
 			break;
 	}
@@ -746,10 +761,8 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 	*/
 
 	for (s = slist; s && glMainRunning; s = s->next) {
-		char *UDN = NULL, *Name = NULL;
-		char *Model;
+		char *UDN = NULL, *Name = NULL, *Model;
 		bool Group;
-		char *MimeCaps[] = {"audio/flac", "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", "audio/ogg;codecs=opus", "audio/ogg;codecs=flac", NULL };
 
 		// is the mDNS record usable announce made by other CC on behalf
 		if ((UDN = GetmDNSAttribute(s->attr, s->attr_count, "id")) == NULL || (s->host.s_addr != s->addr.s_addr && isMember(s->host))) continue;
@@ -852,7 +865,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 
 		if (AddCastDevice(Device, Name, UDN, Group, s->addr, s->port) && !glDiscovery) {
 			// create a new slimdevice
-			Device->SqueezeHandle = sq_reserve_device(Device, Device->on, MimeCaps, &sq_callback);
+			Device->SqueezeHandle = sq_reserve_device(Device, Device->on, glMimeCaps, &sq_callback);
 			if (!*(Device->sq_config.name)) strcpy(Device->sq_config.name, Device->FriendlyName);
 			if (!Device->SqueezeHandle || !sq_run_device(Device->SqueezeHandle, &Device->sq_config)) {
 				sq_release_device(Device->SqueezeHandle);
@@ -939,6 +952,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 
 	DeltaOptions(glDeviceParam.codecs, Device->sq_config.codecs);
 	DeltaOptions(glDeviceParam.raw_audio_format, Device->sq_config.raw_audio_format);
+	if (strcasestr(Device->sq_config.mode, "thru")) CheckCodecs(Device->sq_config.codecs, glMimeCaps);
 
 	Device->Magic 			= MAGIC;
 	Device->IdleTimer		= -1;
@@ -1131,6 +1145,30 @@ static void sighandler(int signum) {
 
 	exit(EXIT_SUCCESS);
 }
+//#error add mp4/cache/fixelength64bits
+/*---------------------------------------------------------------------------*/
+static void CheckCodecs(char* codecs, char** MimeCaps) {
+	char _item[4];
+
+	while (codecs && sscanf(codecs, "%3[^,]", _item) > 0) {
+		char *item = _item;
+
+		// do a bit of name mangling
+		if (!strcasecmp(item, "ops") || !strcasecmp(item, "ogf")) item = "ogg";
+		else if (!strcasecmp(item, "aif") || !strcasecmp(item, "pcm")) item = "wav";
+		else if (!strcasecmp(item, "flc")) item = "flac";
+
+		// search for codec in mimecaps
+		bool found = false;
+		for (char** p = MimeCaps; *p && !found; p++) if (strcasestr(*p, item)) found = true;
+
+		// remove codecs if not found and continue
+		if (!found) memmove(codecs, codecs + 4, strlen(codecs + 4) + 1);
+
+		codecs = strchr(codecs, ',');
+		if (codecs) codecs++;
+	}
+}
 
 /*---------------------------------------------------------------------------*/
 static void DeltaOptions(char* ref, char* src) {
@@ -1174,7 +1212,7 @@ bool ParseArgs(int argc, char **argv) {
 
 	while (optind < argc && strlen(argv[optind]) >= 2 && argv[optind][0] == '-') {
 		char *opt = argv[optind] + 1;
-		if (strstr("sxdfpibcMogL", opt) && optind < argc - 1) {
+		if (strstr("sxdfpibcMogLC", opt) && optind < argc - 1) {
 			optarg = argv[optind + 1];
 			optind += 2;
 		} else if (strstr("tzZIk", opt)) {
@@ -1186,9 +1224,11 @@ bool ParseArgs(int argc, char **argv) {
 		}
 
 		switch (opt[0]) {
+		case 'C':
+			strcpy(glDeviceParam.codecs, optarg);
+			break;
 		case 'g':
-			glDeviceParam.stream_length = atoi(optarg);
-			if (!glDeviceParam.stream_length) glDeviceParam.stream_length = HTTP_LARGE;
+			glDeviceParam.stream_length = atoll(optarg);
 			break;
 		case 'L':
 			strcpy(glDeviceParam.store_prefix, optarg);

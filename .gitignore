@@ -106,5 +106,6 @@ application - 1.x/
 __recovery/
 *.user
 *.pdb
+*.odt
 
 application/bin

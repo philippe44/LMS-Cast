@@ -64,7 +64,7 @@ INCLUDE = -I$(OPENSSL)/include \
 		  		  
 DEPS	= $(SRC)/inc/squeezedefs.h $(LIBRARY) $(LIBRARY_STATIC)
 				  
-SOURCES = slimproto.c buffer.c output_http.c output.c main.c \
+SOURCES = slimproto.c buffer.c output_http.c output.c main.c cache.c \
 		  stream.c decode.c pcm.c resample.c process.c \
 		  alac.c flac.c mad.c vorbis.c opus.c faad.c \
 		  flac_thru.c m4a_thru.c thru.c \

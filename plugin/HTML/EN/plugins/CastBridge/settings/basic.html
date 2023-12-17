@@ -130,7 +130,7 @@
 	[% WRAPPER setting title="PLUGIN_CASTBRIDGE_ENCODEPARAMS" desc="PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC" %]
 		<script type="text/javascript">
 		function modechange(input) {
-			var mode = input.options[input.selectedIndex].value;
+			var mode = input.options[input.selectedIndex].value || 'thru';
 			var process = document.getElementsByClassName('encode_process');
 			var	flac = document.getElementById('encode_flac');
 			var	mp3_aac = document.getElementById('encode_mp3_aac');
