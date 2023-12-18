@@ -1,3 +1,6 @@
+3.0.0.3
+ - handle special HTTP case when range's offset is total cache
+ 
 3.0.0.2
  - add mp4 direct support and "force_aac" option and "-4" command line
  
