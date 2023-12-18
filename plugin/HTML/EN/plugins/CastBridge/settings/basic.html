@@ -136,6 +136,7 @@
 			var	mp3_aac = document.getElementById('encode_mp3_aac');
 						
 			flac.style.display = mp3_aac.style.display = 'none';
+			document.getElementById('encode_none').style.display = (!mode || mode === 'thru') ? 'inline' : 'none';
 			for (var i = 0; i < process.length; i++) {
 				process[i].style.display = 'inline';
 			}
@@ -161,7 +162,16 @@
 		<span class="encode_process" [% IF !encode_mode || encode_mode == 'thru' || encode_mode == 'null' %]hidden[% END %]>
 			<input name="encode_flow" type="checkbox" [% IF encode_flow %] checked [% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_ENCODEFLOW" | string %]&nbsp
 			<input name="advanced_encode_flag" type="checkbox" onchange="showadvanced(this,'advanced_encode')" [% IF advanced_encode_flag %]checked[% END %]>&nbsp[% "PLUGIN_CASTBRIDGE_ADVANCED" | string %]
-		</span>&nbsp&nbsp
+		</span>
+		<span id="encode_none" [% IF encode_mode && encode_mode != 'thru' %]hidden[% END %]>
+			[% "PLUGIN_UPNPBRIDGE_FORCEAAC" | string %]&nbsp
+			<select class="stdedit" name="force_aac" id="force_aac">
+			[% FOREACH entry IN YESNOBOX %] 
+				<option [% IF entry.1 == force_aac %]selected[% END %] value="[% entry.1 %]">[% entry.0 | string %]</option>
+			[% END %]
+			</select>
+		</span>
+		&nbsp
 		<span id="advanced_encode" [% IF !advanced_encode_flag %]hidden[% END %]>
 			<br><br>
 			<span class="encode_process" [% IF !encode_mode || encode_mode == 'thru' || encode_mode == 'null' %]hidden[% END %]>

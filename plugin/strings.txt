@@ -201,6 +201,8 @@ PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC
 	EN	cross-fading. See user's guide for more details
 	EN	<br><i>- Transcode:</i> format sent to player. When left empty or set to 'none', audio is simply passed through to player.
 	EN	Use 'null' to send mp3 silent frames and use the player for display only (don't maintain sync)
+	EN	<br><i>- Force AAC</i> Chromecast players should support aac in a mp4 container but in case it fails, the bridge can 
+	EN	unwrap frames and send them directly
 	EN	<br><i>- Flow:</i> enable "flow" mode where playlists are sent as a continuous audio stream.
 	EN	<br><i>- Flac compression:</i> in flac mode, set the compression level. 0 = lowest compression & CPU load
 	EN	<br><i>- MP3/AAC bitrate:</i> in mp3/aac mode, set bitrate
@@ -211,6 +213,9 @@ PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC
 
 PLUGIN_CASTBRIDGE_ENCODEMODE
 	EN	Transcode
+
+PLUGIN_CASTBRIDGE_FORCEAAC
+	EN	Force AAC
 
 PLUGIN_CASTBRIDGE_ENCODEFLACLEVEL
 	EN	Flac compression

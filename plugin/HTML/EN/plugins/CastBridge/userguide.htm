@@ -78,7 +78,6 @@ span.InternetLink
 	font-family:"Calibri",sans-serif;}
 .MsoPapDefault
 	{margin-bottom:8.0pt;
-	line-height:100%;
 	text-autospace:ideograph-other;}
  /* Page Definitions */
  @page WordSection1
@@ -167,7 +166,7 @@ encapsulated in mp4 files) and pcm. It’s the simplest mode, but CC players
 might not be able to decode tracks above 96kHZ.</span></p>
 
 <p class=MsoNormal><span lang=EN-US>Except when the source audio from LMS is un-coded
-(either because it’s and aif or wav file or because you’ve setup LMS to send
+(either because it’s an aif or wav file or because you’ve setup LMS to send
 only un-coded audio), replay gain and transition (fading) will not work. </span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='color:black'>1.2.2 Full processing</span></p>
@@ -297,8 +296,9 @@ replay gain and do fade in, out and in-out even in passthrough mode.</span></p>
 <p class=MsoNormal style='background:white'><b><span lang=EN-CA>AAC:</span></b><span
 lang=EN-CA> Such codec can be carried inside a mp4 container or as raw adts
 frames. The codec name is still “aac” as far as LMS is concerned but it can
-send either or. For simplicity, the bridge unwraps the adts frame from the
-container and sends them directly.</span></p>
+send either or. CC players should support both and the bridge simply forwards audio
+data. In case this fails (never happened so far) the parameter
+&lt;force_aac&gt; can be set to force adts unwrapping to be made by the bridge.</span></p>
 
 <p class=MsoNormal style='background:white'><u><span lang=EN-GB
 style='color:black'>2.1.2 Full processing mode</span></u></p>
@@ -498,9 +498,9 @@ the bridge is launched manually)</span></p>
 
 <h2 style='margin-top:12.0pt;page-break-after:avoid;background:white'><b><span
 lang=EN-GB style='color:black'>No player  is detected: </span></b><span
-lang=EN-GB style='color:black'>make sure you are not behind a NAT, like in a docker
-not in “host” mode or in a Virtual Machine or don’t have IGMP snooping or your
-router isolating multicast traffic between different network branches.</span></h2>
+lang=EN-GB style='color:black'>make sure you are not behind a NAT, like in a
+docker not in “host” mode or in a Virtual Machine or don’t have IGMP snooping
+or your router isolating multicast traffic between different network branches.</span></h2>
 
 <h2 style='margin-top:12.0pt;page-break-after:avoid;background:white'><b><span
 lang=EN-GB style='color:black'>Playback starts but nothing is heard/no
@@ -567,6 +567,11 @@ lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-g
 0:fixed large)          &lt;stream_length&gt;</span></p>
 
 <p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
+lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-4                   
+force aac/adts frames unwrapping from mp4 container                           
+&lt;force_aac&gt;  </span></p>
+
+<p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
 lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-M
 &lt;modelname&gt;        set the squeezelite player model name sent to the
 server (default: CastBridge)</span></p>
@@ -589,18 +594,23 @@ lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-d
 
 <p class=MsoNormal style='margin-top:0cm;margin-right:0cm;margin-bottom:0cm;
 margin-left:70.8pt;text-indent:35.4pt;text-autospace:none'><span lang=EN-US
-style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>   logs:
-all|slimproto|slimmain|stream|decode|output|main|util|cast</span></p>
+style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>   logs: all|slimproto|slimmain|stream|decode|output|main|util|cast</span></p>
 
 <p class=MsoNormal style='margin-top:0cm;margin-right:0cm;margin-bottom:0cm;
 margin-left:70.8pt;text-indent:35.4pt;text-autospace:none'><span lang=EN-US
 style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>   level:
-error|warn|info|debug|sdebug</span></p>
+error|warn|info|debug|sdebug      </span></p>
+
+<p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
+lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-C
+[-]&lt;codec&gt;,&lt;codec&gt; list of potential codecs
+(aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3). '-' removes codecs from default
+&lt;codecs&gt;</span></p>
 
 <p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
 lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-c
 thru[|pcm|flc[:&lt;q&gt;]|aac[:&lt;r&gt;]|mp3[:&lt;r&gt;]][,r:[-]&lt;rate&gt;][,s:&lt;8:16:24&gt;][,flow]]
-transcode mode        &lt;codecs&gt;</span></p>
+transcode mode        &lt;mode&gt;</span></p>
 
 <p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
 lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>&nbsp;</span></p>
@@ -888,6 +898,29 @@ codec parameters </span><span lang=EN-GB style='font-size:11.0pt;font-family:
 Wingdings;color:black'>è</span><span lang=EN-GB style='font-size:11.0pt;
 color:black'> </span><span lang=EN-US style='font-size:11.0pt;color:black'>Encode]</span></p>
 
+<p class=MsoNormal style='margin-top:20.0pt;margin-right:0cm;margin-bottom:
+0cm;margin-left:0cm'><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;force_aac&gt;0
+| 1&lt;/force_aac&gt;</span></b><span lang=EN-GB style='font-size:11.0pt;
+color:black'> <i>default = 1</i></span></p>
+
+<p class=MsoNormal style='margin-top:5.0pt'><i><span lang=EN-US
+style='font-size:11.0pt;color:black'>When the bridge received aac inside a mp4
+container, they can be unwrapped locally so that only adts frames are sent to
+the player</span></i><i><span lang=EN-GB style='font-size:11.0pt;color:black'>.
+This is usually to needed and <u>only applies to passthrough mode</u>.</span></i></p>
+
+<p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>0 :
+don’t force unwrapping</span></i></p>
+
+<p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>1:
+force unwrapping</span></i></p>
+
+<p class=MsoNormal><span lang=EN-US style='font-size:11.0pt;color:black'>[Audio
+codec parameters </span><span lang=EN-GB style='font-size:11.0pt;font-family:
+Wingdings;color:black'>è</span><span lang=EN-GB style='font-size:11.0pt;
+color:black'> Force AAC</span><span lang=EN-US style='font-size:11.0pt;
+color:black'>]</span></p>
+
 <p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;sample_rate&gt;[32000
 | 44100 | 48000 | 88200 | 96000 | 176400 | 192000]&lt;/sample_rate&gt;</span></b><span
 lang=EN-GB style='font-size:11.0pt;color:black'> <i>default = 96000</i></span></p>
@@ -952,9 +985,9 @@ feature is broken in LMS, so this is a workaround. </span></i></p>
 <p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;/common&gt;</span></b></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>This
-is the beginning of the sections that describes each device. There must be one
-&lt;device&gt; section for each Chromecast player. Any parameter set in the
-&lt;common&gt; can be repeated here, to override the defaults.</span></i></p>
+is the beginning of the sections that describes each device. There must be one &lt;device&gt;
+section for each Chromecast player. Any parameter set in the &lt;common&gt; can
+be repeated here, to override the defaults.</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>first
 device …</span></i></p>

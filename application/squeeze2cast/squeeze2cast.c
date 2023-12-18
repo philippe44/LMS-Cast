@@ -151,7 +151,7 @@ static void					*glConfigID = NULL;
 static char					glConfigName[STR_LEN] = "./config.xml";
 static char					glModelName[STR_LEN] = MODEL_NAME_STRING;
 uint32_t					glNetmask;
-static char*				glMimeCaps[] = { "audio/flac", "audio/mpeg", "audio/wav", "audio/aac",
+static char*				glMimeCaps[] = { "audio/flac", "audio/mpeg", "audio/wav", "audio/aac", "audio/mp4",
 #ifdef CODECS_STRICT
 											 "audio/ogg;codecs=vorbis", "audio/ogg;codecs=opus",
 											 "audio/ogg;codecs=flac", NULL };
@@ -177,6 +177,7 @@ static char usage[] =
 		   "  -f <logfile>          write debug to logfile\n"
 		   "  -p <pid file>         write PID in file\n"
 		   "  -C [-]<codec>,<codec> list of potential codecs (aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3). '-' removes codecs from default\n"
+		   "  -4                    force aac/adts frames unwrapping from mp4 container\n"
 		   "  -c (or -o) thru[|pcm|flc[:<q>]|aac[:<r>]|mp3[:<r>]][,r:[-]<rate>][,s:<8:16:24>][,flow]] transcode mode\n"
 		   
 #if LINUX || FREEBSD || SUNOS
@@ -1145,7 +1146,7 @@ static void sighandler(int signum) {
 
 	exit(EXIT_SUCCESS);
 }
-//#error add mp4/cache/fixelength64bits
+
 /*---------------------------------------------------------------------------*/
 static void CheckCodecs(char* codecs, char** MimeCaps) {
 	char _item[4];
@@ -1215,7 +1216,7 @@ bool ParseArgs(int argc, char **argv) {
 		if (strstr("sxdfpibcMogLC", opt) && optind < argc - 1) {
 			optarg = argv[optind + 1];
 			optind += 2;
-		} else if (strstr("tzZIk", opt)) {
+		} else if (strstr("tzZIk4", opt)) {
 			optarg = NULL;
 			optind += 1;
 		} else {
@@ -1224,6 +1225,9 @@ bool ParseArgs(int argc, char **argv) {
 		}
 
 		switch (opt[0]) {
+		case '4':
+			glDeviceParam.force_aac = true;
+			break;
 		case 'C':
 			strcpy(glDeviceParam.codecs, optarg);
 			break;

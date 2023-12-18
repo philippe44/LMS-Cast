@@ -1,3 +1,6 @@
+3.0.0.2
+ - add mp4 direct support and "force_aac" option and "-4" command line
+ 
 3.0.0.1
  - send accept-range header in HEAD and 416 cases
  - fix range in 216 when not enougn data in cache
