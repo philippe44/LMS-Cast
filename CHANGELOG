@@ -1,3 +1,6 @@
+3.0.3
+ - allow ogg as part of ICY-enabled codecs
+
 3.0.2
  - 'q' and 'f' in slimproto have always been inverted
  - try to handle 'f' as LMS expects, i.e. just cancel the streaming track
