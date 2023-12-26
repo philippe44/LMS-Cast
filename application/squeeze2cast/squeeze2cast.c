@@ -711,10 +711,16 @@ static void UpdateDevices() {
 		if (Device->Running && Device->Config.RemoveTimeout >= 0 // active entry, but not a device which never expires
 			&& !CastIsConnected(Device->CastCtx)
 			&& Device->Expired && now > Device->Expired + Device->Config.RemoveTimeout * 1000) {
-
-			LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
-			sq_delete_device(Device->SqueezeHandle);
-			RemoveCastDevice(Device);
+			struct in_addr addr = CastGetAddr(glMRDevices[i].CastCtx);
+			if (!ping_host(addr, 100)) {
+				LOG_INFO("[%p]: removing renderer (%s) on timeout", Device, Device->FriendlyName);
+				sq_delete_device(Device->SqueezeHandle);
+				RemoveCastDevice(Device);
+			} else {
+				// device is in trouble, but let's renew grace period
+				LOG_INFO("[%p]: %s mute to mDNS search, but answers ping, so keep it", Device, Device->FriendlyName);
+				Device->Expired = now | 0x01;
+			}
 		}
 	}
 
@@ -792,7 +798,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 					}
 				}
 				if (Remove) {
-					if (!Device->Config.RemoveTimeout && !CastIsConnected(Device->CastCtx)) {
+					if (!Device->Config.RemoveTimeout && !CastIsConnected(Device->CastCtx) && !ping_host(s->addr, 100)) {
 						// if currently connected, removal is delayed until the connection terminates (unless subsequently re-detected by mdns)
 						LOG_INFO("[%p]: removing renderer (%s)", Device, Device->FriendlyName);
 						sq_delete_device(Device->SqueezeHandle);

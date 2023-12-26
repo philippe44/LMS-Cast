@@ -1,3 +1,6 @@
+3.0.7
+ - when player don't respond to mDNS search, keep them as long as they respond to ping
+  
 3.0.6
  - auto mode ICY only used if metadata is valid
  
