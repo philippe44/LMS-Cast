@@ -1081,7 +1081,7 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 	else if (strcasestr(mode, "aac")) out->encode.mode = ENCODE_AAC;
 	else if (strcasestr(mode, "mp3")) out->encode.mode = ENCODE_MP3;
 	else if (strcasestr(mode, "null")) out->encode.mode = ENCODE_NULL;
-	else if (!out->duration && ctx->config.send_icy != ICY_NONE &&
+	else if (info.metadata.valid && !out->duration && ctx->config.send_icy != ICY_NONE &&
 			 ((format == 'm' && mimetype_match_codec(ctx->mimetypes, 2, "mp3", "mpeg")) ||
 		      (format == 'a' && out->sample_size == '2' && mimetype_match_codec(ctx->mimetypes, 3, "aac", "mp4", "m4a")) ||
 			  ((format == 'o' || format == 'u' || (format == 'f' && out->sample_size == 'o')) && mimetype_match_codec(ctx->mimetypes, 1, "ogg")))) 
@@ -1244,7 +1244,7 @@ static bool process_start(u8_t format, u32_t rate, u8_t size, u8_t channels, u8_
 
 		info.format = out->format = mimetype_to_format(out->mimetype);
 		out->out_endian = (out->format == 'w');
-		out->length = ctx->config.stream_length;						
+		out->length = ctx->config.stream_length;				
 
 		if (codec_open(out->codec, out->sample_size, out->sample_rate, out->channels,
 			out->in_endian, ctx) &&	output_start(ctx)) {
