@@ -227,6 +227,9 @@ static char usage[] =
 #if USE_SSL
 		   " SSL"
 #endif
+#if USE_LIBOGG
+		   " LIBOGG"
+#endif
 #if LINKALL
 		   " LINKALL"
 #endif

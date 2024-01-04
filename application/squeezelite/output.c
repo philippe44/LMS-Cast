@@ -698,6 +698,7 @@ bool output_flush(struct thread_ctx_s *ctx, bool full) {
 		if (!ctx->output_thread[i].running || (ctx->output_thread[i].lingering && !full)) continue;
 		ctx->output_thread[i].running = false;
 		UNLOCK_O;
+		LOG_INFO("[%p]: joining thread index:%d (slot:%d)", ctx, ctx->output_thread[i].index, ctx->output_thread[i].slot);
 		pthread_join(ctx->output_thread[i].thread, NULL);
 		LOCK_O;
 	}
@@ -746,8 +747,11 @@ bool output_thread_init(struct thread_ctx_s *ctx) {
 	ctx->output.fade_writep = NULL;
 	ctx->output.icy.artist = ctx->output.icy.title = ctx->output.icy.artwork = NULL;
 
-	ctx->output_thread[0].running = ctx->output_thread[1].running = false;
-	ctx->output_thread[0].http = ctx->output_thread[1].http = -1;
+	for (int i = 0; i < ARRAY_COUNT(ctx->output_thread); i++) {
+		ctx->output_thread[i].running = false;
+		ctx->output_thread[i].slot = i;
+		ctx->output_thread[i].http = -1;
+	}
 	ctx->render.index = -1;
 
 	return true;

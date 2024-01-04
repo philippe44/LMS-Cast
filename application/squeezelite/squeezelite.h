@@ -24,6 +24,9 @@
 // build detection
 #include "platform.h"
 #include "squeezedefs.h"
+#if USE_LIBOGG
+#include <ogg/ogg.h>
+#endif
 
 #if !defined(LOOPBACK)
 #if LINUX && !defined(SELFPIPE)
@@ -56,6 +59,7 @@
 #define LIBFLAC "libFLAC.so.8"
 #define LIBMAD  "libmad.so.0"
 #define LIBMPG "libmpg123.so.0"
+#define LIBOGG "libogg.so.0"
 #define LIBVORBIS "libvorbisfile.so.3"
 #define LIBTREMOR "libvorbisidec.so.1"
 #define LIBOPUS "libopusfile.so.0"
@@ -70,6 +74,7 @@
 #define LIBFLAC "libFLAC.8.dylib"
 #define LIBMAD  "libmad.0.dylib"
 #define LIBMPG "libmpg123.0.dylib"
+#define LIBOGG "libogg.0.dylib"
 #define LIBVORBIS "libvorbisfile.3.dylib"
 #define LIBTREMOR "libvorbisidec.1.dylib"
 #define LIBOPUS "libopusfile.0.dylib"
@@ -84,6 +89,7 @@
 #define LIBFLAC "libFLAC.dll"
 #define LIBMAD  "libmad-0.dll"
 #define LIBMPG "libmpg123-0.dll"
+#define LIBOGG "libogg.dll"
 #define LIBVORBIS "libvorbisfile.dll"
 #define LIBTREMOR "libvorbisidec.dll"
 #define LIBOPUS "libopusfile-0.dll"
@@ -98,6 +104,7 @@
 #define LIBFLAC "libFLAC.so.11"
 #define LIBMAD  "libmad.so.2"
 #define LIBMPG "libmpg123.so.0"
+#define LIBOGG "libogg.so.0"
 #define LIBVORBIS "libvorbisfile.so.6"
 #define LIBTREMOR "libvorbisidec.so.1"
 #define LIBOPUS "libopusfile.so.1"
@@ -299,12 +306,34 @@ struct streamstate {
 		u16_t port;
 		unsigned flags;
 	} strm;
+	struct {
+#if USE_LIBOGG
+		ogg_stream_state state;
+		ogg_packet packet;
+		ogg_sync_state sync;
+		ogg_page page;
+#else
+		enum { STREAM_OGG_OFF, STREAM_OGG_SYNC, STREAM_OGG_HEADER, STREAM_OGG_SEGMENTS, STREAM_OGG_PAGE } state;
+		size_t want, miss, match;
+		u64_t granule;
+		u8_t* data, segments[255];
+#pragma pack(push, 1)
+		struct {
+			char pattern[4];
+			u8_t version, type;
+			u64_t granule;
+			u32_t serial, page, checksum;
+			u8_t count;
+		} header;
+#pragma pack(pop)
+#endif
+	} ogg;
 };
 
 bool 		stream_thread_init(unsigned streambuf_size, struct thread_ctx_s *ctx);
 void 		stream_close(struct thread_ctx_s *ctx);
 void 		stream_file(const char *header, size_t header_len, unsigned threshold, struct thread_ctx_s *ctx);
-void 		stream_sock(u32_t ip, u16_t port, bool use_ssl, const char *header, size_t header_len, unsigned threshold, 
+void 		stream_sock(u32_t ip, u16_t port, bool use_ssl, char codec, const char *header, size_t header_len, unsigned threshold, 
 						bool cont_wait, struct thread_ctx_s *ctx);
 bool 		stream_disconnect(struct thread_ctx_s *ctx);
 
@@ -405,6 +434,7 @@ struct output_thread_s {
 		thread_type 	thread;
 		int				http;			// listening socket of http server
 		int 			index;
+		int				slot;
 };
 
 // info for the track being sent to the http renderer (not played)

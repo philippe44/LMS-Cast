@@ -1,3 +1,11 @@
+3.1.0
+ - reduce some output_thread timers to speed-up joining when lingering
+ - try to find a stopped output thread and if none, stop the oldest lingering one
+ - more detailed output thread logs
+ - lingering status must be reset upon exit otherwise output_start might still try to join
+ - add ogg (vorbis/opus) metadata forwarding
+ - protect output_start with mutex as a process can exit lingering right after we have selected it and try to join...
+ 
 3.0.9
  - copy needle on mimetype check, to make sure it works when using mimetype wildcard
  
