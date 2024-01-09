@@ -596,8 +596,7 @@ lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-d
 
 <p class=MsoNormal style='margin-top:0cm;margin-right:0cm;margin-bottom:0cm;
 margin-left:70.8pt;text-indent:35.4pt;text-autospace:none'><span lang=EN-US
-style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>   logs:
-all|slimproto|slimmain|stream|decode|output|main|util|cast</span></p>
+style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>   logs: all|slimproto|slimmain|stream|decode|output|main|util|cast</span></p>
 
 <p class=MsoNormal style='margin-top:0cm;margin-right:0cm;margin-bottom:0cm;
 margin-left:70.8pt;text-indent:35.4pt;text-autospace:none'><span lang=EN-US
@@ -606,8 +605,9 @@ error|warn|info|debug|sdebug      </span></p>
 
 <p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
 lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-C
-[-]&lt;codec&gt;,&lt;codec&gt; list of potential codecs (aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3).
-'-' removes codecs from default &lt;codecs&gt;</span></p>
+[-]&lt;codec&gt;,&lt;codec&gt; list of potential codecs
+(aac,ogg,ops,ogf,flc,alc,wav,aif,pcm,mp3). '-' removes codecs from default
+&lt;codecs&gt;</span></p>
 
 <p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
 lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-c
@@ -623,7 +623,7 @@ lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-f
 
 <p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
 lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-p
-&lt;pid file&gt;         write PID in file</span></p>
+&lt;pid file&gt;         write PID in file</span></p>
 
 <p class=MsoNormal style='margin-bottom:0cm;text-autospace:none'><span
 lang=EN-US style='font-size:9.5pt;font-family:"Cascadia Mono";color:#A31515'>-z
@@ -659,7 +659,7 @@ style='font-size:11.0pt;color:black'>&lt;?xml version=&quot;1.0&quot;?&gt;</span
 options</span></i></p>
 
 <p class=MsoNormal><b><span lang=EN-US style='font-size:11.0pt;color:black'>&lt;binding
-&gt;ip|iface:[port] | ?&lt;/binding&gt; </span></b><i><span lang=EN-US
+&gt;[ip|iface][:[port]] | ?&lt;/binding&gt; </span></b><i><span lang=EN-US
 style='font-size:11.0pt;color:black'>default = ?</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>(ip|iface
@@ -676,8 +676,8 @@ Ethernet interface is used.</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>N/A.</span></i></p>
 
-<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;<b>&lt;log_limit&gt;[-1
-| value]&lt;/log_limit&gt; </b><i>default = -1</i></span></p>
+<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;<b>&lt;log_limit&gt;-1
+| [value]&lt;/log_limit&gt; </b><i>default = -1</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>Sets
 the maximum size (in MB) of a logfile. Set to -1 for unlimited</span></i></p>
@@ -727,8 +727,8 @@ items in this sub-section set the default behaviour for all players. Any option
 can be repeated in the &lt;device&gt; section of a given player to override the
 &lt;common&gt; option.</span></i></p>
 
-<p class=MsoNormal><span lang=EN-US style='font-size:11.0pt;color:black'>&nbsp;&nbsp;</span><b><span
-style='font-size:11.0pt'>&lt;server&gt;[ip[:port] | ?]&lt;/server&gt; </span></b><i><span
+<p class=MsoNormal><span style='font-size:11.0pt;color:black'>&nbsp;&nbsp;</span><b><span
+style='font-size:11.0pt'>&lt;server&gt;[ip][:port] | ?]&lt;/server&gt; </span></b><i><span
 style='font-size:11.0pt'>default = ?</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>ip
@@ -741,16 +741,16 @@ server.&nbsp; </span></i></p>
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>This
 can be overridden in the command line with the -s option.</span></i></p>
 
-<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;enabled&gt;[0
-| 1]&lt;/enabled&gt; </span></b><i><span lang=EN-GB style='font-size:11.0pt;
+<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;enabled&gt;0
+| 1&lt;/enabled&gt; </span></b><i><span lang=EN-GB style='font-size:11.0pt;
 color:black'>default = 1</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>‘1’
 to automatically add any discovered Chromecast player to LMS players, even if
 there is no &lt;device&gt; section referring to it. '0' to prevent this.</span></i></p>
 
-<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;remove_timeout&gt;[-1
-| 0 | value]&lt;/remove_timeout&gt; </span></b><i><span lang=EN-GB
+<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;remove_timeout&gt;-1
+| 0 | [value]&lt;/remove_timeout&gt; </span></b><i><span lang=EN-GB
 style='font-size:11.0pt;color:black'>default = 0</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>Player’s
@@ -770,8 +770,8 @@ remove player when keep-alive is missed or when bye message is received</span></
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;value&gt;:
 remove player &lt;value&gt; seconds after missing keep-alive</span></i></p>
 
-<p class=MsoNormal><b><span style='font-size:11.0pt;color:black'>&lt;roon_mode&gt;[0
-| 1]&lt;/roon_mode&gt; </span></b><i><span style='font-size:11.0pt;color:black'>default
+<p class=MsoNormal><b><span style='font-size:11.0pt;color:black'>&lt;roon_mode&gt;0
+| 1&lt;/roon_mode&gt; </span></b><i><span style='font-size:11.0pt;color:black'>default
 = 0</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>Set
@@ -794,8 +794,8 @@ of the decoded sample buffer. The size of this buffer determines how much
 cross-fading can be done, it must 110% of the cross-fading duration * sample
 rate * 8 bytes</span></i></p>
 
-<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;<b>volume_on_play&gt;[-1
-| 0 | 1]&lt;/volume_on_play&gt;</b> <i>default =1</i></span></p>
+<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;<b>volume_on_play&gt;-1
+| 0 | 1&lt;/volume_on_play&gt;</b> <i>default =1</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>0:
 all LMS volume commands are immediately sent to the device</span></i></p>
@@ -806,7 +806,7 @@ volume commands are only sent when the device is playing under LMS control</span
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>-1:
 all volume commands are ignored</span></i></p>
 
-<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;<b>media_volume&gt;[-0..100]&lt;media_volume
+<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;<b>media_volume&gt;-0..100&lt;media_volume
 &gt;</b> <i>default =50</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>Global
@@ -836,7 +836,7 @@ that a single codec with + or –make the whole list handled as a difference to
 the default list</u></span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;</span></i><b><span
-lang=EN-US style='font-size:11.0pt'>&lt;next_uri&gt;[0 | 2]&lt;/next_uri&gt; </span></b><i><span
+lang=EN-US style='font-size:11.0pt'>&lt;next_uri&gt;0 | 2&lt;/next_uri&gt; </span></b><i><span
 lang=EN-GB style='font-size:11.0pt;color:black'>default = 0</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>In
@@ -848,7 +848,7 @@ to use “underrun” where the bridges wait for the current track to stop befor
 requesting the next one to LMS.</span></i></p>
 
 <p class=MsoNormal><span lang=EN-US>&nbsp;</span><b><span lang=EN-US
-style='font-size:11.0pt;color:black'>&lt;mode&gt;[thru|null|pcm|flc[:&lt;q&gt;]|mp3[:&lt;r&gt;]][,r:[-]&lt;rate&gt;][,s:&lt;8:16:24&gt;][,flow]&lt;/mode&gt;</span></b><span
+style='font-size:11.0pt;color:black'>&lt;mode&gt;thru|null|pcm|flc[:&lt;q&gt;]|mp3[:&lt;r&gt;]][,r:[-]&lt;rate&gt;][,s:&lt;8:16:24&gt;][,flow]&lt;/mode&gt;</span></b><span
 lang=EN-US style='font-size:11.0pt;color:black'> <i>default = thru</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>The
@@ -923,8 +923,8 @@ Wingdings;color:black'>è</span><span lang=EN-GB style='font-size:11.0pt;
 color:black'> Force AAC</span><span lang=EN-US style='font-size:11.0pt;
 color:black'>]</span></p>
 
-<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;sample_rate&gt;[32000
-| 44100 | 48000 | 88200 | 96000 | 176400 | 192000]&lt;/sample_rate&gt;</span></b><span
+<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;sample_rate&gt;32000
+| 44100 | 48000 | 88200 | 96000 | 176400 | 192000&lt;/sample_rate&gt;</span></b><span
 lang=EN-GB style='font-size:11.0pt;color:black'> <i>default = 96000</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>This
@@ -939,16 +939,17 @@ codec parameters </span><span lang=EN-GB style='font-size:11.0pt;font-family:
 Wingdings;color:black'>è</span><span lang=EN-US style='font-size:11.0pt;
 color:black'> Max Sample Rate]</span></p>
 
-<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;<b>&lt;flac_header&gt;[0
-| 1 | 2]&lt;/flac_header&gt;</b> <i>default = 1</i></span></p>
+<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;<b>&lt;flac_header&gt;0
+| 1 | 2 | 3&lt;/flac_header&gt;</b> <i>default = 1</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>When
 repositioning flac streams, LMS re-generates a file starting from the new
 position but does not insert a proper header . Such header is required by some
 players and it contains information like total number of samples in the file
 and a checksum of the decoded audio data. The bridge cannot know these values
-but the flac standard specifies that they should then be set to 0.So far, all
-CC players work with default value, so there is no reason to tweak that.</span></i></p>
+but the flac standard specifies that they should then be set to 0. The bridge
+always recalculates frame numbers to start from 0 when seeking. So far, all CC
+players work with default value, so there is no reason to tweak that.</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>0 :
 no header re-inserted</span></i></p>
@@ -957,27 +958,29 @@ no header re-inserted</span></i></p>
 header re-inserted with 0 for total number of sample and checksum</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>2:
-header re-inserted with 2^32-1 for total number of samples and 0xaa (170) 16
-times for checksum</span></i></p>
+header re-inserted with 2^36-1 for total number of samples</span></i></p>
 
-<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;<b>&lt;send_metadata&gt;[0
-| 1]&lt;/send_metadata&gt;</b> <i>default = 1</i></span></p>
+<p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>3:
+header re-inserted with number of samples calculated from remaining duration</span></i></p>
+
+<p class=MsoNormal><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;<b>&lt;send_metadata&gt;0
+| 1&lt;/send_metadata&gt;</b> <i>default = 1</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>If
 you do not want to see metadata (Artist, Album name etc.) on your player, or if
 you have a login and password for the LMS CLI interface, set this to 0.&nbsp; <u><span
 style='background:yellow'>Disabling this impacts badly the handling of pcm</span></u></span></i></p>
 
-<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;&lt;send_coverart&gt;[0
-| 1]&lt;/send_coverart&gt;</span></b><span lang=EN-GB style='font-size:11.0pt;
+<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&nbsp;&lt;send_coverart&gt;0
+| 1&lt;/send_coverart&gt;</span></b><span lang=EN-GB style='font-size:11.0pt;
 color:black'> <i>default = 1</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>If
 you do not want to see coverart on your player, or if you have a login and
 password for the LMS CLI interface, set this to 0.&nbsp;</span></i></p>
 
-<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;auto_play&gt;[0
-| 1]&lt;/auto_play&gt;</span></b><span lang=EN-GB style='font-size:11.0pt;
+<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;auto_play&gt;0
+| 1&lt;/auto_play&gt;</span></b><span lang=EN-GB style='font-size:11.0pt;
 color:black'> <i>default = 0</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>Set
@@ -987,9 +990,9 @@ feature is broken in LMS, so this is a workaround. </span></i></p>
 <p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;/common&gt;</span></b></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>This
-is the beginning of the sections that describes each device. There must be one
-&lt;device&gt; section for each Chromecast player. Any parameter set in the
-&lt;common&gt; can be repeated here, to override the defaults.</span></i></p>
+is the beginning of the sections that describes each device. There must be one &lt;device&gt;
+section for each Chromecast player. Any parameter set in the &lt;common&gt; can
+be repeated here, to override the defaults.</span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>first
 device …</span></i></p>
@@ -1028,8 +1031,8 @@ the first 2 bytes set to ‘cc’. When creating a group, the mac address return
 for the group is the group leader, which creates a conflict. This is detected
 and the final mac is the group leader’s address plus 1</span></i></p>
 
-<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;enabled&gt;[0
-| 1]&lt;/enabled&gt;</span></b><span lang=EN-GB style='font-size:11.0pt;
+<p class=MsoNormal><b><span lang=EN-GB style='font-size:11.0pt;color:black'>&lt;enabled&gt;0
+| 1&lt;/enabled&gt;</span></b><span lang=EN-GB style='font-size:11.0pt;
 color:black'> <i>default = 1</i></span></p>
 
 <p class=MsoNormal><i><span lang=EN-GB style='font-size:11.0pt;color:black'>Set
