@@ -286,7 +286,9 @@ pcm/wav/aif audio tracks. </span></p>
 style='color:black'>FLAC</span></b><span lang=EN-GB style='color:black'>: When
 seeking in a track, LMS does not send a flac header which can cause playback
 failure. The parameter &lt;flac_header&gt; let the bridge insert a pseudo flac
-header on the fly when it’s missing.<b> </b></span></p>
+header on the fly when it’s missing. When that re-insertion is made, the bridge
+also adjust the frame counters so that they always start from 0 (otherwise
+players might display an incorrect timestamp)</span></p>
 
 <p class=MsoNormal style='background:white'><b><span lang=EN-GB
 style='color:black'>PCM/WAV/AIF: </span></b><span lang=EN-GB style='color:black'>As

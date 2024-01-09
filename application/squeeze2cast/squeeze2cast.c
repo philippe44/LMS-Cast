@@ -335,9 +335,9 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 					// could not get next URI before track stopped, restart
 					Device->ShortTrackWait = 0;
 					if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
-					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, (Device->Config.SendMetaData) ? &p->metadata : NULL, 0);
+					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, 
+							      (Device->Config.SendMetaData) ? &p->metadata : NULL, 0);
 					CastPlay(Device->CastCtx, NULL);
-					Device->StartTime = 0;
 					metadata_free(&p->metadata);
 					LOG_WARN("[%p]: next URI (stopped) (s:%u) %s", Device, Device->ShortTrack, p->uri);
 				 } else {
@@ -349,8 +349,9 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 				 }
 			} else {
 				if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
-				Device->StartTime = sq_get_time(Device->SqueezeHandle);
-				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, (Device->Config.SendMetaData) ? &p->metadata : NULL, Device->StartTime);
+				rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, 
+					          (Device->Config.SendMetaData) ? &p->metadata : NULL, 
+							  sq_get_time(Device->SqueezeHandle));
 				LOG_INFO("[%p]: current URI (s:%u) %s", Device, Device->ShortTrack, p->uri);
 			}
 			if (!rc) {
@@ -479,7 +480,6 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 			}
 			metadata_free(&Device->NextMetaData);
 			NFREE(Device->NextURI);
-			Device->StartTime = 0;
 		} else if (Device->ShortTrack) {
 			// might not even have received next LMS's request, wait a bit
 			Device->ShortTrackWait = 5000;
@@ -596,22 +596,12 @@ static void *MRThread(void *args)
 					}
 				}
 
-				/*
-				Discard any time info unless we are confirmed playing. For FLAC encoding Cast devices
-				use frame number to estimate the elapsed time, so when LMS sends a file from a given
-				byte offset, we will see a time offset that we need to remove as LMS expects a report
-				from 0
-				*/
+				/* discard any time info unless we are confirmed playing. For FLAC, players use frame 
+				 * number to estimate the elapsed time, so before 3.2.0, when LMS sends a file with a 
+				 * a byte offset, we will see a time offset (now frames are re-numbered) */
 				if (p->State == PLAYING && p->sqState == SQ_PLAY && CastIsMediaSession(p->CastCtx)) {
 					uint32_t elapsed = 1000L * GetMediaItem_F(data, 0, "currentTime");
-					int32_t gap = elapsed - sq_self_time(p->SqueezeHandle);
-
-					LOG_DEBUG("elapsed %u, self %u, gap %u", elapsed, sq_self_time(p->SqueezeHandle), abs(gap));
-					// no time correction in case of flow ... huh
-					if (!strstr(p->sq_config.mode, "flow") && p->StartTime > 500 && abs(gap) > 2000) {
-						if (elapsed > p->StartTime)	elapsed -= p->StartTime;
-						else elapsed = 0;
-					}
+					LOG_DEBUG("elapsed %u", elapsed);
 					sq_notify(p->SqueezeHandle, SQ_TIME, elapsed);
 				}
 
@@ -999,7 +989,6 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->sqStamp = 0;
 	Device->CastCtx = NULL;
 	Device->Volume = -1;
-	Device->StartTime = 0;
 
 	if (!memcmp(Device->sq_config.mac, "\0\0\0\0\0\0", 6)) {
 		uint32_t mac_size = 6;

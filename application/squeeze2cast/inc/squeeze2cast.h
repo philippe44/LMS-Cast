@@ -58,11 +58,10 @@ struct sMR {
 	bool			ShortTrack;				// current or next track is short
 	int16_t			ShortTrackWait;			// stop timeout when short track is last track
 	sq_action_t		sqState;
-	uint32_t			sqStamp;				// timestamp of slimproto state change to filter fast pause/play
-	uint32_t			StartTime;				// for flac reposition issue (offset)
+	uint32_t			sqStamp;			// timestamp of slimproto state change to filter fast pause/play
 	uint32_t			TrackPoll;
 	int32_t			IdleTimer;				// idle timer to disconnect SSL connection
-	uint32_t 			Expired;				// timestamp when device was missing (used to keep it for a while)
+	uint32_t 			Expired;			// timestamp when device was missing (used to keep it for a while)
 	int	 			SqueezeHandle;
 	void*			CastCtx;
 	pthread_mutex_t Mutex;
