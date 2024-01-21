@@ -323,17 +323,16 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 			NFREE(Device->NextURI);
 			metadata_free(&Device->NextMetaData);
 
-			LOG_INFO("[%p]:\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n\tgenre:%s\n"
-					 "\tduration:%d.%03d\n\tsize:%d\n\tcover:%s\n\toffset:%u", Device,
-					p->metadata.artist, p->metadata.album, p->metadata.title,
-					p->metadata.genre, div(p->metadata.duration, 1000).quot,
-					div(p->metadata.duration,1000).rem, p->metadata.size,
-					p->metadata.artwork ? p->metadata.artwork : "", p->offset);
+			LOG_INFO("[%p]:\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n"
+				"\tduration:%d\n\trepeating:%d\n\tcover:%s\n\tindex:%u", Device,
+				p->metadata.artist, p->metadata.album, p->metadata.title,
+				p->metadata.duration, p->metadata.repeating,
+				p->metadata.artwork ? p->metadata.artwork : "", p->index);
 
-			if (p->offset) {
+			if (p->index) {
 				if (Device->State == STOPPED) {
 					// could not get next URI before track stopped, restart
-					Device->ShortTrackWait = 0;
+					Device->TrackWait = 0;
 					if (p->metadata.duration && p->metadata.duration < SHORT_TRACK) Device->ShortTrack = true;
 					rc = CastLoad(Device->CastCtx, p->uri, p->mimetype, Device->FriendlyName, 
 							      (Device->Config.SendMetaData) ? &p->metadata : NULL, 0);
@@ -361,7 +360,6 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 		}
 		case SQ_NEW_METADATA: {
 			struct metadata_s *MetaData = va_arg(args, struct metadata_s*);
-			//uint64_t offset = gettime_us() / 1000 + sq_get_time(Device->SqueezeHandle);
 			LOG_INFO("[%p]: received new metadata (%s)", Device, MetaData->title);
 			CastPlay(Device->CastCtx, MetaData);
 			break;
@@ -393,7 +391,7 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 			metadata_free(&Device->NextMetaData);
 			Device->sqState = action;
 			Device->ShortTrack = false;
-			Device->ShortTrackWait = 0;
+			Device->TrackWait = 0;
 			break;
 		case SQ_PAUSE:
 			CastPause(Device->CastCtx);
@@ -482,8 +480,8 @@ static void _SyncNotifyState(const char *State, struct sMR* Device)
 			NFREE(Device->NextURI);
 		} else if (Device->ShortTrack) {
 			// might not even have received next LMS's request, wait a bit
-			Device->ShortTrackWait = 5000;
-			LOG_WARN("[%p]: stop on short track (wait %hd ms for next URI)", Device, Device->ShortTrackWait);
+			Device->TrackWait = 5000;
+			LOG_WARN("[%p]: stop on short track (wait %hd ms for next URI)", Device, Device->TrackWait);
 		} else {
 			// Can be a user stop, an error or a normal stop
 			Event = SQ_STOP;
@@ -547,11 +545,7 @@ static void *MRThread(void *args)
 	json_t *data;
 
 	while (p->Running) {
-		int wakeTimer;
-
-		if (p->ShortTrack) wakeTimer = TRACK_POLL / 4;
-		else if (p->sqState == SQ_STOP && p->IdleTimer == -1) wakeTimer = TRACK_POLL * 10;
-		else wakeTimer = TRACK_POLL;
+		int wakeTimer = (p->sqState == SQ_STOP && p->IdleTimer == -1) ? TRACK_POLL * 10 : TRACK_POLL / 4;
 
 		// context is valid until this thread ends, no deletion issue
 		data = GetTimedEvent(p->CastCtx, wakeTimer);
@@ -640,7 +634,7 @@ static void *MRThread(void *args)
 		}
 
 		// was just waiting for a short track to end
-		if (p->ShortTrackWait > 0 && ((p->ShortTrackWait -= elapsed) < 0)) {
+		if (p->TrackWait > 0 && ((p->TrackWait -= elapsed) < 0)) {
 			LOG_WARN("[%p]: stopping on short track timeout", p);
 			p->ShortTrack = false;
 			sq_notify(p->SqueezeHandle, SQ_STOP, (int) p->ShortTrack);
@@ -967,7 +961,7 @@ static bool AddCastDevice(struct sMR *Device, char *Name, char *UDN, bool group,
 	Device->Group 			= group;
 	Device->Expired			= 0;
 	Device->ShortTrack		= false;
-	Device->ShortTrackWait	= 0;
+	Device->TrackWait		= 0;
 
 	if (group) {
 		Device->GroupMaster	= calloc(1, sizeof(struct sGroupMember));

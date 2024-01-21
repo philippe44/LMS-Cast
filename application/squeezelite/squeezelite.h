@@ -307,7 +307,9 @@ struct streamstate {
 		unsigned flags;
 	} strm;
 	struct {
+		bool flac;
 #if USE_LIBOGG
+		bool active;
 		ogg_stream_state state;
 		ogg_packet packet;
 		ogg_sync_state sync;
@@ -335,7 +337,7 @@ void		stream_end(void);
 bool 		stream_thread_init(unsigned streambuf_size, struct thread_ctx_s *ctx);
 void 		stream_close(struct thread_ctx_s *ctx);
 void 		stream_file(const char *header, size_t header_len, unsigned threshold, struct thread_ctx_s *ctx);
-void 		stream_sock(u32_t ip, u16_t port, bool use_ssl, char codec, const char *header, size_t header_len, unsigned threshold, 
+void 		stream_sock(u32_t ip, u16_t port, bool use_ssl, bool use_ogg, const char *header, size_t header_len, unsigned threshold, 
 						bool cont_wait, struct thread_ctx_s *ctx);
 bool 		stream_disconnect(struct thread_ctx_s *ctx);
 
@@ -436,8 +438,7 @@ struct output_thread_s {
 	bool			terminate;
 	thread_type 	thread;
 	int				http;			// listening socket of http server
-	int 			index;
-	int				slot;
+	int 			index, slot;
 };
 
 // info for the track being sent to the http renderer (not played)
@@ -469,7 +470,7 @@ struct outputstate {
 	} live_metadata;
 	// for icy data
 	struct {
-		bool allowed;
+		bool allowed, active;
 		size_t interval, remain;
 		char *artist, *title, *artwork;
 		bool  updated;
@@ -512,6 +513,7 @@ struct renderstate {
 	u32_t 	track_pause_time; // timestamp when the track was paused
 	u32_t	track_start_time; // timestamp when the track started
 	int     index;    		// current track index in player (-1 = unknown)
+	bool	icy;
 };
 
 // function starting with _ must be called with mutex locked
@@ -522,6 +524,10 @@ void		output_end(void);
 void		output_set_icy(struct metadata_s* metadata, struct thread_ctx_s* ctx);
 void 		output_free_icy(struct thread_ctx_s *ctx);
 
+bool		_output_lingers(struct thread_ctx_s* ctx, int index);
+void 		_output_terminate(struct thread_ctx_s* ctx, int index);
+void 		_output_terminate_below(struct thread_ctx_s* ctx, int index);
+
 bool		_output_fill(struct buffer *buf, FILE *store, struct thread_ctx_s *ctx);
 void 		_output_new_stream(struct buffer *buf, FILE *store, struct thread_ctx_s *ctx);
 void 		_output_end_stream(struct buffer *buf, struct thread_ctx_s *ctx);
@@ -531,7 +537,6 @@ void 		_checkduration(u32_t frames, struct thread_ctx_s *ctx);
 // output_http.c
 bool 		output_flush(struct thread_ctx_s *ctx, bool full);
 bool		output_start(struct thread_ctx_s *ctx);
-void 		output_stop(struct thread_ctx_s* ctx, int index, bool below);
 
 /***************** main thread context**************/
 typedef struct {

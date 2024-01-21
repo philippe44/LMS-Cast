@@ -128,55 +128,22 @@ static bool send_header(struct thread_ctx_s *ctx) {
 		n = _send(ctx, ptr, len, MSG_NOSIGNAL);
 		if (n <= 0) {
 			if (n < 0 && _last_error(ctx) == ERROR_WOULDBLOCK && try < 10) {
-				LOG_SDEBUG("[%p] retrying (%d) writing to socket", ctx, ++try);
+				LOG_SDEBUG("[%p]: retrying (%d) writing to socket", ctx, ++try);
 				usleep(1000);
 				continue;
 			}
-			LOG_WARN("[%p] failed writing to socket: %s", ctx, strerror(_last_error(ctx)));
+			LOG_WARN("[%p]: failed writing to socket: %s", ctx, strerror(_last_error(ctx)));
 			ctx->stream.disconnect = LOCAL_DISCONNECT;
 			ctx->stream.state = DISCONNECT;
 			wake_controller(ctx);
 			return false;
 		}
-		LOG_SDEBUG("[%p] wrote %d bytes to socket", ctx, n);
+		LOG_SDEBUG("[%p]: wrote %d bytes to socket", ctx, n);
 		ptr += n;
 		len -= n;
 	}
-	LOG_SDEBUG("[%p] wrote header", ctx);
+	LOG_SDEBUG("[%p]: wrote header", ctx);
 	return true;
-}
-
-bool stream_disconnect(struct thread_ctx_s *ctx) {
-	bool disc = false;
-	LOCK_S;
-#if USE_SSL
-	if (ctx->ssl) {
-		SSL_shutdown(ctx->ssl);
-		SSL_free(ctx->ssl);
-		ctx->ssl = NULL;
-	}
-#endif
-	if (ctx->fd != -1) {
-		closesocket(ctx->fd);
-		ctx->fd = -1;
-		disc = true;
-	}
-	ctx->stream.state = STOPPED;
-#if USE_LIBOGG
-#if !LINKALL
-	if (go.handle)
-#endif
-	{
-		OG(&go, stream_clear, &ctx->stream.ogg.state);
-		OG(&go, sync_clear, &ctx->stream.ogg.sync);
-	}
-#else
-	if (ctx->stream.ogg.state == STREAM_OGG_PAGE && ctx->stream.ogg.data) free(ctx->stream.ogg.data);
-	ctx->stream.ogg.data = NULL;
-#endif
-	if (ctx->stream.store) fclose(ctx->stream.store);
-	UNLOCK_S;
-	return disc;
 }
 
 static void _disconnect(stream_state state, disconnect_code disconnect, struct thread_ctx_s *ctx) {
@@ -192,10 +159,7 @@ static void _disconnect(stream_state state, disconnect_code disconnect, struct t
 	closesocket(ctx->fd);
 	ctx->fd = -1;
 #if USE_LIBOGG
-#if !LINKALL
-	if (go.handle)
-#endif
-	{
+	if (ctx->stream.ogg.active) {
 		OG(&go, stream_clear, &ctx->stream.ogg.state);
 		OG(&go, sync_clear, &ctx->stream.ogg.sync);
 	}
@@ -210,10 +174,10 @@ static void _disconnect(stream_state state, disconnect_code disconnect, struct t
 static int connect_socket(bool use_ssl, struct thread_ctx_s *ctx) {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 
-	LOG_INFO("[%p] connecting to %s:%d", ctx, inet_ntoa(ctx->stream.addr.sin_addr), ntohs(ctx->stream.addr.sin_port));
+	LOG_INFO("[%p]: connecting to %s:%d", ctx, inet_ntoa(ctx->stream.addr.sin_addr), ntohs(ctx->stream.addr.sin_port));
 
 	if (sock < 0) {
-		LOG_ERROR("[%p] failed to create socket", ctx);
+		LOG_ERROR("[%p]: failed to create socket", ctx);
 		return sock;
 	}
 
@@ -224,13 +188,13 @@ static int connect_socket(bool use_ssl, struct thread_ctx_s *ctx) {
 	unsigned int opt, len = sizeof(opt);
 	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (void*)&opt, &len);
 	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (void*) &opt, sizeof(opt));
-	LOG_INFO("[%p] set SO_RCVBUF at %d bytes", ctx, opt);
+	LOG_INFO("[%p]: set SO_RCVBUF at %d bytes", ctx, opt);
 
 	set_nonblock(sock);
 	set_nosigpipe(sock);
 
 	if (tcp_connect_timeout(sock, ctx->stream.addr, 10*1000) < 0) {
-		LOG_WARN("[%p] unable to connect to server", ctx);
+		LOG_WARN("[%p]: unable to connect to server", ctx);
 		closesocket(sock);
 		return -1;
 	}
@@ -289,6 +253,10 @@ static size_t memfind(const u8_t* haystack, size_t n, const char* needle, size_t
 	return i;
 }
 
+/* https://xiph.org/ogg/doc/framing.html
+ * https://xiph.org/flac/ogg_mapping.html
+ * https://xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-610004.2 */
+
 static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
 	if (ctx->stream.ogg.state == STREAM_OGG_OFF) return;
 	u8_t* p = ctx->streambuf->writep;
@@ -296,7 +264,7 @@ static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
 	while (n) {
 		size_t consumed = min(ctx->stream.ogg.miss, n);
 
-		// copy as many bytes as possible and come back later if we do'nt have enough
+		// copy as many bytes as possible and come back later if we don't have enough
 		if (ctx->stream.ogg.data) {
 			memcpy(ctx->stream.ogg.data + ctx->stream.ogg.want - ctx->stream.ogg.miss, p, consumed);
 			ctx->stream.ogg.miss -= consumed;
@@ -305,7 +273,7 @@ static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
 
 		// we have what we want, let's parse
 		switch (ctx->stream.ogg.state) {
-		case STREAM_OGG_SYNC: {
+		case STREAM_OGG_SYNC:
 			ctx->stream.ogg.miss -= consumed;
 			if (consumed) break;
 
@@ -319,13 +287,10 @@ static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
 				ctx->stream.ogg.match = 0;
 			}
 			else {
-				if (!ctx->stream.ogg.match) {
-					LOG_INFO("[%p]: OggS not at expected position", ctx);
-				}
+				if (!ctx->stream.ogg.match) LOG_INFO("[%p]: OggS not at expected position", ctx);
 				return;
 			}
 			break;
-		}
 		case STREAM_OGG_HEADER:
 			if (!memcmp(ctx->stream.ogg.header.pattern, "OggS", 4)) {
 				ctx->stream.ogg.miss = ctx->stream.ogg.want = ctx->stream.ogg.header.count;
@@ -356,15 +321,19 @@ static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
 			if (ctx->stream.ogg.header.granule != -1) ctx->stream.ogg.granule = ctx->stream.ogg.header.granule;
 			break;
 		case STREAM_OGG_PAGE: {
-			size_t offset = 0;
+			char** tag = (char* []){ "\x3vorbis", "OpusTags", NULL };
+			size_t ofs = 0;
 
-			// try to find one of valid Ogg pattern (vorbis, opus)
-			for (char** tag = (char* []){ "\x3vorbis", "OpusTags", NULL }; *tag; tag++, offset = 0) {
-				size_t pos = memfind(ctx->stream.ogg.data, ctx->stream.ogg.want, *tag, strlen(*tag), &offset);
-				if (offset != strlen(*tag)) continue;
+			/* with OggFlac, we need the next page (packet) - VorbisComment is wrapped into a FLAC_METADATA
+			 * and except with vorbis, comment packet starts a new page but even in vorbis, it won't span
+			 * accross multiple pages */
+			if (ctx->stream.ogg.flac) ofs = 4;
+			else if (!memcmp(ctx->stream.ogg.data, "\x7f""FLAC", 5)) ctx->stream.ogg.flac = true;
+			else for (size_t n = 0; *tag; tag++, ofs = 0) if ((ofs = memfind(ctx->stream.ogg.data, ctx->stream.ogg.want, *tag, strlen(*tag), &n)) && n == strlen(*tag)) break;
 
+			if (ofs) {
 				// u32:len,char[]:vendorId, u32:N, N x (u32:len,char[]:comment)
-				char* p = (char*)ctx->stream.ogg.data + pos;
+				char* p = (char*)ctx->stream.ogg.data + ofs;
 				p += itohl(*p) + 4;
 				u32_t count = itohl(*p);
 				p += 4;
@@ -388,10 +357,10 @@ static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
 					}
 				}
 
+				ctx->stream.ogg.flac = false;
 				ctx->stream.meta_send = true;
 				wake_controller(ctx);
 				LOG_INFO("[%p]: Ogg metadata length: %u", ctx, ctx->stream.header_len);
-				break;
 			}
 			free(ctx->stream.ogg.data);
 			ctx->stream.ogg.data = NULL;
@@ -408,9 +377,7 @@ static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
 }
 #else
 static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
-#if !LINKALL
-	if (!go.handle) return;
-#endif
+	if (!ctx->stream.ogg.active) return;
 
 	// fill sync buffer with all what we have
 	char* buffer = OG(&go, sync_buffer, &ctx->stream.ogg.sync, n);
@@ -427,45 +394,48 @@ static void stream_ogg(struct thread_ctx_s* ctx, size_t n) {
 
 		// get a packet (there might be more than one in a page)
 		while (OG(&go, stream_packetout, &ctx->stream.ogg.state, &ctx->stream.ogg.packet) > 0) {
-			char** tag = (char* []){ "\x3vorbis", "OpusTags", NULL };
+			size_t ofs = 0;
 
-			// try to find one of valid Ogg pattern (vorbis, opus)
-			for (; *tag; tag++) {
-				if (memcmp(ctx->stream.ogg.packet.packet, *tag, strlen(*tag))) continue;
+			// if case of OggFlac, VorbisComment is a flac METADATA_BLOC as 2nd packet (4 bytes in)
+			if (ctx->stream.ogg.flac) ofs = 4;
+			else if (!memcmp(ctx->stream.ogg.packet.packet, "\x7f""FLAC", 5)) ctx->stream.ogg.flac = true;
+			else for (char** tag = (char* []){ "\x3vorbis", "OpusTags", NULL }; *tag && !ofs; tag++) if (!memcmp(ctx->stream.ogg.packet.packet, *tag, strlen(*tag))) ofs = strlen(*tag);
 
-				// u32:len,char[]:vendorId, u32:N, N x (u32:len,char[]:comment)
-				char* p = (char*)ctx->stream.ogg.packet.packet + strlen(*tag);
-				p += itohl(*p) + 4;
-				u32_t count = itohl(*p);
+			if (!ofs) continue;
+
+			// u32:len,char[]:vendorId, u32:N, N x (u32:len,char[]:comment)
+			char* p = (char*)ctx->stream.ogg.packet.packet + ofs;
+			p += itohl(*p) + 4;
+			u32_t count = itohl(*p);
+			p += 4;
+
+			// LMS metadata format for Ogg is "Ogg", N x (u16:len,char[]:comment)
+			memcpy(ctx->stream.header, "Ogg", 3);
+			ctx->stream.header_len = 3;
+
+			for (u32_t len; count--; p += len) {
+				len = itohl(*p);
 				p += 4;
 
-				// LMS metadata format for Ogg is "Ogg", N x (u16:len,char[]:comment)
-				memcpy(ctx->stream.header, "Ogg", 3);
-				ctx->stream.header_len = 3;
-
-				for (u32_t len; count--; p += len) {
-					len = itohl(*p);
-					p += 4;
-
-					// only report what we use and don't overflow (network byte order)
-					if (!strncasecmp(p, "TITLE=", 6) || !strncasecmp(p, "ARTIST=", 7) || !strncasecmp(p, "ALBUM=", 6)) {
-						if (ctx->stream.header_len + len > MAX_HEADER) break;
-						ctx->stream.header[ctx->stream.header_len++] = len >> 8;
-						ctx->stream.header[ctx->stream.header_len++] = len;
-						memcpy(ctx->stream.header + ctx->stream.header_len, p, len);
-						ctx->stream.header_len += len;
-						LOG_INFO("[% p]: metadata: %.*s", ctx, len, p);
-					}
+				// only report what we use and don't overflow (network byte order)
+				if (!strncasecmp(p, "TITLE=", 6) || !strncasecmp(p, "ARTIST=", 7) || !strncasecmp(p, "ALBUM=", 6)) {
+					if (ctx->stream.header_len + len > MAX_HEADER) break;
+					ctx->stream.header[ctx->stream.header_len++] = len >> 8;
+					ctx->stream.header[ctx->stream.header_len++] = len;
+					memcpy(ctx->stream.header + ctx->stream.header_len, p, len);
+					ctx->stream.header_len += len;
+					LOG_INFO("[% p]: metadata: %.*s", ctx, len, p);
 				}
-
-				// ogg_packet_clear does not need to be called
-				ctx->stream.meta_send = true;
-				wake_controller(ctx);
-				LOG_INFO("[%p]: Ogg metadata length: %u", ctx, ctx->stream.header_len - 3);
-
-				// return as we might have more than one metadata set but we want the first one
-				return;
 			}
+
+			// ogg_packet_clear does not need to be called
+			ctx->stream.ogg.flac = false;
+			ctx->stream.meta_send = true;
+			wake_controller(ctx);
+			LOG_INFO("[%p]: Ogg metadata length: %u", ctx, ctx->stream.header_len - 3);
+
+			// return as we might have more than one metadata set but we want the first one
+			return;
 		}
 	}
 }
@@ -590,7 +560,7 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 					ctx->stream.header_len++;
 
 					if (ctx->stream.header_len > MAX_HEADER - 1) {
-						LOG_ERROR("[%p] received headers too long: %u", ctx, ctx->stream.header_len);
+						LOG_ERROR("[%p]: received headers too long: %u", ctx, ctx->stream.header_len);
 						_disconnect(DISCONNECT, LOCAL_DISCONNECT, ctx);
 					}
 
@@ -598,7 +568,7 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 						ctx->stream.endtok++;
 						if (ctx->stream.endtok == 4) {
 							*(ctx->stream.header + ctx->stream.header_len) = '\0';
-							LOG_INFO("[%p] headers: len: %d\n%s", ctx, ctx->stream.header_len, ctx->stream.header);
+							LOG_INFO("[%p]: headers: len: %d\n%s", ctx, ctx->stream.header_len, ctx->stream.header);
 							ctx->stream.state = ctx->stream.cont_wait ? STREAMING_WAIT : STREAMING_BUFFERING;
 							wake_controller(ctx);
 						}
@@ -622,7 +592,7 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 								UNLOCK_S;
 								continue;
 							}
-							LOG_WARN("[%p] error reading icy meta: %s", ctx, n ? strerror(_last_error(ctx)) : "closed");
+							LOG_WARN("[%p]: error reading icy meta: %s", ctx, n ? strerror(_last_error(ctx)) : "closed");
 							_disconnect(STOPPED, LOCAL_DISCONNECT, ctx);
 							UNLOCK_S;
 							continue;
@@ -639,7 +609,7 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 								UNLOCK_S;
 								continue;
 							}
-							LOG_WARN("[%p] error reading icy meta: %s", ctx, n ? strerror(_last_error(ctx)) : "closed");
+							LOG_WARN("[%p]: error reading icy meta: %s", ctx, n ? strerror(_last_error(ctx)) : "closed");
 							_disconnect(STOPPED, LOCAL_DISCONNECT, ctx);
 							UNLOCK_S;
 							continue;
@@ -651,7 +621,7 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 					if (ctx->stream.meta_left == 0) {
 						if (ctx->stream.header_len) {
 							*(ctx->stream.header + ctx->stream.header_len) = '\0';
-							LOG_INFO("[%p] icy meta: len: %u\n%s", ctx, ctx->stream.header_len, ctx->stream.header);
+							LOG_INFO("[%p]: icy meta: len: %u\n%s", ctx, ctx->stream.header_len, ctx->stream.header);
 							ctx->stream.meta_send = true;
 							wake_controller(ctx);
 						}
@@ -670,11 +640,11 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 
 					int n = _recv(ctx, ctx->streambuf->writep, space, 0);
 					if (n == 0) {
-						LOG_INFO("[%p] end of stream (t:%lld)", ctx, ctx->stream.bytes);
+						LOG_INFO("[%p]: end of stream (t:%" PRId64 ")", ctx, ctx->stream.bytes);
 						_disconnect(DISCONNECT, DISCONNECT_OK, ctx);
 					}
 					if (n < 0 && _last_error(ctx) != ERROR_WOULDBLOCK) {
-						LOG_WARN("[%p] error reading: %s (%d)", ctx, strerror(_last_error(ctx)), _last_error(ctx));
+						LOG_WARN("[%p]: error reading: %s (%d)", ctx, strerror(_last_error(ctx)), _last_error(ctx));
 						_disconnect(DISCONNECT, REMOTE_DISCONNECT, ctx);
 					}
 
@@ -696,7 +666,7 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 						wake_controller(ctx);
 					}
 
-					LOG_DEBUG("[%p] streambuf read %d bytes", ctx, n);
+					LOG_DEBUG("[%p]: streambuf read %d bytes", ctx, n);
 				}
 			}
 
@@ -704,7 +674,7 @@ static void *stream_thread(struct thread_ctx_s *ctx) {
 
 		}
 		else {
-			LOG_SDEBUG("[%p] poll timeout", ctx);
+			LOG_SDEBUG("[%p]: poll timeout", ctx);
 		}
 	}
 
@@ -751,12 +721,12 @@ void stream_end(void) {
 bool stream_thread_init(unsigned streambuf_size, struct thread_ctx_s *ctx) {
 	pthread_attr_t attr;
 
-	LOG_DEBUG("[%p] streambuf size: %u", ctx, streambuf_size);
+	LOG_DEBUG("[%p]: streambuf size: %u", ctx, streambuf_size);
 	ctx->streambuf = &ctx->__s_buf;
 
 	buf_init(ctx->streambuf, ((streambuf_size / (BYTES_PER_FRAME * 3)) * BYTES_PER_FRAME * 3));
 	if (ctx->streambuf->buf == NULL) {
-		LOG_ERROR("[%p] unable to malloc buffer", ctx);
+		LOG_ERROR("[%p]: unable to malloc buffer", ctx);
 		return false;
 	}
 
@@ -786,7 +756,7 @@ bool stream_thread_init(unsigned streambuf_size, struct thread_ctx_s *ctx) {
 }
 
 void stream_close(struct thread_ctx_s *ctx) {
-	LOG_INFO("[%p] close stream", ctx);
+	LOG_INFO("[%p]: close stream", ctx);
 	LOCK_S;
 	ctx->stream_running = false;
 	UNLOCK_S;
@@ -804,7 +774,7 @@ void stream_file(const char *header, size_t header_len, unsigned threshold, stru
 	memcpy(ctx->stream.header, header, header_len);
 	*(ctx->stream.header+header_len) = '\0';
 
-	LOG_INFO("[%p] opening local file: %s", ctx, ctx->stream.header);
+	LOG_INFO("[%p]: opening local file: %s", ctx, ctx->stream.header);
 
 #if WIN
 	ctx->fd = open(ctx->stream.header, O_RDONLY | O_BINARY);
@@ -814,7 +784,7 @@ void stream_file(const char *header, size_t header_len, unsigned threshold, stru
 
 	ctx->stream.state = STREAMING_FILE;
 	if (ctx->fd < 0) {
-		LOG_WARN("[%p] can't open file: %s", ctx, ctx->stream.header);
+		LOG_WARN("[%p]: can't open file: %s", ctx, ctx->stream.header);
 		ctx->stream.state = DISCONNECT;
 	}
 	wake_controller(ctx);
@@ -831,7 +801,7 @@ void stream_file(const char *header, size_t header_len, unsigned threshold, stru
 	UNLOCK_S;
 }
 
-void stream_sock(u32_t ip, u16_t port, bool use_ssl, char codec, const char *header, size_t header_len, unsigned threshold, bool cont_wait, struct thread_ctx_s *ctx) {
+void stream_sock(u32_t ip, u16_t port, bool use_ssl, bool use_ogg, const char *header, size_t header_len, unsigned threshold, bool cont_wait, struct thread_ctx_s *ctx) {
 	int sock;
 	char *p;
 
@@ -875,7 +845,7 @@ void stream_sock(u32_t ip, u16_t port, bool use_ssl, char codec, const char *hea
 	memcpy(ctx->stream.header, header, header_len);
 	*(ctx->stream.header+header_len) = '\0';
 
-	LOG_INFO("[%p] header: %s", ctx, ctx->stream.header);
+	LOG_INFO("[%p]: header: %s", ctx, ctx->stream.header);
 
 	ctx->stream.sent_headers = false;
 	ctx->stream.bytes = 0;
@@ -883,18 +853,21 @@ void stream_sock(u32_t ip, u16_t port, bool use_ssl, char codec, const char *hea
 
 #if USE_LIBOGG
 #if !LINKALL
-	if (go.handle)
+	ctx->stream.ogg.active = use_ogg && ogg.dl.handle;
+#else 
+	ctx->stream.ogg.active = use_ogg;
 #endif
-	{
+	if (use_ogg) {
 		OG(&go, stream_clear, &ctx->stream.ogg.state);
 		OG(&go, sync_clear, &ctx->stream.ogg.sync);
 		OG(&go, stream_init, &ctx->stream.ogg.state, -1);
 	}
 #else
 	ctx->stream.ogg.miss = ctx->stream.ogg.match = 0;
-	ctx->stream.ogg.state = (codec == 'o' || codec == 'u') ? STREAM_OGG_SYNC : STREAM_OGG_OFF;
+	ctx->stream.ogg.state = use_ogg ? STREAM_OGG_SYNC : STREAM_OGG_OFF;
 #endif
-	
+	ctx->stream.ogg.flac = false;
+
 	if (*ctx->config.store_prefix) {
 		char name[STR_LEN];
 		snprintf(name, sizeof(name), "%s/" BRIDGE_URL "%u-in#%u#.%s", ctx->config.store_prefix, ctx->output.index, sock, ctx->codec->types);
@@ -906,4 +879,33 @@ void stream_sock(u32_t ip, u16_t port, bool use_ssl, char codec, const char *hea
 	UNLOCK_S;
 }
 
+bool stream_disconnect(struct thread_ctx_s* ctx) {
+	bool disc = false;
+	LOCK_S;
+#if USE_SSL
+	if (ctx->ssl) {
+		SSL_shutdown(ctx->ssl);
+		SSL_free(ctx->ssl);
+		ctx->ssl = NULL;
+	}
+#endif
+	if (ctx->fd != -1) {
+		closesocket(ctx->fd);
+		ctx->fd = -1;
+		disc = true;
+	}
+	ctx->stream.state = STOPPED;
+#if USE_LIBOGG
+	if (ctx->stream.ogg.active) {
+		OG(&go, stream_clear, &ctx->stream.ogg.state);
+		OG(&go, sync_clear, &ctx->stream.ogg.sync);
+	}
+#else
+	if (ctx->stream.ogg.state == STREAM_OGG_PAGE && ctx->stream.ogg.data) free(ctx->stream.ogg.data);
+	ctx->stream.ogg.data = NULL;
+#endif
+	if (ctx->stream.store) fclose(ctx->stream.store);
 
+	UNLOCK_S;
+	return disc;
+}

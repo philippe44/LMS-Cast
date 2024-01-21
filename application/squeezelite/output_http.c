@@ -22,6 +22,21 @@
 #include "squeezelite.h"
 #include "cache.h"
 
+/*----------------------------------------------------------------------------*/
+/* KeyNotes																	  */
+/*----------------------------------------------------------------------------*/
+
+/* The webserver thread will linger as long as not terminated once it has sent 
+ * all the available data. Now, when a track start is detected, all servers with 
+ * indexes below the new one are terminated (not joined). The current server is 
+ * also terminated when the player self-stops but only if it was lingering as a
+ * stop might be follow by a LMS "next" and if the served track was the next one,
+ * it would lead to a failure (webserver mute).
+ * When LMS starts a new track, the logic is to find a free webserver and if none
+ * can be found, then use a lingering one with the lowest index. There is no reason
+ * why we should be in that situation as webservers are freed as soon as a new 
+ * track start is detected, but... */
+
 extern log_level	output_loglevel;
 static log_level 	*loglevel = &output_loglevel;
 
@@ -31,7 +46,6 @@ static log_level 	*loglevel = &output_loglevel;
 #define UNLOCK_D mutex_unlock(ctx->decode.mutex)
 
 #define MAX_BLOCK		(32*1024)
-#define ICY_INTERVAL	16384
 #define TIMEOUT			50
 #define DRAIN_MAX		(5000 / TIMEOUT)
 
@@ -47,10 +61,24 @@ static ssize_t  send_chunked(bool chunked, struct buffer* backlog, int sock, con
 static ssize_t  send_backlog(struct buffer* backlog, int sock, const void* data, size_t bytes, int flags);
 
 /*---------------------------------------------------------------------------*/
-void output_stop(struct thread_ctx_s* ctx, int index, bool less) {
+bool _output_lingers(struct thread_ctx_s* ctx, int index) {
 	for (int i = 0; i < ARRAY_COUNT(ctx->output_thread); i++) {
-		if (less ? ctx->output_thread[i].index < index : ctx->output_thread[i].index == index)
-			ctx->output_thread[i].terminate = true;
+		if (ctx->output_thread[i].index == index) return ctx->output_thread[i].running && ctx->output_thread[i].lingering;
+	}
+	return false;
+}
+
+/*---------------------------------------------------------------------------*/
+void _output_terminate(struct thread_ctx_s* ctx, int index) {
+	for (int i = 0; i < ARRAY_COUNT(ctx->output_thread); i++) {
+		if (ctx->output_thread[i].index == index) ctx->output_thread[i].terminate = true;
+	}
+}
+
+/*---------------------------------------------------------------------------*/
+void _output_terminate_below(struct thread_ctx_s* ctx, int index) {
+	for (int i = 0; i < ARRAY_COUNT(ctx->output_thread); i++) {
+		if (ctx->output_thread[i].index < index) ctx->output_thread[i].terminate = true;
 	}
 }
 
@@ -81,7 +109,7 @@ bool output_start(struct thread_ctx_s *ctx) {
 	// found something, now need to terminate it if it lingers
 	param->thread = ctx->output_thread + slot;
 
-	if (param->thread->lingering) {
+	if (param->thread->running) {
 		param->thread->running = false;
 		UNLOCK_O;
 		LOG_INFO("[%p]: joining thread index:%d (slot:%d)", ctx, param->thread->index, param->thread->slot);
@@ -283,7 +311,7 @@ static void output_http_thread(struct thread_param_s *param) {
 			send_backlog(&backlog, sock, NULL, 0, 0);
 		} else if (use_cache || _buf_used(obuf)) {
 			// only get what we can process (ignore result because all is always sent/backlog'd)
-			size_t chunk = ctx->output.icy.interval ? ctx->output.icy.remain : MAX_BLOCK, bytes = chunk;
+			size_t chunk = ctx->output.icy.active ? ctx->output.icy.remain : MAX_BLOCK, bytes = chunk;
 			uint8_t* readp = NULL;
 
 			// try to source from cache first if we have to
@@ -355,7 +383,7 @@ static void output_http_thread(struct thread_param_s *param) {
 }
 
 /*----------------------------------------------------------------------------*/
-ssize_t send_backlog(struct buffer *backlog, int sock, const void* data, size_t bytes, int flags) {
+ssize_t send_backlog(struct buffer* backlog, int sock, const void* data, size_t bytes, int flags) {
 	ssize_t sent = 0;
 
 	// if there is no backlog buffer, it should be a blocking socket so just send
@@ -377,7 +405,7 @@ ssize_t send_backlog(struct buffer *backlog, int sock, const void* data, size_t 
 
 	// store what we have not sent
 	_buf_write(backlog, (u8_t*) data + sent, bytes - sent);
-	return sent;
+	return sent < 0 ? sent : bytes;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -389,10 +417,10 @@ static ssize_t send_chunked(bool chunked, struct buffer *backlog, int sock, cons
 	strcat(chunk, "\r\n");
 
 	send_backlog(backlog, sock, chunk, strlen(chunk), flags);
-	bytes = send_backlog(backlog, sock, data, bytes, flags);
+	ssize_t sent = send_backlog(backlog, sock, data, bytes, flags);
 	send_backlog(backlog, sock, "\r\n", 2, flags);
 
-	return bytes;
+	return sent;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -401,16 +429,15 @@ static ssize_t send_with_icy(struct outputstate* out, struct buffer *backlog, in
 	bytes = send_chunked(out->chunked, backlog, sock, data, bytes, flags);
 
 	// ICY not active, just send
-	if (!out->icy.interval) return bytes;
+	if (!out->icy.active) return bytes;
 
 	out->icy.remain -= bytes;
+	LOG_DEBUG("[%p]: ICY remains %zu", out, out->icy.remain);
 
 	// ICY is active
 	if (!out->icy.remain) {
 		int len_16 = 0;
 		char* buffer = calloc(ICY_LEN_MAX, 1);
-
-		LOG_DEBUG("[%p]: ICY remains", out, out->icy.remain);
 
 		if (out->icy.updated) {
 			char *format = (out->icy.artwork && *out->icy.artwork) ?
@@ -438,8 +465,7 @@ static ssize_t send_with_icy(struct outputstate* out, struct buffer *backlog, in
 }
 
 /*----------------------------------------------------------------------------*/
-static bool handle_http(struct thread_ctx_s *ctx, cache_buffer* cache, bool *use_cache, bool lingering, int index, int sock)
-{
+static bool handle_http(struct thread_ctx_s *ctx, cache_buffer* cache, bool *use_cache, bool lingering, int index, int sock) {
 	char* body = NULL, * request = NULL, * p = NULL;
 	key_data_t headers[64], resp[16] = { { NULL, NULL } };
 	int len, id;
@@ -475,12 +501,13 @@ static bool handle_http(struct thread_ctx_s *ctx, cache_buffer* cache, bool *use
 
 	// check if add ICY metadata is needed (only on live stream)
 	if (ctx->output.icy.allowed && ((p = kd_lookup(headers, "Icy-MetaData")) != NULL) && atol(p)) {
-		kd_vadd(resp, "icy-metaint", "%u", ICY_INTERVAL);
+		kd_vadd(resp, "icy-metaint", "%u", ctx->output.icy.interval);
 		LOCK_O;
-		ctx->output.icy.interval = ctx->output.icy.remain = ICY_INTERVAL;
+		ctx->output.icy.remain = ctx->output.icy.interval;
 		ctx->output.icy.updated = true;
+		ctx->output.icy.active = true;
 		UNLOCK_O;
-	} else ctx->output.icy.interval = 0;
+	} else ctx->output.icy.active = false;
 
 	// handle various DLNA headers
 	if ((p = kd_lookup(headers, "transferMode.dlna.org")) != NULL) kd_add(resp, "transferMode.dlna.org", p);
@@ -500,23 +527,24 @@ static bool handle_http(struct thread_ctx_s *ctx, cache_buffer* cache, bool *use
 		head = "HTTP/1.0 410 Gone";
 		kd_free(resp);
 		send_body = false;
-	} else {
+	}
+	else {
 		// by defautl use cache and restart from 0 (will be changed below if needed)
 		*use_cache = true;
 		cache->set_offset(cache, 0);
 		int64_t length = ctx->output.length;
 
-		/* Sonos is a pile of crap: when paused (on mp3 or flac) it will leave the connection open, 
+		/* Sonos is a pile of crap: when paused (on mp3 or flac) it will leave the connection open,
 		 * then closes and and re-opens it on resume but request the whole file. Still, even if given
-		 * properly the whole resource, it fails once it has received about what he already got. We 
-		 * can fool it by sending ANYTHING with a content-length (required) of an insane value. Then 
-		 * we close the connection which forces it to re-open it again and this time it asks for a 
-		 * proper range request but we need to answer 206 without a content-range (which is not 
+		 * properly the whole resource, it fails once it has received about what he already got. We
+		 * can fool it by sending ANYTHING with a content-length (required) of an insane value. Then
+		 * we close the connection which forces it to re-open it again and this time it asks for a
+		 * proper range request but we need to answer 206 without a content-range (which is not
 		 * compliant) or it fails as well */
 
 		if ((p = kd_lookup(headers, "Range")) != NULL && cache->total) {
 			size_t offset = 0;
-			(void) !sscanf(p, "bytes=%zu", &offset);
+			(void)!sscanf(p, "bytes=%zu", &offset);
 
 			// this is not an initial request (there is cache), so if offset is 0, we are all set
 			if (offset) {
@@ -542,15 +570,27 @@ static bool handle_http(struct thread_ctx_s *ctx, cache_buffer* cache, bool *use
 					head = ctx->output.chunked ? "HTTP/1.1 206 Partial Content" : "HTTP/1.0 206 Partial Content";
 					size_t avail = min(cache->total, length - offset);
 					cache->set_offset(cache, cache->total - avail);
-					kd_vadd(resp, "Content-Range", "bytes %zu-%zu/%zu", offset, offset + avail - 1, (size_t) length);
+					kd_vadd(resp, "Content-Range", "bytes %zu-%zu/%zu", offset, offset + avail - 1, (size_t)length);
 					LOG_INFO("[%p]: being probed at %zu but have %zu/%" PRIu64 ", using offset at %zu", ctx, offset,
-							 cache->total, length, cache->total - avail);
+						cache->total, length, cache->total - avail);
 					length = 0;
 				}
+			} else if (lingering) {
+				// don't resend from start when all as already been sent
+				send_body = false;
+				head = "HTTP/1.0 410 Gone";
+				kd_free(resp);
+				LOG_INFO("[%p]: won't resend from start when fully served", ctx);
 			}
+		} else if (lingering) {
+			// don't resend from start when all as already been sent
+			send_body = false;
+			head = "HTTP/1.0 410 Gone";
+			kd_free(resp);
+			LOG_INFO("[%p]: won't resend from start when fully served", ctx);
 		} else if (cache->total) {
 			// see Sonos above but also Sonos re-opens stream when icy to add it (not a resume!)
-			if (type == SONOS && !ctx->output.icy.interval) length = UINT32_MAX;
+			if (type == SONOS && !ctx->output.icy.active) length = UINT32_MAX;
 			LOG_INFO("[%p]: serving with cache from %zu (cached:%zu)", ctx, cache->total - cache->level(cache), cache->total);
 		} else {
 			// normal request, don't use cache

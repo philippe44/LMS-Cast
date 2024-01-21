@@ -56,7 +56,7 @@ struct sMR {
 	char			NextMime[STR_LEN];    // gapped next mimetype
 	metadata_t		NextMetaData;           // gapped next metadata
 	bool			ShortTrack;				// current or next track is short
-	int16_t			ShortTrackWait;			// stop timeout when short track is last track
+	int16_t			TrackWait;			// stop timeout when short track is last track
 	sq_action_t		sqState;
 	uint32_t			sqStamp;			// timestamp of slimproto state change to filter fast pause/play
 	uint32_t			TrackPoll;
