@@ -356,7 +356,7 @@ uint32_t sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offse
 	// the tag means the it's a repeating stream whose length might be known
 	if ((p = cli_find_tag(rsp, "repeating_stream")) != NULL) {
 		offset = 0;
-		metadata->duration = metadata->repeating = atoi(p) * 1000;
+		metadata->duration = metadata->live_duration = atoi(p) * 1000;
 		free(p);
 	};
 
@@ -384,8 +384,11 @@ uint32_t sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offse
 		metadata->remote_title = cli_find_tag(cur, "remote_title");
 		metadata->artwork = cli_find_tag(cur, "artwork_url");
 
-		if (!metadata->duration && (p = cli_find_tag(cur, "duration")) != NULL) {
-			metadata->duration = 1000 * atof(p);
+		if ((p = cli_find_tag(cur, "duration")) != NULL) {
+			/* when it's a repeating track, duration must hold the full block length while
+			 * live_duration will hold the segment duration */
+			if (metadata->live_duration != -1) metadata->live_duration = 1000 * atof(p);
+			else metadata->duration = 1000 * atof(p);
 			free(p);
 		}
 
@@ -394,9 +397,6 @@ uint32_t sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offse
 			metadata->duration -= (u32_t) (atof(p) * 1000);
 			free(p);
 		}
-
-		// live_duration always capture duration beofre adjustement to webradio
-		metadata->live_duration = metadata->duration;
 
 		if ((p = cli_find_tag(cur, "bitrate")) != NULL) {
 			metadata->bitrate = atol(p);
@@ -431,8 +431,15 @@ uint32_t sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offse
 			free(p);
 		}
 
-		// remote_title is present, it's a webradio if not repeating
-		if (metadata->remote_title && metadata->repeating == -1) metadata->duration = 0;
+		/* if remote_title is present and there is no live_duration, then it's 
+		 * webradio and we must set duration to 0 make sure that we don't try 
+		 * to detect end of track in slimproto or calculate the track's length
+		 * in elsewhere. Still, duration might be the current track duration and 
+		 * we want to keep it in live_duration then */
+		if (metadata->remote_title && metadata->live_duration == -1) {
+			metadata->live_duration = metadata->duration;
+			metadata->duration = 0;
+		}
 
 		if (!metadata->artwork || !strlen(metadata->artwork)) {
 			NFREE(metadata->artwork);
@@ -468,9 +475,9 @@ uint32_t sq_get_metadata(sq_dev_handle_t handle, metadata_t *metadata, int offse
 
 	metadata_defaults(metadata);
 
-	LOG_DEBUG("[%p]: idx %d\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n\tduration:%d\n\trepeating:%d\n\tsize:%d\n\tcover:%s", ctx, metadata->index,
+	LOG_DEBUG("[%p]: idx %d\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n\tduration:%d\n\tlive_duration:%d\n\tsize:%d\n\tcover:%s", ctx, metadata->index,
 				metadata->artist, metadata->album, metadata->title,
-				metadata->duration, metadata->repeating, metadata->size,
+				metadata->duration, metadata->live_duration, metadata->size,
 				metadata->artwork ? metadata->artwork : "");
 
 	return hash32(metadata->artist) ^ hash32(metadata->title) ^ hash32(metadata->artwork);
