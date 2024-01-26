@@ -219,7 +219,7 @@ void CastPlay(struct sCastCtx* Ctx, struct metadata_s* MetaData) {
 	pthread_mutex_lock(&Ctx->Mutex);
 
 	json_t* customData;
-	if (MetaData && MetaData->live_duration) customData = json_pack("{si}", "live_duration", MetaData->live_duration);
+	if (MetaData && MetaData->live_duration != -1) customData = json_pack("{si}", "live_duration", MetaData->live_duration);
 	else customData = json_object();
 
 	json_t* item = BuildMetaData(MetaData);
