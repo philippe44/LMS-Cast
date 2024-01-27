@@ -1,5 +1,12 @@
+3.3.4
+ - clarify use of index in sq_get_metadata
+ - for CC, duration is not in metadata but at the root
+ - use LIVE when duration is 0
+ - add <time> in metadata recurring queries (not uses for now)
+ - note: duration in metadata is what's left of full segment
+ 
 3.3.3
- - remove repeating and use live_duration insted so that duration is always full stream length while live_duraiton is the "fake" (segment) duration
+ - remove repeating and use live_duration insted so that duration is always full stream length while live_duraton is the "fake" (segment) duration
  - send_backlog always return requested bytes, no need to verify "sent"
  
 3.3.2

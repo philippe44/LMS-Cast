@@ -325,9 +325,9 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 			metadata_free(&Device->NextMetaData);
 
 			LOG_INFO("[%p]:\n\tartist:%s\n\talbum:%s\n\ttitle:%s\n"
-				"\tduration:%d\n\tlive_duration:%d\n\tcover:%s\n\tindex:%u", Device,
+				"\tduration:%d\n\tlive_duration:%d\n\tposition:%d\n\tcover:%s\n\tindex:%u", Device,
 				p->metadata.artist, p->metadata.album, p->metadata.title,
-				p->metadata.duration, p->metadata.live_duration,
+				p->metadata.duration, p->metadata.live_duration, p->metadata.position,
 				p->metadata.artwork ? p->metadata.artwork : "", p->index);
 
 			if (p->index) {
