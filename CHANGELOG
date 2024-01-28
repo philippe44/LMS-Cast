@@ -1,3 +1,7 @@
+3.3.5
+ - use updated libflac with chaining enabler
+ - check MetaData is not NULL in CastLoad
+ 
 3.3.4
  - clarify use of index in sq_get_metadata
  - for CC, duration is not in metadata but at the root
