@@ -1,5 +1,9 @@
+3.3.6
+ - fix flac when using old libflac.dll (which should not happen for us)
+ - bad build
+
 3.3.5
- - use updated libflac with chaining enabler
+ - use updated libflac with chaining enabled
  - check MetaData is not NULL in CastLoad
  
 3.3.4
