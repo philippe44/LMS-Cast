@@ -24,7 +24,7 @@
 #include <FLAC/stream_decoder.h>
 
 #if !WIN && LINKALL
-FLAC_API FLAC__bool __attribute__((weak)) FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* decoder, FLAC__bool value) { };
+FLAC_API FLAC__bool __attribute__((weak)) FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* decoder, FLAC__bool value) { return true; };
 #endif
 
 #if !LINKALL

@@ -1,3 +1,9 @@
+3.3.8
+ - $!%@ compilation flag
+ 
+3.3.7
+ - fix stream/ogg 32 bits len when inverting
+ 
 3.3.6
  - fix flac when using old libflac.dll (which should not happen for us)
  - bad build
