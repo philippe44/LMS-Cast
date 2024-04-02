@@ -1,3 +1,7 @@
+3.3.9
+ - change OggFlac library detection 
+ - fix f-up builds 
+ 
 3.3.8
  - $!%@ compilation flag
  
