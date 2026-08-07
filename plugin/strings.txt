@@ -1,167 +1,227 @@
 PLUGIN_CASTBRIDGE
+	DA	Chromecast bro
 	EN	Chromecast bridge
 
 PLUGIN_CASTBRIDGE_DESC
+	DA	Benyt Chromecast enheder i LMS
 	EN	Use Chromecast devices in LMS 
 	
 PLUGIN_CASTBRIDGE_YES
+	DA	Ja
 	EN	Yes
 		
 PLUGIN_CASTBRIDGE_NO
+	DA	Nej
 	EN	No
 	
 PLUGIN_CASTBRIDGE_AUTORUN
+	DA	Start broen
 	EN	Start the Bridge
 
 PLUGIN_CASTBRIDGE_AUTORUN_DESC
+	DA	Start Chromecast broen automatisk når serveren starter.
 	EN	Automatically start the Chromecast bridge instance when the server starts.
 
 PLUGIN_CASTBRIDGE_RUNNING_0
+	DA	Kører ikke
 	EN	Not Running
 
 PLUGIN_CASTBRIDGE_RUNNING_1
+	DA	Kører
 	EN	Running
 	
 PLUGIN_CASTBRIDGE_USERGUIDELINK
+	DA	Vis brugervejledningen
 	EN	View User Guide
 	
 PLUGIN_CASTBRIDGE_BINARIES
+	DA	Vælg binær
 	EN	Select Binary
 	
 PLUGIN_CASTBRIDGE_RESTART
+	DA	Genstart
 	EN	Restart
 
 PLUGIN_CASTBRIDGE_BINARIES_DESC
+	DA	Vælg den squeeze2cast binære fil, som bedst matcher din maskines arkitektur.
 	EN	Select the squeeze2cast binary which best matches your machine's architecture. 
 
 PLUGIN_CASTBRIDGE_WARNING
+	DA	Det anbefales STÆRKT at stoppe din bro før du ændrer parametre
 	EN	It is HIGHLY recommended to stop the bridge before changing parameters
 
 PLUGIN_CASTBRIDGE_VCREDIST
+	DA	Windows brugere, venligst installér dette
 	EN	Windows users, please install this    
 	
 PLUGIN_CASTBRIDGE_PARAMINFO
+	DA	En TOM parameterværdi betyder, at [common parameters] benyttes
 	EN	An EMPTY parameter value means that [common parameters] is used
 	
 PLUGIN_CASTBRIDGE_COMMONPARAMINFO
+	DA	Disse parametre sætter standardindstillingerne for alle afspillere (TOM værdi betyder at indbyggede standardindstillinger benyttes)
 	EN	These parameters set the defaults for all players (EMPTY value means use built-in default)
 
 PLUGIN_CASTBRIDGE_OPTIONS
+	DA	Ekstra kommandolinjeindstillinger
 	EN	Extra command line options
 
 PLUGIN_CASTBRIDGE_OPTIONS_DESC
+	DA	Tilføj flere kommandolinjeindstillinger for squeeze2cast opstart her.
+	DA	Se brugervejledningen på https://github.com/philippe44/LMS-to-Cast for detaljer.
 	EN	Add additional squeeze2cast startup command line options here.  See the user guide in https://github.com/philippe44/LMS-to-Cast 
 	EN	for details.
 
 PLUGIN_CASTBRIDGE_DEBUG
+	DA	Mere fejlfinding
 	EN	Additional debugging
 
 PLUGIN_CASTBRIDGE_DEBUG_DESC
+	DA	Angiv fejlfindingsniveau for skrivning til logfilen.
 	EN	Specify debugging level for writing to the log file.
 	
 PLUGIN_CASTBRIDGE_ALL
+	DA	Alt
 	EN	All
 
 PLUGIN_CASTBRIDGE_
+	DA	Ingen
 	EN	None
 
 PLUGIN_CASTBRIDGE_OUTPUT
+	DA	Fejlfinding for output enheder
 	EN	Output device debugging
 
 PLUGIN_CASTBRIDGE_STREAM
+	DA	Stream fejlfinding
 	EN	Stream debugging
 
 PLUGIN_CASTBRIDGE_SLIMPROTO
+	DA	Styring af protokol for fejlfinding (slimproto)
 	EN	Control protocol debugging (slimproto)
 
 PLUGIN_CASTBRIDGE_DECODE
+	DA	Decode fejlfinding
 	EN	Decode debugging
 
 PLUGIN_CASTBRIDGE_CAST
+	DA	Casting fejlfinding
 	EN	Casting debugging
 
 PLUGIN_CASTBRIDGE_UTIL
+	DA	Hjælpeprogrammer fejlfinding
 	EN	Utilities debugging
 
 PLUGIN_CASTBRIDGE_SLIMMAIN
+	DA	Slim Main funktionsfejlfinding
 	EN	Slim Main function debugging
 
 PLUGIN_CASTBRIDGE_WEB
+	DA	Webserver fejlfinding
 	EN	Webserver debugging
 
 PLUGIN_CASTBRIDGE_MAIN
+	DA	Hovedprogram fejlfinding
 	EN	Main application debugging
 
 PLUGIN_CASTBRIDGE_LOGGING
+	DA	Muligheder for logning
 	EN	Logging options
 	
 PLUGIN_CASTBRIDGE_LOGGING_DESC
+	DA	Aktivér logning af fejl- og fejlfindingsmeddelelser.
+	DA	<br>- Sæt en værdi i MB for at begrænse logstørrelsen (-1 for ubegrænset)
 	EN	Enable logging of error and debug messages.
 	EN	<br>- Set a value in MB to limit log size (-1 for unlimited)
 
 PLUGIN_CASTBRIDGE_LOGENABLE
+	DA	Aktivér
 	EN	Enable
 
 PLUGIN_CASTBRIDGE_LOGLINK
+	DA	Vis
 	EN	View
 	
 PLUGIN_CASTBRIDGE_ERASELOG
+	DA	Slet ved opstart
 	EN	Erase at start
 	
 PLUGIN_CASTBRIDGE_LOGSIZE
+	DA	Maks størrelse (MB)
 	EN	Max size (MB)
 
 PLUGIN_CASTBRIDGE_CLEANLOG
+	DA	Rens
 	EN	Clean
 	
 PLUGIN_CASTBRIDGE_PLAYER
+	DA	Vælg Chromecast afspiller
 	EN	Select Chromecast player
 		
 PLUGIN_CASTBRIDGE_CONFIG
+	DA	Konfigurationsfil
 	EN	Configuration file
 
 PLUGIN_CASTBRIDGE_CONFIG_DESC
+	DA	<i>Genererer</i> genscanninger af netværket og bygger en konfigurationsfil inklusive alle opdagede afspillere, mens
+	DA	eksisterende parametre og afspillere bevares (dette stopper din bro i ~30 sekunder)
+	DA	<br>Når autogem er markeret, vil konfigurationsfilen automatisk blive opdateret, hver gang en afspiller kobler til eller fra
 	EN	<i>Generate</i> re-scans the network and builds a configuration file including all discovered players while retaining
 	EN	existing parameters and players (this will stop the bridge for ~30s)
 	EN	<br>When autosave is checked, the configuration file will be automatically updated every time a player connects or disconnects
 
 PLUGIN_CASTBRIDGE_CONFLINK
+	DA	Vis
 	EN	View
 	
 PLUGIN_CASTBRIDGE_GENCONFIG
+	DA	Generér
 	EN	Generate
 
 PLUGIN_CASTBRIDGE_AUTOSAVECONFIG
+	DA	Autogem
 	EN	Autosave
 
 PLUGIN_CASTBRIDGE_DELCONFIG
+	DA	Slet
 	EN	Erase
 	
 PLUGIN_CASTBRIDGE_BINDING
+	DA	Netværksbinding og port
 	EN	Network binding and port
 	
 PLUGIN_CASTBRIDGE_BASEPORT
+	DA	og start fra port
 	EN	and start from port
 
 PLUGIN_CASTBRIDGE_USELMSBINDING
+	DA	Benyt LMS grænsefladen
 	EN	Use LMS interface
 
 PLUGIN_CASTBRIDGE_BINDING_DESC
+	DA	Netværkets ip-grænseflade og basis port, der skal bruges (format [ip|iface][:port]. Dette er nødvendigt, hvis du har en computer med flere netværksgrænseflader. Iface er navnet på grænsefladen fundet ved hjælp af ipconfig/ifconifg
+	DA	Benyt ? for at lade din bro bestemme eller markér "Benyt LMS-grænseflade" for at sikre, at din bro bruger samme netværk som LMS og tilføj en valgfri basis port
+	DA	Din bro vil bruge op til 64 porte fra basis porten. Når den ikke er indstillet, bruges tilfældige værdier.
 	EN	The network ip interface and base port to be used (format [ip|iface][:port]. This is needed if you have a computer with multiple network interfaces. The iface is the name of the interface found using ipconfig/ifconifg
 	EN	Use ? to let the bridge decide or check "use LMS interface" to make sure the bridge uses the same network as LMS and add an optional baseport
 	EN	The bridge will use up to 64 ports from the base port. When not set, random values are used.
 	
 PLUGIN_CASTBRIDGE_TEXTDEFAULT
+	DA	Følgende parametre gælder for ALLE afspillere - indtast "standard" (uden ") i tekstbokse for at indstille til standardværdier
 	EN	The following parameters apply to ALL players - enter "default" (without ") in text boxes to set to default values
     
 PLUGIN_CASTBRIDGE_STREAMOPTIONS
+	DA	Streaming muligheder
 	EN	Streaming options
     
 PLUGIN_CASTBRIDGE_STREAMOPTIONS_DESC
+	DA	Nogle ChromeCast-implementeringer (HTTP-stakken) håndterer ikke streaming korrekt og kan afslutte numre for tidligt. Ved at sætte
+	DA	denne indstilling til "underrun" tvinges broen til at vente, indtil nummeret er stoppet, før den anmoder om den næste fra LMS
 	EN	Some ChromeCast implementation (the HTTP stack) does not handle correctly streaming and might end tracks prematurely. Setting this
 	EN	option to "underrun" forces the bridge to wait until the track has stopped before requesting the next one from LMS
     
 PLUGIN_CASTBRIDGE_NEXTURI
+	DA	Næste nummer modus
 	EN	Next track mode
     
 PLUGIN_CASTBRIDGE_NEXTNORMAL
@@ -171,9 +231,17 @@ PLUGIN_CASTBRIDGE_NEXTUNDERRUN
 	EN	Underrun
 	
 PLUGIN_CASTBRIDGE_CASTAUDIOCAPS
+	DA	Chromecast-afspillerens lydfunktioner
 	EN	Chromecast player audio capabilities
 
 PLUGIN_CASTBRIDGE_CASTAUDIOCAPS_DESC
+	DA	Liste over lydegenskaberne for Chromecast-afspilleren, som de vil blive rapporteret til LMS
+	DA	<br><i>- Codecs:</i> understøttede codecs. Kommasepareret liste over <b>med tab</b>:aac,ogg,ops,mp3 <b>tabsfri</b>:flc,ogf,alc
+	DA	og <b>ukomprimeret</b>:wav,pcm, aif. Når du indstiller disse til en bestemt afspiller, skal du tilføje + eller - foran codec-navnet for
+	DA	at tilføje til eller fjerne fra standardlisten. Hvis omkodning er aktiveret, vil lokal afkodning blive udført af broen (kun
+	DA	mp3,aac,flc,alc,pcm,wav,ogf,ops og ogg er understøttet)
+	DA	<br><i>- Maks sample rate:</i> maksimal understøttet sample rate. Dette vil lade LMS bestemme, hvornår der skal foretages resampling
+	DA	på serversiden.
 	EN	List the audio capabilities of the Chromecast player as they will be reported to LMS
 	EN	<br><i>- Codecs:</i> supported codecs. Comma-separated, list of <b>lossy</b>:aac,ogg,ops,mp3 <b>lossless</b>:flc,ogf,alc 
 	EN	and <b>uncompressed</b>:wav,pcm,aif. When setting these for a specific player, add + or - in front of codec name to
@@ -183,18 +251,37 @@ PLUGIN_CASTBRIDGE_CASTAUDIOCAPS_DESC
 	EN	the server side.
 			
 PLUGIN_CASTBRIDGE_SAMPLERATE
+	DA	Maks sample rate
 	EN	Max sample rate
 
 PLUGIN_CASTBRIDGE_CODECS
 	EN	Codecs
 	
 PLUGIN_CASTBRIDGE_ADVANCED
+	DA	Vis avancerede indstillinger
 	EN	Show advanced options
 	
 PLUGIN_CASTBRIDGE_ENCODEPARAMS
+	DA	Audioformat til Chromecast afspiller
 	EN	Audio format to Chromecast player
 	
 PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC
+	DA	Din bro kan enten blot sende audio data til afspilleren (med mindre ændringer) eller udføre en fuld omkodning, som
+	DA	forbedrer kompatibiliteten ved at sende et kontrolleret dataformat og tillade replay gain samt fading ind og ud. Det er
+	DA	også muligt at sende lyd i en kontinuerlig strøm af data i stedet for et nummer ad gangen for at muliggøre ægte gapless
+	DA	afspilning og krydsfading. Se brugervejledningen for flere detaljer
+	DA	<br><i>- Transkodning:</i> format sendt til afspilleren. Når tom eller indstillet til 'none', sendes lyden uændret videre til
+	DA	afspilleren. Brug 'null' for at sende lydløse mp3-rammer og brug kun afspilleren til visning (oprethold ikke synkronisering)
+	DA	<br><i>- Tving AAC</i> Chromecast-afspillere bør understøtte aac i en mp4-ramme, men hvis det fejler,
+	DA	kan broen pakke rammer ud og sende dem direkte
+	DA	<br><i>- Flow:</i> aktivér "flow" tilstand, hvor afspillelister sendes som en kontinuerlig audio stream.
+	DA	<br><i>- FLAC-komprimering:</i> Indstil komprimeringsniveauet i FLAC-tilstand. 0 = laveste komprimering og CPU-belastning
+	DA	<br><i>- MP3/AAC bitrate:</i> i mp3/aac-tilstand, indstil bitrate
+	DA	<br><i>- Resample rate:</i> resample rate for omkodning. Når "No higher" er indstillet, vil resampling kun ske,
+	DA	hvis hastigheden er over den indstillede værdi, undtagen i flowtilstand, hvor hastigheden skal være fast (44100 som standard).
+	DA	Når den efterlades tom, udføres ingen resampling.
+	DA	<br><i>- Sample størrelse:</i> sample størrelse til omkodning. Når den efterlades tom, bruges original sample størrelse for numre,
+	DA	undtagen i flow hvor sample størrelsen skal være låst (16 bit som standard)
 	EN	The bridge can either simply passthrough audio data to the player (with minor alteration) or do a full transcoding which
 	EN	improves compatibility by sending controlled format and allows replay gain as well as fading in and out. It's also 
 	EN	possible to send audio in a continuous flow of data instead of tracks one-bye-one to enable true gapless and 
@@ -212,12 +299,15 @@ PLUGIN_CASTBRIDGE_ENCODEPARAMS_DESC
 	EN	where sample size must be fixed (16 bits by default)
 
 PLUGIN_CASTBRIDGE_ENCODEMODE
+	DA	Transkodning
 	EN	Transcode
 
 PLUGIN_CASTBRIDGE_FORCEAAC
+	DA	Tving AAC
 	EN	Force AAC
 
 PLUGIN_CASTBRIDGE_ENCODEFLACLEVEL
+	DA	FLAC kompression
 	EN	Flac compression
 	
 PLUGIN_CASTBRIDGE_ENCODEBITRATE
@@ -230,6 +320,7 @@ PLUGIN_CASTBRIDGE_ENCODERATE
 	EN	Resample rate
 
 PLUGIN_CASTBRIDGE_ENCODESIZE
+	DA	Sample størrelse
 	EN	Sample size
 
 PLUGIN_CASTBRIDGE_ENCODEFLOW
@@ -239,30 +330,43 @@ PLUGIN_CASTBRIDGE_SERVER
 	EN	LMS Server
 	
 PLUGIN_CASTBRIDGE_ENABLED
+	DA	Aktiveret
 	EN	Enabled
 	
 PLUGIN_CASTBRIDGE_REMOVETIMEOUT
+	DA	Fjern timeout
 	EN	Remove timeout
 	
 PLUGIN_CASTBRIDGE_PLAYERINFO
+	DA	Afspillerinformation
 	EN	Player information
 	
 PLUGIN_CASTBRIDGE_PLAYERINFO_DESC
+	DA	Navnet og MAC adressen på afspilleren kan ændres her. <i>Navn</i> overskrives af værdi i LMS-afspillerens konfigurationsside
 	EN	The Name and MAC address of the player can be changed here. The <i>Name</i> is superseded by value in LMS player's configuration page
 		
 PLUGIN_CASTBRIDGE_PLAYERNAME
+	DA	Navn
 	EN	Name
 	
 PLUGIN_CASTBRIDGE_PLAYERMAC
+	DA	MAC adresse
 	EN	MAC address
 
 PLUGIN_CASTBRIDGE_DELETEPLAYER
+	DA	Slet
 	EN	Delete
 
 PLUGIN_CASTBRIDGE_MDNSMGMT
+	DA	Afspillerens opdagelsesmuligheder
 	EN	Player discovery options
 	
 PLUGIN_CASTBRIDGE_MDNSMGMT_DESC
+	DA	Diverse indstillinger
+	DA	<br>- For standardlisten kan nyopdagede afspillere automatisk føjes til LMS
+	DA	<br>- For individuelle afspillere kan en afspiller aktiveres eller deaktiveres
+	DA	<br>- Tving LMS-server (? til automatisk opdagelse)
+	DA	<br>- Fjern timeout sætter tid (sek) for at beholde en afspiller i LMS, efter at den er frakoblet (-1 = aldrig, 0 = automatisk)
 	EN	Misc options
 	EN	<br>- For the default list newly discovered players can be automatically added to LMS 
 	EN	<br>– For individual players a player can be enabled or disabled
@@ -270,60 +374,83 @@ PLUGIN_CASTBRIDGE_MDNSMGMT_DESC
 	EN	<br>- Remove timeout sets the time (s) to keep a player in LMS after is has disconnected (-1 = never, 0 = automatic)
 
 PLUGIN_CASTBRIDGE_ENABLEDEFS
+	DA	Afspiller er aktiveret
 	EN	Player is enabled
 
 PLUGIN_CASTBRIDGE_SENDMETADATA
+	DA	Send LMS metadata til afspiller
 	EN	Send LMS metadata to player
 	
 PLUGIN_CASTBRIDGE_SEND_COVERART
+	DA	Inkludér cover grafik
 	EN	Include cover art
 
 PLUGIN_CASTBRIDGE_SENDMETADATA_DESC
+	DA	Når du bruger en Chromecast-video, kan LMS sende metadata (titel, kunstner, album) til den. Dette <b>VIRKER IKKE</b>,
+	DA	hvis du har sat en adgangskode til LMS-kommandoadgang
 	EN	When using a Chromecast Video, LMS can send metadata (title, artist, album) to it. This <b>DOES NOT</b> work if you 
 	EN	have set a password for LMS command access
 	
 PLUGIN_CASTBRIDGE_VOLUMEMGMT
+	DA	Lydniveaustyring for afspiller
 	EN	Player volume management
 	
 PLUGIN_CASTBRIDGE_VOLUMEMGMT_DESC
+	DA	Definerer, hvordan LMS volumenkommandoer sendes til afspilleren
+	DA	Dette afsnit styrer også, hvordan LMS lydstyrkekommandoer sendes til afspilleren. Det er muligt at anvende en skaleringsfaktor (0..100)
+	DA	hvis standardniveauet er for højt. Det er også muligt at forhindre LMS i at sende lydstyrkekommandoer, når der ikke afspilles noget.
+	DA	Feedback afspejler ændringer foretaget på enheden til LMS
 	EN	Defines how LMS volume commands are sent to player
 	EN	This section also controls how LMS volume commands are sent to player. It is possible to apply a scaling factor (0..100)
 	EN	if default is too loud. It is also possible to prevent LMS from sending volume commands when nothing is being played.
 	EN	Feedback reflects changes made on the device to LMS
 
 PLUGIN_CASTBRIDGE_VOLUMEONPLAY
+	DA	LMS lydstyrkeændringer
 	EN	LMS volume changes
 	
 PLUGIN_CASTBRIDGE_VOLUMEWHENPLAYING
+	DA	kun når der afspilles
 	EN	only when playing
 	
 PLUGIN_CASTBRIDGE_VOLUMEIGNORE
+	DA	ignorér alle ændringer
 	EN	ignore all changes
 	
 PLUGIN_CASTBRIDGE_VOLUMEFORWARD
 	EN	transparent forward	
 
 PLUGIN_CASTBRIDGE_VOLUMEFEEDBACK
+	DA	Tilbagemelding til LMS
 	EN	Feedback to LMS	
 
 PLUGIN_CASTBRIDGE_MEDIAVOLUME
+	DA	Skaleringsfaktor
 	EN	Scaling factor
 
 PLUGIN_CASTBRIDGE_PLAYERLIST
+	DA	Liste over afspillere i konfigurationsfilen - Bemærk, at flere enheder muligvis er blevet opdaget
 	EN	List of players currently in configuration file - Note that more devices might have been discovered
 		
 PLUGIN_CASTBRIDGE_NOCONFIG
+	DA	Konfigurationsfil mangler - opret en ved at klikke på "generér" eller, hvis automatisk lagring er aktiveret, opdater denne side
 	EN	Configuration file missing - create one by clicking "generate" or, if autosave is on, refresh this page
 
 PLUGIN_CASTBRIDGE_INFO_UNIX
+	DA	Castbridge bruger Squeeze2cast softwareafspilleren, som er installeret som en del af udvidelsesmodulet.
+	DA	Du kan styre den fra serverens webgrænseflade eller enhver anden Squeezebox kontrolapplikation.
 	EN	CastBridge uses the Squeeze2cast software player which is installed as part of the plugin.  You can control it from the server
 	EN	web interface or any other Squeezebox control application.
 
 PLUGIN_CASTBRIDGE_INFO_WIN
+	DA	Castbridge bruger Squeeze2cast softwareafspilleren, som er installeret som en del af udvidelsesmodulet.
+	DA	Du kan styre den fra serverens webgrænseflade eller enhver anden Squeezebox kontrolapplikation.
 	EN	CastBridge uses the Squeeze2cast software player which is installed as part of the plugin.  You can control it from the server
 	EN	web interface or any other Squeezebox control application.
 
 PLUGIN_CASTBRIDGE_INFO_MAC
+	DA	Castbridge bruger Squeeze2cast softwareafspilleren, som er installeret som en del af udvidelsesmodulet.
+	DA	Du kan styre den fra serverens webgrænseflade eller enhver anden Squeezebox kontrolapplikation.
 	EN	CastBridge uses the Squeeze2cast software player which is installed as part of the plugin.  You can control it from the server
 	EN	web interface or any other Squeezebox control application.
 	
