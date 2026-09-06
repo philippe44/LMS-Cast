@@ -409,7 +409,7 @@ bool sq_callback(void *caller, sq_action_t action, ...)
 			if (!Device->Config.VolumeOnPlay || (Device->Config.VolumeOnPlay == 1 && Device->sqState == SQ_PLAY)) {
 				uint32_t now = gettime_ms();
 
-				if (now > Device->VolumeStampRx + 1000) {
+				if (now - Device->VolumeStampRx > 1000) {
 					CastSetDeviceVolume(Device->CastCtx, Device->Volume, false);
 					Device->VolumeStampTx = now;
 				}
@@ -613,7 +613,7 @@ static void *MRThread(void *args)
 				double Volume = -1;
 				bool Muted;
 
-				if (GetMediaVolume(data, 0, &Volume, &Muted) && Volume != -1 && now > p->VolumeStampTx + 1000) {
+				if (GetMediaVolume(data, 0, &Volume, &Muted) && Volume != -1 && now - p->VolumeStampTx > 1000) {
 					if (!Muted && Volume != p->Volume && fabs(Volume - p->Volume) >= 0.01 ) {
 						int VolFix = Volume * 100 + 0.5;
 						p->VolumeStampRx = now;
@@ -840,7 +840,7 @@ static bool mDNSsearchCallback(mdnssd_service_t *slist, void *cookie, bool *stop
 
 		// new device so search a free spot - as this function is not called
 		// recursively, no need to lock the device's mutex
-		for (Device = glMRDevices; Device->Running && Device < glMRDevices + MAX_RENDERERS; Device++);
+		for (Device = glMRDevices; Device < glMRDevices + MAX_RENDERERS && Device->Running; Device++);
 
 		// no more room !
 		if (Device == glMRDevices + MAX_RENDERERS) {
