@@ -1,3 +1,6 @@
+3.5.1
+ - fix some potential buffer overflow (crosstools)
+ 
 3.5.0
  - use default receiver for audio-only devices
  
