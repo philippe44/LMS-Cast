@@ -1,3 +1,6 @@
+3.5.2
+ - missing backport in http_parse (output_http_output.c)
+ 
 3.5.1
  - fix some potential buffer overflow (crosstools)
  
